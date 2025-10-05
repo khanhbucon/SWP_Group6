@@ -10,7 +10,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public GenericRepository(AppDbContext context)
     {
         _context = context;
-_dbSet = _context.Set<T>();
+        _dbSet = _context.Set<T>();
     }
     public async Task<IEnumerable<T>> GetAllAsync()
     {
