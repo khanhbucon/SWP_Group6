@@ -1,0 +1,78 @@
+[
+  {
+    "ContainingType": "Mo_Api.ApiController.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/Auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Mo_Api.DTO.AccountDTO.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Mo_Api.DTO.AccountDTO.LoginResponse",
+        "MediaTypes": [
+          "application/json;odata.metadata=minimal;odata.streaming=true",
+          "application/json;odata.metadata=minimal;odata.streaming=false",
+          "application/json;odata.metadata=minimal",
+          "application/json;odata.metadata=full;odata.streaming=true",
+          "application/json;odata.metadata=full;odata.streaming=false",
+          "application/json;odata.metadata=full",
+          "application/json;odata.metadata=none;odata.streaming=true",
+          "application/json;odata.metadata=none;odata.streaming=false",
+          "application/json;odata.metadata=none",
+          "application/json;odata.streaming=true",
+          "application/json;odata.streaming=false",
+          "application/json",
+          "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false",
+          "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=true",
+          "application/json;odata.metadata=minimal;odata.streaming=false;IEEE754Compatible=false",
+          "application/json;odata.metadata=minimal;odata.streaming=false;IEEE754Compatible=true",
+          "application/json;odata.metadata=minimal;IEEE754Compatible=false",
+          "application/json;odata.metadata=minimal;IEEE754Compatible=true",
+          "application/json;odata.metadata=full;odata.streaming=true;IEEE754Compatible=false",
+          "application/json;odata.metadata=full;odata.streaming=true;IEEE754Compatible=true",
+          "application/json;odata.metadata=full;odata.streaming=false;IEEE754Compatible=false",
+          "application/json;odata.metadata=full;odata.streaming=false;IEEE754Compatible=true",
+          "application/json;odata.metadata=full;IEEE754Compatible=false",
+          "application/json;odata.metadata=full;IEEE754Compatible=true",
+          "application/json;odata.metadata=none;odata.streaming=true;IEEE754Compatible=false",
+          "application/json;odata.metadata=none;odata.streaming=true;IEEE754Compatible=true",
+          "application/json;odata.metadata=none;odata.streaming=false;IEEE754Compatible=true",
+          "application/json;odata.metadata=none;odata.streaming=false;IEEE754Compatible=false",
+          "application/json;odata.metadata=none;IEEE754Compatible=false",
+          "application/json;odata.metadata=none;IEEE754Compatible=true",
+          "application/json;odata.streaming=true;IEEE754Compatible=false",
+          "application/json;odata.streaming=true;IEEE754Compatible=true",
+          "application/json;odata.streaming=false;IEEE754Compatible=false",
+          "application/json;odata.streaming=false;IEEE754Compatible=true",
+          "application/json;IEEE754Compatible=false",
+          "application/json;IEEE754Compatible=true",
+          "application/xml",
+          "application/json",
+          "text/plain",
+          "application/octet-stream",
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.AuthController",
+    "Method": "Test",
+    "RelativePath": "api/Auth/test",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
