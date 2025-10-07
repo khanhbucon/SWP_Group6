@@ -1,10 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mo_Entities", "Mo_Entities\Mo_Entities.csproj", "{546A24E9-B535-405F-9058-1F14E9DBC96E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mo_DataAccess", "Mo_DataAccess\Mo_DataAccess.csproj", "{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mo_Api", "Mo_Api\Mo_Api.csproj", "{DF8887BB-889A-4E30-83E8-8311FD648BB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mo_Client", "Mo_Client\Mo_Client.csproj", "{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +29,15 @@ Global
 		{DF8887BB-889A-4E30-83E8-8311FD648BB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF8887BB-889A-4E30-83E8-8311FD648BB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF8887BB-889A-4E30-83E8-8311FD648BB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C4CEC87E-DA42-4A46-831D-389035FA7A0A}
 	EndGlobalSection
 EndGlobal
