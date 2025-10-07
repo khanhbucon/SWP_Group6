@@ -1,12 +1,20 @@
 {
   "Version": 1,
-  "Hash": "/832dwRUiMeK4uXgZHEWrYcJMF9461wCP/7wm0MsV38=",
+  "Hash": "K5oGhe7oC4r+i69mNe6OuZnm6W5HXyiFh0PXEelNsFI=",
   "Source": "Mo_Api",
   "BasePath": "_content/Mo_Api",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "Mo_Api\\wwwroot",
+      "Source": "Mo_Api",
+      "ContentRoot": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\wwwroot\\",
+      "BasePath": "_content/Mo_Api",
+      "Pattern": "**"
+    }
+  ],
   "Assets": [],
   "Endpoints": []
 }
