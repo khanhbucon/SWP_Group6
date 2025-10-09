@@ -1,38 +1,101 @@
 ﻿@{
     ViewData["Title"] = "Trang chủ";
 }
-<div class="container" style="max-width:720px;margin:6vh auto;">
-    <h2>Trang chủ (mock)</h2>
-    <p>Đăng nhập thành công! Đây là trang demo sau khi đăng nhập.</p>
 
-    <div class="card mt-3 p-3">
-        <p><strong>Token (trích):</strong>
-        @{ var token = Context.Request.Cookies["accessToken"]; }
-        @if (!string.IsNullOrEmpty(token))
-        {
-            @token.Substring(0, Math.Min(token.Length, 32))<text>...</text>
-        }
-        else { <text>Chưa có token</text>; }
-        </p>
-
-        <p><strong>Roles:</strong>
-        @{ var roles = Context.Request.Cookies["roles"]; }
-        @if (!string.IsNullOrEmpty(roles))
-        { @roles }
-        else { <text>(none)</text>; }
-        </p>
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-primary">Chào mừng đến với Mo_Client</h1>
+                <p class="lead">Hệ thống quản lý hiện đại với giao diện đẹp mắt và dễ sử dụng.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <a href="/Account/Login" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                    </a>
+                    <a href="/Account/Register" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Đăng ký
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-rocket display-1 text-primary"></i>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <form method="post" action="/Account/Logout" class="mt-3">
-        <button class="btn btn-outline-danger">Đăng xuất</button>
-    </form>
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Bảo mật cao</h5>
+                    <p class="card-text">Hệ thống được bảo mật với token authentication và mã hóa dữ liệu.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Responsive Design</h5>
+                    <p class="card-text">Giao diện thân thiện với mọi thiết bị từ desktop đến mobile.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-bolt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Hiệu suất cao</h5>
+                    <p class="card-text">Tối ưu hóa tốc độ và trải nghiệm người dùng mượt mà.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @{
-    ViewData["Title"] = "Home Page";
+    var token = Context.Request.Cookies["accessToken"];
+    var roles = Context.Request.Cookies["roles"];
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (!string.IsNullOrEmpty(token))
+{
+    <div class="container">
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">Đăng nhập thành công!</h4>
+            <p>Bạn đã đăng nhập vào hệ thống. Dưới đây là thông tin phiên đăng nhập:</p>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0"><strong>Token (32 ký tự đầu):</strong><br>
+                    <code>@token.Substring(0, Math.Min(token.Length, 32))...</code></p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-0"><strong>Roles:</strong><br>
+                    @if (!string.IsNullOrEmpty(roles))
+                    { 
+                        <span class="badge bg-primary">@roles</span>
+                    }
+                    else 
+                    { 
+                        <span class="badge bg-secondary">(none)</span>
+                    }
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <form method="post" action="/Account/Logout" class="d-inline">
+                <button class="btn btn-outline-danger btn-lg">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </div>
+}

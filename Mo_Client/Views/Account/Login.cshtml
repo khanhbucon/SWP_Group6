@@ -1,33 +1,53 @@
-@model Mo_Client.Controllers.AccountController.LoginVm
+@model Mo_Client.Models.LoginVm
 @{
     ViewData["Title"] = "Đăng nhập";
 }
-<div class="container" style="max-width:420px;margin:6vh auto;">
-    <h2>Đăng nhập</h2>
-    @if (!string.IsNullOrEmpty(Model?.Error))
-    {
-        <div class="text-danger">@Model.Error</div>
-    }
-    <form method="post">
-        <input type="hidden" name="ReturnUrl" value="@Model?.ReturnUrl" />
-        <div class="mb-3">
-            <label class="form-label">Tên đăng nhập hoặc Email</label>
-            <input class="form-control" name="Identifier" value="@Model?.Identifier" required minlength="3" />
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Đăng nhập</h2>
+            <p>Chào mừng bạn quay trở lại!</p>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Mật khẩu</label>
-            <input class="form-control" type="password" name="Password" required minlength="6" />
+
+        @if (!string.IsNullOrEmpty(Model?.Error))
+        {
+            <div class="alert alert-danger" role="alert">
+                @Model.Error
+            </div>
+        }
+
+        <form method="post" class="auth-form">
+            <input type="hidden" name="ReturnUrl" value="@Model?.ReturnUrl" />
+            
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập hoặc Email</label>
+                <input class="form-control" name="Identifier" value="@Model?.Identifier" required minlength="3" placeholder="Nhập tên đăng nhập hoặc email" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input class="form-control" type="password" name="Password" required minlength="6" placeholder="Nhập mật khẩu" />
+            </div>
+
+            <div class="form-group form-check">
+                <input class="form-check-input" type="checkbox" name="RememberMe" />
+                <label class="form-check-label">Ghi nhớ đăng nhập</label>
+            </div>
+
+            <button class="btn btn-primary auth-btn" type="submit">
+                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+            </button>
+
+            <div class="auth-links">
+                <a href="/Account/Forgot" class="auth-link">Quên mật khẩu?</a>
+            </div>
+        </form>
+
+        <div class="auth-footer">
+            <p>Chưa có tài khoản? <a href="/Account/Register" class="auth-link">Đăng ký ngay</a></p>
         </div>
-        <div class="mb-3 form-check">
-            <input class="form-check-input" type="checkbox" name="RememberMe" />
-            <label class="form-check-label">Ghi nhớ đăng nhập</label>
-        </div>
-        <button class="btn btn-primary w-100" type="submit">Đăng nhập</button>
-        <div class="mt-3">
-            <a href="/Account/Forgot">Quên mật khẩu?</a>
-        </div>
-    </form>
-    
+    </div>
 </div>
 
 
