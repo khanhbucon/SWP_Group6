@@ -10,10 +10,19 @@
             <p>Chào mừng bạn quay trở lại!</p>
         </div>
 
+        @if (!string.IsNullOrEmpty(Model?.Success))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @Model.Success
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(Model?.Error))
         {
-            <div class="alert alert-danger" role="alert">
-                @Model.Error
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i> @Model.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
 
@@ -38,14 +47,15 @@
             <button class="btn btn-primary auth-btn" type="submit">
                 <i class="fas fa-sign-in-alt"></i> Đăng nhập
             </button>
-
-            <div class="auth-links">
-                <a href="/Account/Forgot" class="auth-link">Quên mật khẩu?</a>
-            </div>
         </form>
 
-        <div class="auth-footer">
-            <p>Chưa có tài khoản? <a href="/Account/Register" class="auth-link">Đăng ký ngay</a></p>
+        <div class="auth-links">
+            <a asp-action="ForgotPassword" class="auth-link">
+                <i class="fas fa-question-circle"></i> Quên mật khẩu?
+            </a>
+            <a asp-action="Register" class="auth-link">
+                <i class="fas fa-user-plus"></i> Chưa có tài khoản? Đăng ký ngay
+            </a>
         </div>
     </div>
 </div>

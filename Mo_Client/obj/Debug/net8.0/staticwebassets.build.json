@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Z9pG5Sw8rDHl/Lu2JBJL4zdjJ8Jon4YdFFs2/AgKBXg=",
+  "Hash": "mJstLRv6oGAYxH7GFuNpZYpJy+Q7YK67yyMw9vhmhho=",
   "Source": "Mo_Client",
   "BasePath": "_content/Mo_Client",
   "Mode": "Default",
@@ -73,8 +73,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "0ejc39i5hw",
-      "Integrity": "KPQ8ZWX/V3IY9wFjROudKnytpUwLp1tn28hbHVfkTZM=",
+      "Fingerprint": "y1tufm60b4",
+      "Integrity": "aiqaGOnNrAHms+ruWsVEAdpSuHpjfIb73TiLBQR/Qvk=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\site.css"
@@ -1321,51 +1321,6 @@
   ],
   "Endpoints": [
     {
-      "Route": "css/site.0ejc39i5hw.css",
-      "AssetFile": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\wwwroot\\css\\site.css",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "8791"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/css"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"KPQ8ZWX/V3IY9wFjROudKnytpUwLp1tn28hbHVfkTZM=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Thu, 09 Oct 2025 02:03:02 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "0ejc39i5hw"
-        },
-        {
-          "Name": "label",
-          "Value": "css/site.css"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-KPQ8ZWX/V3IY9wFjROudKnytpUwLp1tn28hbHVfkTZM="
-        }
-      ]
-    },
-    {
       "Route": "css/site.css",
       "AssetFile": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\wwwroot\\css\\site.css",
       "Selectors": [],
@@ -1376,7 +1331,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "8791"
+          "Value": "8716"
         },
         {
           "Name": "Content-Type",
@@ -1384,11 +1339,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"KPQ8ZWX/V3IY9wFjROudKnytpUwLp1tn28hbHVfkTZM=\""
+          "Value": "\"aiqaGOnNrAHms+ruWsVEAdpSuHpjfIb73TiLBQR/Qvk=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 09 Oct 2025 02:03:02 GMT"
+          "Value": "Thu, 09 Oct 2025 17:39:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1398,7 +1353,52 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-KPQ8ZWX/V3IY9wFjROudKnytpUwLp1tn28hbHVfkTZM="
+          "Value": "sha256-aiqaGOnNrAHms+ruWsVEAdpSuHpjfIb73TiLBQR/Qvk="
+        }
+      ]
+    },
+    {
+      "Route": "css/site.y1tufm60b4.css",
+      "AssetFile": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\wwwroot\\css\\site.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "8716"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"aiqaGOnNrAHms+ruWsVEAdpSuHpjfIb73TiLBQR/Qvk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 09 Oct 2025 17:39:15 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "y1tufm60b4"
+        },
+        {
+          "Name": "label",
+          "Value": "css/site.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-aiqaGOnNrAHms+ruWsVEAdpSuHpjfIb73TiLBQR/Qvk="
         }
       ]
     },

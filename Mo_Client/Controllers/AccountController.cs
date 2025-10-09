@@ -13,10 +13,15 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
+    public IActionResult Login(string? returnUrl = null, string? success = null)
     {
         ViewBag.ReturnUrl = returnUrl;
-        return View(new LoginVm { ReturnUrl = returnUrl });
+        var vm = new LoginVm { ReturnUrl = returnUrl };
+        if (!string.IsNullOrEmpty(success))
+        {
+            vm.Success = success;
+        }
+        return View(vm);
     }
 
    
@@ -81,6 +86,79 @@ public class AccountController : Controller
             vm.Error = "Có lỗi xảy ra khi đăng ký: " + ex.Message;
             return View(vm);
         }
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View(new ForgotPasswordVm());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordVm vm, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return View(vm);
+
+        try
+        {
+            var success = await _authApiClient.ForgotPasswordAsync(
+                new AuthApiClient.ForgotPasswordRequest(vm.Email), ct);
+
+            if (success)
+            {
+                vm.Success = "Chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư.";
+                vm.Email = string.Empty; // Clear email for security
+            }
+            else
+            {
+                vm.Error = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.";
+            }
+        }
+        catch (Exception ex)
+        {
+            vm.Error = "Có lỗi xảy ra: " + ex.Message;
+        }
+
+        return View(vm);
+    }
+
+    [HttpGet]
+    public IActionResult ResetPassword(string? token = null)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+
+        return View(new ResetPasswordVm { Token = token });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResetPassword(ResetPasswordVm vm, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return View(vm);
+
+        try
+        {
+            var success = await _authApiClient.ResetPasswordAsync(
+                new AuthApiClient.ResetPasswordRequest(vm.Token, vm.NewPassword), ct);
+
+            if (success)
+            {
+                vm.Success = "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.";
+                return RedirectToAction("Login", new { success = "Đặt lại mật khẩu thành công!" });
+            }
+            else
+            {
+                vm.Error = "Token không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            vm.Error = "Có lỗi xảy ra: " + ex.Message;
+        }
+
+        return View(vm);
     }
 
     [HttpPost]

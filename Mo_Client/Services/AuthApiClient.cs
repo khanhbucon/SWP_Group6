@@ -18,6 +18,8 @@ public class AuthApiClient
     public record RegisterRequest(string Username, string Email, string Phone, string Password);
     public record RegisterResponse(bool Success, string? Message);
 
+    public record ForgotPasswordRequest(string Email);
+    public record ResetPasswordRequest(string Token, string NewPassword);
     public async Task<LoginResponse?> LoginAsync(LoginRequest req, CancellationToken ct = default)
     {
         var resp = await _httpClient.PostAsJsonAsync("/api/auth/login", req, ct);
@@ -32,7 +34,18 @@ public class AuthApiClient
         return await resp.Content.ReadFromJsonAsync<RegisterResponse>(cancellationToken: ct);
     }
 
-  
+    public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequest req, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PostAsJsonAsync("/api/account/forgot-password", req, ct);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ResetPasswordAsync(ResetPasswordRequest req, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PostAsJsonAsync("/api/account/reset-password", req, ct);
+        return resp.IsSuccessStatusCode;
+    }
+
 }
 
 
