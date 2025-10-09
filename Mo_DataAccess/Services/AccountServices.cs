@@ -394,6 +394,68 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
         };
     }
 
+    public async Task<ProfileResponse> GetProfileByIdAsync(long userId)
+    {
+        var account = await _context.Accounts
+            .Include(a => a.Roles)
+            .FirstOrDefaultAsync(a => a.Id == userId);
+
+        if (account == null)
+            throw new InvalidOperationException("User not found");
+
+        // Tính toán thống kê
+        var totalOrders = await _context.OrderProducts
+            .Where(op => op.AccountId == userId)
+            .CountAsync();
+
+        var totalShops = await _context.Shops
+            .Where(s => s.AccountId == userId)
+            .CountAsync();
+
+        var totalProductsSold = await _context.OrderProducts
+            .Where(op => op.AccountId == userId)
+            .SumAsync(op => op.Quantity);
+
+        return new Mo_Entities.ModelResponse.ProfileResponse
+        {
+            Id = account.Id,
+            Username = account.Username,
+            Email = account.Email,
+            Phone = account.Phone,
+            Balance = account.Balance,
+            IsActive = account.IsActive,
+            CreatedAt = account.CreatedAt,
+            UpdatedAt = account.UpdatedAt,
+            Roles = account.Roles.Select(r => r.RoleName).ToList(),
+            IsEKYCVerified = account.IdentificationF.HasValue && account.IdentificationB.HasValue,
+            TotalOrders = totalOrders,
+            TotalShops = totalShops,
+            TotalProductsSold = totalProductsSold
+        };
+    }
+
+    //public async Task UpdateProfileAsync(long userId, string username, string phone, string email)
+    //{
+    //    var account = await _context.Accounts.FindAsync(userId);
+    //    if (account == null)
+    //        throw new InvalidOperationException("User not found");
+
+    //    // Kiểm tra username đã tồn tại chưa (trừ chính user hiện tại)
+    //    if (await _context.Accounts.AnyAsync(a => a.Username == username && a.Id != userId))
+    //        throw new InvalidOperationException("Username đã tồn tại");
+
+    //    // Kiểm tra email đã tồn tại chưa (trừ chính user hiện tại)
+    //    if (await _context.Accounts.AnyAsync(a => a.Email == email && a.Id != userId))
+    //        throw new InvalidOperationException("Email đã tồn tại");
+
+    //    account.Username = username;
+    //    account.Phone = phone;
+    //    account.Email = email;
+    //    account.UpdatedAt = DateTime.Now;
+
+    //    await _context.SaveChangesAsync();
+    //}
+
     public async Task<Account> GrantSellerRoleAsync(long accountId)
     {
         var account = await _context.Set<Account>()

@@ -168,6 +168,182 @@ public class AccountController : Controller
         Response.Cookies.Delete("roles");
         return RedirectToAction("Login");
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Profile()
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Login");
+            }
+
+            _authApiClient.SetToken(token);
+            var profile = await _authApiClient.GetCurrentUserProfileAsync();
+            
+            if (profile == null)
+            {
+                ViewBag.Error = "Không thể tải thông tin profile";
+                return View(new ProfileVm());
+            }
+
+            var vm = new ProfileVm
+            {
+                Id = profile.Id,
+                Username = profile.Username,
+                Email = profile.Email,
+                Phone = profile.Phone ?? "",
+                Balance = profile.Balance ?? 0,
+                IsActive = profile.IsActive ?? false,
+                CreatedAt = profile.CreatedAt ?? DateTime.Now,
+                UpdatedAt = profile.UpdatedAt,
+                Roles = profile.Roles,
+                IsEKYCVerified = profile.IsEKYCVerified,
+                TotalOrders = profile.TotalOrders,
+                TotalShops = profile.TotalShops,
+                TotalProductsSold = profile.TotalProductsSold
+            };
+
+            return View(vm);
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
+            return View(new ProfileVm());
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ManagerUser()
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                ViewBag.Error = "Bạn cần đăng nhập để truy cập trang này";
+                return RedirectToAction("Login");
+            }
+
+            // Kiểm tra role Admin
+            if (string.IsNullOrEmpty(roles) || !roles.Contains("Admin"))
+            {
+                ViewBag.Error = "Bạn không có quyền truy cập trang này. Chỉ Admin mới được phép.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            _authApiClient.SetToken(token);
+            var users = await _authApiClient.GetAllUsersAsync();
+            if (users == null)
+            {
+                ViewBag.Error = "Không thể tải danh sách người dùng";
+                return View(new List<ListAccountResponse>());
+            }
+            return View(users);
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
+            return View(new List<ListAccountResponse>());
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> BanUser(long userId)
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["Error"] = "Bạn cần đăng nhập để thực hiện thao tác này";
+                return RedirectToAction("Login");
+            }
+
+            // Kiểm tra role Admin
+            if (string.IsNullOrEmpty(roles) || !roles.Contains("Admin"))
+            {
+                TempData["Error"] = "Bạn không có quyền thực hiện thao tác này. Chỉ Admin mới được phép.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            _authApiClient.SetToken(token);
+            var success = await _authApiClient.BanUserAsync(userId);
+            if (success)
+            {
+                TempData["Success"] = "Thay đổi trạng thái người dùng thành công";
+            }
+            else
+            {
+                TempData["Error"] = "Không thể thay đổi trạng thái người dùng";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+        }
+        return RedirectToAction("ManagerUser");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> GrantSellerRole(long userId)
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["Error"] = "Bạn cần đăng nhập để thực hiện thao tác này";
+                return RedirectToAction("Login");
+            }
+
+            // Kiểm tra role Admin
+            if (string.IsNullOrEmpty(roles) || !roles.Contains("Admin"))
+            {
+                TempData["Error"] = "Bạn không có quyền thực hiện thao tác này. Chỉ Admin mới được phép.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Kiểm tra xác minh danh tính trước khi cấp quyền Seller
+            _authApiClient.SetToken(token);
+            var users = await _authApiClient.GetAllUsersAsync();
+            if (users != null)
+            {
+                var targetUser = users.FirstOrDefault(u => u.UserId == userId);
+                if (targetUser != null)
+                {
+                    if (!targetUser.IsEKYCVerified)
+                    {
+                        TempData["Error"] = $"Không thể cấp quyền Seller cho người dùng '{targetUser.Username}'. Người dùng chưa xác minh danh tính (eKYC).";
+                        return RedirectToAction("ManagerUser");
+                    }
+                }
+            }
+
+            var success = await _authApiClient.GrantSellerRoleAsync(userId);
+            if (success)
+            {
+                TempData["Success"] = "Cấp phép Seller thành công";
+            }
+            else
+            {
+                TempData["Error"] = "Không thể cấp phép Seller";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+        }
+        return RedirectToAction("ManagerUser");
+    }
 }
 
 

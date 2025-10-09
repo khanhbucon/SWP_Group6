@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
+using Mo_Client.Models;
 
 namespace Mo_Client.Services;
 
@@ -12,9 +13,14 @@ public class AuthApiClient
         _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
     }
 
+    public void SetToken(string token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
     public record LoginRequest(string Identifier, string Password, bool RememberMe);
     public record LoginResponse(string AccessToken, DateTime ExpiresAt, string? RefreshToken, List<string>? Roles);
-    
+
     public record RegisterRequest(string Username, string Email, string Phone, string Password);
     public record RegisterResponse(bool Success, string? Message);
 
@@ -46,6 +52,34 @@ public class AuthApiClient
         return resp.IsSuccessStatusCode;
     }
 
+    public async Task<List<ListAccountResponse>?> GetAllUsersAsync(CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync("/api/account/Admin/GetAllAccount", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        return await resp.Content.ReadFromJsonAsync<List<ListAccountResponse>>(cancellationToken: ct);
+    }
+
+    public async Task<bool> BanUserAsync(long userId, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PostAsync($"/api/account/admin/{userId}/banUser", null, ct);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> GrantSellerRoleAsync(long userId, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PostAsync($"/api/account/admin/{userId}/grant-seller", null, ct);
+        return resp.IsSuccessStatusCode;
+    }
+    public async Task<ProfileResponse?> GetCurrentUserProfileAsync(CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync("/api/account/profile", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+
+        var result = await resp.Content.ReadFromJsonAsync<ApiResponse<ProfileResponse>>(cancellationToken: ct);
+        return result?.Data;
+    }
+
+    public record ApiResponse<T>(bool Success, T? Data, string? Message);
 }
 
 

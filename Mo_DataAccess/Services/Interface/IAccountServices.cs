@@ -23,6 +23,7 @@ namespace Mo_DataAccess.Services.Interface;
 
     Task<Account> GrantSellerRoleAsync(long accountId);
     Task<Account> BanUserAsync(long accountId);
+    Task<Mo_Entities.ModelResponse.ProfileResponse> GetProfileByIdAsync(long userId);
 
 
 
