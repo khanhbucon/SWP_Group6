@@ -14,6 +14,7 @@
           "Microsoft.AspNetCore.OData": "8.3.1",
           "Microsoft.AspNetCore.OpenApi": "8.0.18",
           "Mo_DataAccess": "1.0.0",
+          "Mo_Entities": "1.0.0",
           "Swashbuckle.AspNetCore": "6.6.2"
         },
         "runtime": {

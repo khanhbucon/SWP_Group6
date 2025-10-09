@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Mo_Client.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
     <header>
@@ -25,6 +26,59 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        @{
+                            var token = Context.Request.Cookies["accessToken"];
+                            var roles = Context.Request.Cookies["roles"];
+                        }
+                        @if (!string.IsNullOrEmpty(token))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile">
+                                    <i class="fas fa-user"></i> Thông tin cá nhân
+                                </a>
+                            </li>
+                            @if (!string.IsNullOrEmpty(roles) && roles.Contains("Admin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-cog"></i> Admin
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Accounts">
+                                            <i class="fas fa-users-cog"></i> Quản lý tài khoản
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="AdminCreateAccount">
+                                            <i class="fas fa-user-plus"></i> Tạo tài khoản
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <form method="post" action="/Account/Logout" class="d-inline">
+                                    <button class="btn btn-link nav-link text-dark" type="submit">
+                                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">
+                                    <i class="fas fa-user-plus"></i> Đăng ký
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
