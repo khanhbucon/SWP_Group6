@@ -1,0 +1,9 @@
+# Ignore uploaded files but keep folder structure
+wwwroot/images/*
+wwwroot/uploads/*
+wwwroot/files/*
+
+# But keep .gitkeep files
+!wwwroot/images/.gitkeep
+!wwwroot/uploads/.gitkeep
+!wwwroot/files/.gitkeep
