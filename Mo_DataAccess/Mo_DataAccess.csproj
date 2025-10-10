@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Mo_Entities\Mo_Entities.csproj" />
+    </ItemGroup>
+     <ItemGroup>
+         <Using Include="Mo_Entities.Models"/>
+         <Using Include="Mo_DataAccess.Repo"/>
+         <Using Include="Mo_DataAccess.Services.Interface"/>
+     </ItemGroup>
+</Project>

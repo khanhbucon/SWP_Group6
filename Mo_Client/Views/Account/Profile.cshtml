@@ -1,0 +1,388 @@
+@model Mo_Client.Models.ProfileVm
+
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user"></i> Thông tin cá nhân
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Alerts -->
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> @ViewBag.Error
+                        </div>
+                    }
+
+                    <!-- Thông tin cơ bản -->
+                    <form method="post">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">ID người dùng:</label>
+                                    <input type="text" class="form-control" value="@Model.Id" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Trạng thái tài khoản:</label>
+                                    <div class="d-flex align-items-center">
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge badge-success badge-lg">
+                                                <i class="fas fa-check-circle"></i> Hoạt động
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-danger badge-lg">
+                                                <i class="fas fa-times-circle"></i> Bị khóa
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Username" class="font-weight-bold">Tên đăng nhập *</label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Email" class="font-weight-bold">Email *</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Phone" class="font-weight-bold">Số điện thoại</label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Số dư hiện tại:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" 
+                                               value="@Model.Balance.ToString("N0") VNĐ" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-wallet text-success"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Xác minh danh tính (eKYC):</label>
+                                    <div class="d-flex align-items-center">
+                                        @if (Model.IsEKYCVerified)
+                                        {
+                                            <span class="badge badge-success badge-lg">
+                                                <i class="fas fa-check-circle"></i> Đã xác minh
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-warning badge-lg">
+                                                <i class="fas fa-exclamation-triangle"></i> Chưa xác minh
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thống kê hoạt động -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Tổng đơn hàng:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" 
+                                               value="@Model.TotalOrders đơn hàng" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-shopping-cart text-primary"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Tổng cửa hàng:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" 
+                                               value="@Model.TotalShops cửa hàng" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-store text-info"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Sản phẩm đã bán:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" 
+                                               value="@Model.TotalProductsSold sản phẩm" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-box text-warning"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vai trò -->
+                        <div class="form-group">
+                            <label class="font-weight-bold">Vai trò trong hệ thống:</label>
+                            <div class="d-flex flex-wrap">
+                                @if (Model.Roles != null && Model.Roles.Any())
+                                {
+                                    @foreach (var role in Model.Roles)
+                                    {
+                                        <span class="badge badge-primary badge-lg mr-2 mb-2">
+                                            <i class="fas fa-user-tag"></i> @role
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary badge-lg">
+                                        <i class="fas fa-user"></i> User
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Thông tin thời gian -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Ngày tạo tài khoản:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" 
+                                               value="@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-plus text-info"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Cập nhật lần cuối:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" 
+                                               value="@(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-clock text-warning"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="form-group mt-4">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-save"></i> Cập nhật thông tin
+                                    </button>
+                                    <a href="/" class="btn btn-secondary btn-lg ml-2">
+                                        <i class="fas fa-arrow-left"></i> Quay lại
+                                    </a>
+                                </div>
+                                <div>
+                                    @if (!Model.IsEKYCVerified)
+                                    {
+                                        <button type="button" class="btn btn-info btn-lg" onclick="showEKYCModal()">
+                                            <i class="fas fa-id-card"></i> Xác minh KYC
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác minh KYC -->
+<div class="modal fade" id="ekycModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-id-card"></i> Xác minh danh tính (eKYC)
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Hướng dẫn:</strong> Vui lòng upload ảnh mặt trước và mặt sau của CCCD/CMND để xác thực danh tính.
+                </div>
+                
+                <form id="ekycForm" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Ảnh mặt trước CCCD/CMND *</label>
+                                <div class="upload-area" id="frontUploadArea">
+                                    <input type="file" name="frontImage" accept="image/*" class="d-none" id="frontImageInput" onchange="previewImage(this, 'frontPreview')">
+                                    <div class="upload-placeholder" onclick="document.getElementById('frontImageInput').click()">
+                                        <i class="fas fa-camera fa-3x text-muted"></i>
+                                        <p class="mt-2">Click để chọn ảnh</p>
+                                    </div>
+                                    <div class="image-preview" id="frontPreview" style="display: none;">
+                                        <img src="" alt="Front Image" class="img-fluid">
+                                        <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeImage('frontImageInput', 'frontPreview')">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Ảnh mặt sau CCCD/CMND *</label>
+                                <div class="upload-area" id="backUploadArea">
+                                    <input type="file" name="backImage" accept="image/*" class="d-none" id="backImageInput" onchange="previewImage(this, 'backPreview')">
+                                    <div class="upload-placeholder" onclick="document.getElementById('backImageInput').click()">
+                                        <i class="fas fa-camera fa-3x text-muted"></i>
+                                        <p class="mt-2">Click để chọn ảnh</p>
+                                    </div>
+                                    <div class="image-preview" id="backPreview" style="display: none;">
+                                        <img src="" alt="Back Image" class="img-fluid">
+                                        <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeImage('backImageInput', 'backPreview')">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Lưu ý:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Ảnh phải rõ nét, không bị mờ</li>
+                            <li>Thông tin trên CCCD/CMND phải đọc được</li>
+                            <li>Không được cắt xén hoặc che khuất thông tin</li>
+                            <li>Chỉ chấp nhận file ảnh: JPG, PNG, JPEG (tối đa 5MB)</li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="submitEKYC()">
+                    <i class="fas fa-upload"></i> Gửi xác minh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function showEKYCModal() {
+            $('#ekycModal').modal('show');
+        }
+
+        function previewImage(input, previewId) {
+            const file = input.files[0];
+            if (file) {
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Kích thước file không được vượt quá 5MB');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById(previewId);
+                    const img = preview.querySelector('img');
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                    preview.parentElement.querySelector('.upload-placeholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage(inputId, previewId) {
+            document.getElementById(inputId).value = '';
+            const preview = document.getElementById(previewId);
+            preview.style.display = 'none';
+            preview.parentElement.querySelector('.upload-placeholder').style.display = 'block';
+        }
+
+        function submitEKYC() {
+            const frontFile = document.getElementById('frontImageInput').files[0];
+            const backFile = document.getElementById('backImageInput').files[0];
+            
+            if (!frontFile || !backFile) {
+                alert('Vui lòng chọn đầy đủ 2 ảnh');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('frontImage', frontFile);
+            formData.append('backImage', backFile);
+            
+            // TODO: Implement upload KYC API call
+            alert('Tính năng upload KYC sẽ được implement sau');
+        }
+    </script>
+}

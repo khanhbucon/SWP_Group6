@@ -1,0 +1,271 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ";
+    var token = Context.Request.Cookies["accessToken"];
+    var roles = Context.Request.Cookies["roles"];
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="text-gradient">MarketPlace</span> 
+                        <br>Nền tảng thương mại điện tử hàng đầu
+                    </h1>
+                    <p class="hero-subtitle">
+                        Kết nối người mua và người bán trên một nền tảng an toàn, 
+                        tiện lợi với đầy đủ tính năng hiện đại.
+                    </p>
+                    
+                    @if (string.IsNullOrEmpty(token))
+                    {
+                        <div class="hero-buttons">
+                            <a href="/Account/Register" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-store"></i> Bắt đầu bán hàng
+                            </a>
+                            <a href="/Account/Login" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="hero-buttons">
+                            @if (!string.IsNullOrEmpty(roles) && roles.Contains("Seller"))
+                            {
+                                <a href="/Seller/Dashboard" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-tachometer-alt"></i> Quản lý cửa hàng
+                                </a>
+                            }
+                            @if (!string.IsNullOrEmpty(roles) && roles.Contains("Admin"))
+                            {
+                                <a href="/Admin/Dashboard" class="btn btn-success btn-lg me-3">
+                                    <i class="fas fa-cog"></i> Admin Panel
+                                </a>
+                            }
+                            <a href="/Products" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-shopping-bag"></i> Mua sắm ngay
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <div class="floating-card">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Mua sắm</span>
+                    </div>
+                    <div class="floating-card delay-1">
+                        <i class="fas fa-store"></i>
+                        <span>Bán hàng</span>
+                    </div>
+                    <div class="floating-card delay-2">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Thống kê</span>
+                    </div>
+                    <div class="hero-main-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">Tại sao chọn MarketPlace?</h2>
+                <p class="section-subtitle">Nền tảng thương mại điện tử với đầy đủ tính năng hiện đại</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Bảo mật tuyệt đối</h4>
+                    <p>Hệ thống bảo mật đa lớp với JWT authentication, mã hóa dữ liệu và bảo vệ thông tin cá nhân.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4>Responsive Design</h4>
+                    <p>Giao diện tối ưu cho mọi thiết bị, từ desktop đến mobile, mang lại trải nghiệm tuyệt vời.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h4>Hiệu suất cao</h4>
+                    <p>Tốc độ tải trang nhanh, xử lý đơn hàng mượt mà với công nghệ .NET 8 hiện đại.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h4>Thanh toán an toàn</h4>
+                    <p>Tích hợp VNPay, hỗ trợ nhiều phương thức thanh toán với bảo mật cao.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h4>Hỗ trợ 24/7</h4>
+                    <p>Hệ thống hỗ trợ khách hàng liên tục với chat real-time và ticket system.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h4>Thống kê chi tiết</h4>
+                    <p>Dashboard thống kê đầy đủ cho người bán và admin với báo cáo real-time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number">10,000+</div>
+                    <div class="stat-label">Sản phẩm</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number">1,000+</div>
+                    <div class="stat-label">Cửa hàng</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number">50,000+</div>
+                    <div class="stat-label">Khách hàng</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <div class="stat-label">Uptime</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+@if (string.IsNullOrEmpty(token))
+{
+    <section class="cta-section py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h3>Sẵn sàng bắt đầu kinh doanh online?</h3>
+                    <p class="mb-0">Tham gia cùng hàng nghìn người bán đang kiếm tiền trên MarketPlace</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="/Account/Register" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket"></i> Đăng ký ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- User Dashboard (if logged in) -->
+@if (!string.IsNullOrEmpty(token))
+{
+    <section class="user-dashboard py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-header text-center mb-4">
+                        <h3><i class="fas fa-tachometer-alt"></i> Dashboard của bạn</h3>
+                        <p>Chào mừng bạn quay trở lại!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4">
+                @if (!string.IsNullOrEmpty(roles) && roles.Contains("Admin"))
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="dashboard-card admin-card">
+                            <div class="card-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <h5>Admin Panel</h5>
+                            <p>Quản lý hệ thống, tài khoản và cấu hình</p>
+                            <a href="/Admin/Dashboard" class="btn btn-success">Truy cập</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="dashboard-card admin-card">
+                            <div class="card-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h5>Quản lý người dùng</h5>
+                            <p>Xem và quản lý tất cả người dùng trong hệ thống</p>
+                            <a href="/Account/ManagerUser" class="btn btn-info">Quản lý User</a>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(roles) && roles.Contains("Seller"))
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="dashboard-card seller-card">
+                            <div class="card-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h5>Quản lý cửa hàng</h5>
+                            <p>Quản lý sản phẩm, đơn hàng và thống kê</p>
+                            <a href="/Seller/Dashboard" class="btn btn-primary">Truy cập</a>
+                        </div>
+                    </div>
+                }
+                <div class="col-lg-4 col-md-6">
+                    <div class="dashboard-card buyer-card">
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h5>Mua sắm</h5>
+                        <p>Khám phá và mua sắm hàng nghìn sản phẩm</p>
+                        <a href="/Products" class="btn btn-outline-primary">Xem ngay</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="dashboard-card profile-card">
+                        <div class="card-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h5>Thông tin cá nhân</h5>
+                        <p>Quản lý thông tin tài khoản và cài đặt</p>
+                        <a href="/Account/Profile" class="btn btn-outline-secondary">Cập nhật</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
