@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.ModelRequest;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Mo_Api.Extensions;
 namespace Mo_Api.ApiController;
 
 [Route("api/[controller]")]
@@ -37,7 +40,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("Admin/GetAllAccount")]
-    //[Authorize(Roles ="Admin")]
+    [Authorize(Roles ="Admin")]
     public async Task<IActionResult> GetAllUser()
     {
         var user = await _accountServices.GetAllAccountAsync();
@@ -50,7 +53,7 @@ public class AccountController : ControllerBase
         return Ok(user);
     }
     [HttpGet("{id}")]
-    // [Authorize(Roles = "Admin")]
+     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAccountById(long id)
     {
         try
@@ -96,7 +99,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("admin/{id}/banUser")]
-    // [Authorize(Roles = "Admin")]
+     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ToggleBanUser(long id)
     {
         try
@@ -127,7 +130,7 @@ public class AccountController : ControllerBase
 
     // Trong Mo_Api/ApiController/AccountController.cs
     [HttpPost("admin/{id}/grant-seller")]
-    // [Authorize(Roles = "Admin")]
+     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GrantSellerRole(long id)
     {
         try
@@ -153,4 +156,50 @@ public class AccountController : ControllerBase
             return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi cấp phép Seller" });
         }
     }
+    [HttpGet("profile")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUserProfile()
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token - User ID not found" });
+            }
+
+            var profile = await _accountServices.GetProfileByIdAsync(userId.Value);
+            if (profile == null)
+            {
+                return NotFound(new { Success = false, Message = "User not found" });
+            }
+
+            return Ok(new { Success = true, Data = profile });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi lấy thông tin profile" });
+        }
+    }
+
+    [HttpGet("debug-claims")]
+    [Authorize]
+    public IActionResult DebugClaims()
+    {
+        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+        var userId = User.GetUserId();
+        var username = User.GetUsername();
+        var email = User.GetEmail();
+        var roles = User.GetRoles();
+        
+        return Ok(new { 
+            Claims = claims,
+            ExtractedUserId = userId,
+            ExtractedUsername = username,
+            ExtractedEmail = email,
+            ExtractedRoles = roles
+        });
+    }
+
+
 }

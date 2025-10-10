@@ -75,6 +75,16 @@
   },
   {
     "ContainingType": "Mo_Api.ApiController.AccountController",
+    "Method": "DebugClaims",
+    "RelativePath": "api/Account/debug-claims",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.AccountController",
     "Method": "ForgotPassword",
     "RelativePath": "api/Account/forgot-password",
     "HttpMethod": "POST",
@@ -87,6 +97,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.AccountController",
+    "Method": "GetCurrentUserProfile",
+    "RelativePath": "api/Account/profile",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
