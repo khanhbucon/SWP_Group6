@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Mo_DataAccess.Repo;
 using Mo_DataAccess.Services.Interface;
+using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
 using Mo_Entities.Models;
 
@@ -321,7 +322,7 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
                 TotalOrders = totalOrders,
                 TotalShops = totalShops,
                 TotalProductsSold = totalProductsSold,
-                IsEKYCVerified = user.IdentificationF.HasValue && user.IdentificationB.HasValue
+                IsEKYCVerified = !string.IsNullOrEmpty(user.IdentificationF) && !string.IsNullOrEmpty(user.IdentificationB)
             };
 
             responseList.Add(response);
@@ -390,7 +391,7 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             TotalOrders = totalOrders,
             TotalShops = totalShops,
             TotalProductsSold = totalProductsSold,
-            IsEKYCVerified = account.IdentificationF.HasValue && account.IdentificationB.HasValue
+            IsEKYCVerified = !string.IsNullOrEmpty(account.IdentificationF) && !string.IsNullOrEmpty(account.IdentificationB)
         };
     }
 
@@ -427,34 +428,59 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             CreatedAt = account.CreatedAt,
             UpdatedAt = account.UpdatedAt,
             Roles = account.Roles.Select(r => r.RoleName).ToList(),
-            IsEKYCVerified = account.IdentificationF.HasValue && account.IdentificationB.HasValue,
+            IsEKYCVerified = !string.IsNullOrEmpty(account.IdentificationF) && !string.IsNullOrEmpty(account.IdentificationB),
             TotalOrders = totalOrders,
             TotalShops = totalShops,
             TotalProductsSold = totalProductsSold
         };
     }
 
-    //public async Task UpdateProfileAsync(long userId, string username, string phone, string email)
-    //{
-    //    var account = await _context.Accounts.FindAsync(userId);
-    //    if (account == null)
-    //        throw new InvalidOperationException("User not found");
+    // Thêm method này vào AccountServices
+    public async Task<Account> UpdateProfileAsync(long userId, UpdateProfileRequest request)
+    {
+        var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Id == userId);
+        if (account == null)
+            throw new InvalidOperationException("Tài khoản không tồn tại");
 
-    //    // Kiểm tra username đã tồn tại chưa (trừ chính user hiện tại)
-    //    if (await _context.Accounts.AnyAsync(a => a.Username == username && a.Id != userId))
-    //        throw new InvalidOperationException("Username đã tồn tại");
+        // Kiểm tra username đã tồn tại chưa (trừ chính user hiện tại)
+        if (await _context.Set<Account>().AnyAsync(a => a.Username == request.Username && a.Id != userId))
+            throw new InvalidOperationException("Username đã tồn tại");
 
-    //    // Kiểm tra email đã tồn tại chưa (trừ chính user hiện tại)
-    //    if (await _context.Accounts.AnyAsync(a => a.Email == email && a.Id != userId))
-    //        throw new InvalidOperationException("Email đã tồn tại");
+        // Kiểm tra email đã tồn tại chưa (trừ chính user hiện tại)
+        if (await _context.Set<Account>().AnyAsync(a => a.Email == request.Email && a.Id != userId))
+            throw new InvalidOperationException("Email đã tồn tại");
 
-    //    account.Username = username;
-    //    account.Phone = phone;
-    //    account.Email = email;
-    //    account.UpdatedAt = DateTime.Now;
+        // Kiểm tra phone đã tồn tại chưa (nếu có phone)
+        if (!string.IsNullOrEmpty(request.Phone))
+        {
+            if (await _context.Set<Account>().AnyAsync(a => a.Phone == request.Phone && a.Id != userId))
+                throw new InvalidOperationException("Số điện thoại đã tồn tại");
+        }
 
-    //    await _context.SaveChangesAsync();
-    //}
+        // Cập nhật thông tin
+        account.Username = request.Username;
+        account.Email = request.Email;
+        account.Phone = request.Phone;
+        account.IdentificationF = request.IdentificationF;
+        account.IdentificationB = request.IdentificationB;
+        account.UpdatedAt = DateTime.UtcNow;
+
+        return await UpdateAsync(account);
+    }
+
+    // Method riêng để update KYC
+    public async Task<Account> UpdateKYCAsync(long userId, string identificationF, string identificationB)
+    {
+        var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Id == userId);
+        if (account == null)
+            throw new InvalidOperationException("Tài khoản không tồn tại");
+
+        account.IdentificationF = identificationF;
+        account.IdentificationB = identificationB;
+        account.UpdatedAt = DateTime.UtcNow;
+
+        return await UpdateAsync(account);
+    }
 
     public async Task<Account> GrantSellerRoleAsync(long accountId)
     {
