@@ -1,0 +1,109 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Mo_Client.Services;
+
+namespace Mo_Client.Controllers;
+
+[Authorize]
+public class ShopController : Controller
+{
+    private readonly AuthApiClient _authApiClient;
+
+    public ShopController(AuthApiClient authApiClient)
+    {
+        _authApiClient = authApiClient;
+    }
+
+    // GET: /Shop/Create
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    // POST: /Shop/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(AuthApiClient.CreateShopRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(request);
+        }
+
+        var success = await _authApiClient.CreateShopAsync(request);
+        if (success)
+        {
+            TempData["Success"] = "Tạo shop thành công!";
+            return RedirectToAction("Index");
+        }
+        else
+        {
+            ModelState.AddModelError("", "Có lỗi xảy ra khi tạo shop.");
+            return View(request);
+        }
+    }
+
+    // GET: /Shop/Index
+    public async Task<IActionResult> Index()
+    {
+        var shop = await _authApiClient.GetMyShopAsync();
+        if (shop == null)
+        {
+            return RedirectToAction("Create");
+        }
+
+        return View(shop);
+    }
+
+    // GET: /Shop/Edit
+    public async Task<IActionResult> Edit()
+    {
+        var shop = await _authApiClient.GetMyShopAsync();
+        if (shop == null)
+        {
+            return RedirectToAction("Create");
+        }
+
+        var request = new AuthApiClient.UpdateShopRequest(shop.Name, shop.Description);
+        ViewBag.ShopId = shop.Id;
+        return View(request);
+    }
+
+    // POST: /Shop/Edit
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(long shopId, AuthApiClient.UpdateShopRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            ViewBag.ShopId = shopId;
+            return View(request);
+        }
+
+        var success = await _authApiClient.UpdateShopAsync(shopId, request);
+        if (success)
+        {
+            TempData["Success"] = "Cập nhật shop thành công!";
+            return RedirectToAction("Index");
+        }
+        else
+        {
+            ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật shop.");
+            ViewBag.ShopId = shopId;
+            return View(request);
+        }
+    }
+
+    // GET: /Shop/Statistics
+    public async Task<IActionResult> Statistics()
+    {
+        var stats = await _authApiClient.GetShopStatisticsAsync();
+        if (stats == null)
+        {
+            TempData["Error"] = "Bạn chưa tạo shop.";
+            return RedirectToAction("Create");
+        }
+
+        return View(stats);
+    }
+}

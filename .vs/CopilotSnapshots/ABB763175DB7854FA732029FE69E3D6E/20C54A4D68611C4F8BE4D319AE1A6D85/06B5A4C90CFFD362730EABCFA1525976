@@ -1,0 +1,24 @@
+﻿@model Mo_Client.Services.AuthApiClient.ShopResponse
+
+@{
+    ViewData["Title"] = "Thông Tin Shop";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<h2>Thông Tin Shop</h2>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <p class="card-text">@Model.Description</p>
+        <p><strong>Tổng sản phẩm:</strong> @Model.TotalProducts</p>
+        <p><strong>Trạng thái:</strong> @(Model.IsActive == true ? "Hoạt động" : "Không hoạt động")</p>
+        <p><strong>Ngày tạo:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy")</p>
+        <a asp-action="Edit" class="btn btn-primary">Chỉnh sửa</a>
+        <a asp-action="Statistics" class="btn btn-info">Thống kê</a>
+    </div>
+</div>

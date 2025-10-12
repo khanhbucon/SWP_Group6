@@ -1,0 +1,63 @@
+@model Mo_Client.Models.LoginVm
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Đăng nhập</h2>
+            <p>Chào mừng bạn quay trở lại!</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model?.Success))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @Model.Success
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model?.Error))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i> @Model.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form method="post" class="auth-form">
+            <input type="hidden" name="ReturnUrl" value="@Model?.ReturnUrl" />
+            
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập hoặc Email</label>
+                <input class="form-control" name="Identifier" value="@Model?.Identifier" required minlength="3" placeholder="Nhập tên đăng nhập hoặc email" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input class="form-control" type="password" name="Password" required minlength="6" placeholder="Nhập mật khẩu" />
+            </div>
+
+            <div class="form-group form-check">
+                <input class="form-check-input" type="checkbox" name="RememberMe" />
+                <label class="form-check-label">Ghi nhớ đăng nhập</label>
+            </div>
+
+            <button class="btn btn-primary auth-btn" type="submit">
+                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+            </button>
+        </form>
+
+        <div class="auth-links">
+            <a asp-action="ForgotPassword" class="auth-link">
+                <i class="fas fa-question-circle"></i> Quên mật khẩu?
+            </a>
+            <a asp-action="Register" class="auth-link">
+                <i class="fas fa-user-plus"></i> Chưa có tài khoản? Đăng ký ngay
+            </a>
+        </div>
+    </div>
+</div>
+
+
