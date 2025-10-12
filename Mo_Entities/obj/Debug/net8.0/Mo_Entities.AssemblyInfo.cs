@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mo_Entities")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4923ff57c00213b40aa1a59cae18e962cda3450c")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mo_Entities")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mo_Entities")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

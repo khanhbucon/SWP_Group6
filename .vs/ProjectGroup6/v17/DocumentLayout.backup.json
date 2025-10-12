@@ -3,8 +3,32 @@
   "WorkspaceRootPath": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|solutionrelative:mo_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_client\\services\\authapiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\services\\authapiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_api\\apicontroller\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|solutionrelative:mo_api\\apicontroller\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_client\\models\\profileresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\models\\profileresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_dataaccess\\services\\accountservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|solutionrelative:mo_dataaccess\\services\\accountservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_dataaccess\\services\\imagemessageservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|solutionrelative:mo_dataaccess\\services\\imagemessageservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{546A24E9-B535-405F-9058-1F14E9DBC96E}|Mo_Entities\\Mo_Entities.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_entities\\modelrequest\\updateprofilerequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{546A24E9-B535-405F-9058-1F14E9DBC96E}|Mo_Entities\\Mo_Entities.csproj|solutionrelative:mo_entities\\modelrequest\\updateprofilerequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|c:\\users\\khanh\\downloads\\projectgroup6\\projectgroup6\\mo_api\\apicontroller\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|solutionrelative:mo_api\\apicontroller\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +38,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,15 +54,93 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\Program.cs",
-              "RelativeDocumentMoniker": "Mo_Api\\Program.cs",
-              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\Program.cs",
-              "RelativeToolTip": "Mo_Api\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAqAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "ProfileResponse.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\Models\\ProfileResponse.cs",
+              "RelativeDocumentMoniker": "Mo_Client\\Models\\ProfileResponse.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\Models\\ProfileResponse.cs",
+              "RelativeToolTip": "Mo_Client\\Models\\ProfileResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-01T12:43:37.368Z",
+              "WhenOpened": "2025-10-09T23:43:35.412Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ImageMessageServices.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_DataAccess\\Services\\ImageMessageServices.cs",
+              "RelativeDocumentMoniker": "Mo_DataAccess\\Services\\ImageMessageServices.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_DataAccess\\Services\\ImageMessageServices.cs",
+              "RelativeToolTip": "Mo_DataAccess\\Services\\ImageMessageServices.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-09T23:07:34.896Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "UpdateProfileRequest.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Entities\\ModelRequest\\UpdateProfileRequest.cs",
+              "RelativeDocumentMoniker": "Mo_Entities\\ModelRequest\\UpdateProfileRequest.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Entities\\ModelRequest\\UpdateProfileRequest.cs",
+              "RelativeToolTip": "Mo_Entities\\ModelRequest\\UpdateProfileRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-09T23:00:34.907Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AccountServices.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_DataAccess\\Services\\AccountServices.cs",
+              "RelativeDocumentMoniker": "Mo_DataAccess\\Services\\AccountServices.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_DataAccess\\Services\\AccountServices.cs",
+              "RelativeToolTip": "Mo_DataAccess\\Services\\AccountServices.cs",
+              "ViewState": "AgIAAEsBAAAAAAAAAAAAAGIBAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-09T22:53:48.568Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\ApiController\\AuthController.cs",
+              "RelativeDocumentMoniker": "Mo_Api\\ApiController\\AuthController.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\ApiController\\AuthController.cs",
+              "RelativeToolTip": "Mo_Api\\ApiController\\AuthController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-09T22:53:24.498Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AuthApiClient.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\Services\\AuthApiClient.cs",
+              "RelativeDocumentMoniker": "Mo_Client\\Services\\AuthApiClient.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Client\\Services\\AuthApiClient.cs",
+              "RelativeToolTip": "Mo_Client\\Services\\AuthApiClient.cs",
+              "ViewState": "AgIAADkAAAAAAAAAAADgv0sAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-09T22:12:55.936Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\ApiController\\AccountController.cs",
+              "RelativeDocumentMoniker": "Mo_Api\\ApiController\\AccountController.cs",
+              "ToolTip": "C:\\Users\\khanh\\Downloads\\ProjectGroup6\\ProjectGroup6\\Mo_Api\\ApiController\\AccountController.cs",
+              "RelativeToolTip": "Mo_Api\\ApiController\\AccountController.cs",
+              "ViewState": "AgIAAKAAAAAAAAAAAIA5wLIAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-09T22:12:29.226Z",
               "EditorCaption": ""
             }
           ]

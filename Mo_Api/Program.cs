@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Mo_DataAccess.Services;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
@@ -39,7 +40,29 @@ public class Program
                 };
             });
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProjectGroup6 API", Version = "v1" });
+            var securityScheme = new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Description = "Nhập 'Bearer {token}'",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            };
+            c.AddSecurityDefinition("Bearer", securityScheme);
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                { securityScheme, new string[] { } }
+            });
+        });
         builder.Services.AddScoped<IAccountServices, AccountServices>();
         builder.Services.AddScoped<ICategoryServices, CategoryServices>();
         builder.Services.AddScoped<IFeedbackServices, FeedbackServices>();
@@ -75,6 +98,8 @@ public class Program
          {
               options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
          })  ;
+
+        app.MapControllers();
 
         app.Run();
     }

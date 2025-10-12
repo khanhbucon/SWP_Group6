@@ -92,3 +92,5 @@ C:\Users\khanh\Downloads\ProjectGroup6\ProjectGroup6\Mo_Api\obj\Debug\net8.0\ref
 C:\Users\khanh\Downloads\ProjectGroup6\ProjectGroup6\Mo_Api\obj\Debug\net8.0\Mo_Api.pdb
 C:\Users\khanh\Downloads\ProjectGroup6\ProjectGroup6\Mo_Api\obj\Debug\net8.0\Mo_Api.genruntimeconfig.cache
 C:\Users\khanh\Downloads\ProjectGroup6\ProjectGroup6\Mo_Api\obj\Debug\net8.0\ref\Mo_Api.dll
+C:\Users\khanh\Downloads\ProjectGroup6\ProjectGroup6\Mo_Api\obj\Debug\net8.0\Mo_Api.sourcelink.json
+C:\Users\khanh\Downloads\ProjectGroup6\ProjectGroup6\Mo_Api\bin\Debug\net8.0\Mo_Api.staticwebassets.runtime.json

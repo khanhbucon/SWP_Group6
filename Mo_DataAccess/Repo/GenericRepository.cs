@@ -5,12 +5,12 @@ namespace Mo_DataAccess.Repo;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : class
 {   
-    AppDbContext _context;
-    DbSet<T> _dbSet;
+    protected readonly AppDbContext _context;
+    protected readonly DbSet<T> _dbSet;
     public GenericRepository(AppDbContext context)
     {
         _context = context;
-_dbSet = _context.Set<T>();
+        _dbSet = _context.Set<T>();
     }
     public async Task<IEnumerable<T>> GetAllAsync()
     {

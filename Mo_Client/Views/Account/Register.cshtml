@@ -1,0 +1,67 @@
+@model Mo_Client.Models.RegisterVm
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Đăng ký tài khoản</h2>
+            <p>Chào mừng bạn đến với chúng tôi!</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model?.Error))
+        {
+            <div class="alert alert-danger" role="alert">
+                @Model.Error
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model?.Success))
+        {
+            <div class="alert alert-success" role="alert">
+                @Model.Success
+            </div>
+        }
+
+        <form method="post" class="auth-form">
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <input class="form-control" name="Username" value="@Model?.Username" required minlength="3" maxlength="50" />
+                <small class="form-text text-muted">Tối thiểu 3 ký tự, tối đa 50 ký tự</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-control" type="email" name="Email" value="@Model?.Email" required />
+                <small class="form-text text-muted">Chúng tôi sẽ gửi thông tin quan trọng đến email này</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Số điện thoại</label>
+                <input class="form-control" type="tel" name="Phone" value="@Model?.Phone" required pattern="[0-9]{10,11}" placeholder="Nhập số điện thoại" />
+                <small class="form-text text-muted">Nhập số điện thoại 10-11 chữ số</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input class="form-control" type="password" name="Password" required minlength="6" />
+                <small class="form-text text-muted">Tối thiểu 6 ký tự</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Xác nhận mật khẩu</label>
+                <input class="form-control" type="password" name="ConfirmPassword" required minlength="6" />
+                <small class="form-text text-muted">Nhập lại mật khẩu để xác nhận</small>
+            </div>
+
+            <button class="btn btn-primary auth-btn" type="submit">
+                <i class="fas fa-user-plus"></i> Đăng ký
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Đã có tài khoản? <a href="/Account/Login" class="auth-link">Đăng nhập ngay</a></p>
+        </div>
+    </div>
+</div>
