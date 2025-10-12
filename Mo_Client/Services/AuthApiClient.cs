@@ -79,7 +79,26 @@ public class AuthApiClient
         return result?.Data;
     }
 
+    // Thêm method update profile
+    public async Task<bool> UpdateProfileAsync(UpdateProfileRequest req, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PutAsJsonAsync("/api/account/update-profile", req, ct);
+        return resp.IsSuccessStatusCode;
+    }
+
+    // Thêm method upload KYC
+    public async Task<bool> UploadKYCAsync(IFormFile identificationF, IFormFile identificationB, CancellationToken ct = default)
+    {
+        using var formData = new MultipartFormDataContent();
+        formData.Add(new StreamContent(identificationF.OpenReadStream()), "identificationF", identificationF.FileName);
+        formData.Add(new StreamContent(identificationB.OpenReadStream()), "identificationB", identificationB.FileName);
+
+        var resp = await _httpClient.PostAsync("/api/account/upload-kyc", formData, ct);
+        return resp.IsSuccessStatusCode;
+    }
+
     public record ApiResponse<T>(bool Success, T? Data, string? Message);
+    public record UpdateProfileRequest(string Username, string Email, string? Phone, string? IdentificationF, string? IdentificationB);
 }
 
 
