@@ -1,10 +1,10 @@
-@model Mo_Client.Services.AuthApiClient.CreateShopRequest
+﻿@model Mo_Client.Services.AuthApiClient.CreateShopRequest
 
 @{
-    ViewData["Title"] = "T?o Shop";
+    ViewData["Title"] = "Tạo Shop";
 }
 
-<h2>T?o Shop M?i</h2>
+<h2>Tạo Shop Mới</h2>
 
 @if (TempData["Error"] != null)
 {
@@ -25,7 +25,7 @@
         <textarea asp-for="Description" class="form-control" rows="3"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
-    <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">X�c nh?n t?o</button>
+    <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">Xác nhận tạo</button>
 </form>
 
 @section Scripts {

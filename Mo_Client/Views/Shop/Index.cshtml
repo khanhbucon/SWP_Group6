@@ -1,7 +1,7 @@
-@model Mo_Client.Services.AuthApiClient.ShopResponse
+﻿@model Mo_Client.Services.AuthApiClient.ShopResponse
 
 @{
-    ViewData["Title"] = "Th�ng Tin Shop";
+    ViewData["Title"] = "Thông Tin Shop";
 }
 
 @if (TempData["Success"] != null)
@@ -9,16 +9,16 @@
     <div class="alert alert-success">@TempData["Success"]</div>
 }
 
-<h2>Th�ng Tin Shop</h2>
+<h2>Thông Tin Shop</h2>
 
 <div class="card">
     <div class="card-body">
         <h5 class="card-title">@Model.Name</h5>
         <p class="card-text">@Model.Description</p>
-        <p><strong>T?ng s?n ph?m:</strong> @Model.TotalProducts</p>
-        <p><strong>Tr?ng th�i:</strong> @(Model.IsActive == true ? "Ho?t �?ng" : "Kh�ng ho?t �?ng")</p>
-        <p><strong>Ng�y t?o:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy")</p>
-        <a asp-action="Edit" class="btn btn-primary">Ch?nh s?a</a>
-        <a asp-action="Statistics" class="btn btn-info">Th?ng k�</a>
+        <p><strong>Tổng sản phẩm:</strong> @Model.TotalProducts</p>
+        <p><strong>Trạng thái:</strong> @(Model.IsActive == true ? "Hoạt Động" : "Không Hoạt Động")</p>
+        <p><strong>Ngày tạo:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy")</p>
+        <a asp-action="Edit" class="btn btn-primary">Chỉnh sửa</a>
+        <a asp-action="Statistics" class="btn btn-info">Thống kê</a>
     </div>
 </div>
