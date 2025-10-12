@@ -140,7 +140,11 @@
               "RelativeDocumentMoniker": "Mo_DataAccess\\Services\\ShopServices.cs",
               "ToolTip": "D:\\SWP391\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\ShopServices.cs",
               "RelativeToolTip": "Mo_DataAccess\\Services\\ShopServices.cs",
+<<<<<<< HEAD
               "ViewState": "AgIAAOYAAAAAAAAAAAAWwPYAAAAAAAAAAAAAAA==",
+=======
+              "ViewState": "AgIAAOcAAAAAAAAAAAAWwPUAAAAhAAAAAAAAAA==",
+>>>>>>> 84b3ad46ff35b83ecd6363a07643ec8ce2e4aa62
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-11T22:31:01.655Z",
               "IsPinned": true,
