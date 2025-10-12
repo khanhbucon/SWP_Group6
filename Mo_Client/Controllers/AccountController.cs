@@ -170,7 +170,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Profile()
+    public async Task<IActionResult> ViewProfile()
     {
         try
         {
@@ -203,7 +203,9 @@ public class AccountController : Controller
                 IsEKYCVerified = profile.IsEKYCVerified,
                 TotalOrders = profile.TotalOrders,
                 TotalShops = profile.TotalShops,
-                TotalProductsSold = profile.TotalProductsSold
+                TotalProductsSold = profile.TotalProductsSold,
+                IdentificationF = profile.IdentificationF,  // Thêm dòng này
+                IdentificationB = profile.IdentificationB   // Thêm dòng này
             };
 
             return View(vm);
@@ -212,6 +214,138 @@ public class AccountController : Controller
         {
             ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
             return View(new ProfileVm());
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateProfile(ProfileVm vm)
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("ViewProfile", vm);
+            }
+
+            _authApiClient.SetToken(token);
+            
+            var updateRequest = new AuthApiClient.UpdateProfileRequest(
+                vm.Username,
+                vm.Email,
+                vm.Phone,
+                vm.IdentificationF,
+                vm.IdentificationB
+            );
+
+            Console.WriteLine($"Update Request: Username={vm.Username}, Email={vm.Email}, Phone={vm.Phone}");
+            
+            var success = await _authApiClient.UpdateProfileAsync(updateRequest);
+            
+            Console.WriteLine($"Update Result: {success}");
+            
+            if (success)
+            {
+                TempData["Success"] = "Cập nhật thông tin thành công!";
+                return RedirectToAction("ViewProfile");
+            }
+            else
+            {
+                TempData["Error"] = "Cập nhật thông tin thất bại. Vui lòng thử lại.";
+                // Load lại data từ API để giữ nguyên thông tin hiện tại
+                vm = await LoadProfileVmAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            // Load lại data từ API để giữ nguyên thông tin hiện tại
+            vm = await LoadProfileVmAsync();
+        }
+
+        return View("ViewProfile", vm);
+    }
+
+    // Helper method để load ProfileVm từ API
+    private async Task<ProfileVm> LoadProfileVmAsync()
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return new ProfileVm();
+            }
+
+            _authApiClient.SetToken(token);
+            var profile = await _authApiClient.GetCurrentUserProfileAsync();
+            
+            if (profile == null)
+            {
+                return new ProfileVm();
+            }
+
+            return new ProfileVm
+            {
+                Id = profile.Id,
+                Username = profile.Username,
+                Email = profile.Email,
+                Phone = profile.Phone ?? "",
+                Balance = profile.Balance ?? 0,
+                IsActive = profile.IsActive ?? false,
+                CreatedAt = profile.CreatedAt ?? DateTime.Now,
+                UpdatedAt = profile.UpdatedAt,
+                Roles = profile.Roles,
+                IsEKYCVerified = profile.IsEKYCVerified,
+                TotalOrders = profile.TotalOrders,
+                TotalShops = profile.TotalShops,
+                TotalProductsSold = profile.TotalProductsSold,
+                IdentificationF = profile.IdentificationF,
+                IdentificationB = profile.IdentificationB
+            };
+        }
+        catch
+        {
+            return new ProfileVm();
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UploadKYC(IFormFile identificationF, IFormFile identificationB)
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện thao tác này" });
+            }
+
+            if (identificationF == null || identificationB == null)
+            {
+                return Json(new { success = false, message = "Vui lòng chọn đầy đủ 2 ảnh" });
+            }
+
+            _authApiClient.SetToken(token);
+            var success = await _authApiClient.UploadKYCAsync(identificationF, identificationB);
+            
+            if (success)
+            {
+                return Json(new { success = true, message = "Upload ảnh KYC thành công!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Upload ảnh KYC thất bại. Vui lòng thử lại." });
+            }
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
     }
 

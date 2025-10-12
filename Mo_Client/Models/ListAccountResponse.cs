@@ -6,8 +6,8 @@ namespace Mo_Client.Models
     public class ListAccountResponse
     {
         public long UserId { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
+        public string? Username { get; set; }
+        public string? Email { get; set; }
         public decimal? Balance { get; set; }
         public string? Phone { get; set; }
         public bool? IsActive { get; set; }

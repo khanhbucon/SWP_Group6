@@ -1,5 +1,6 @@
 using Microsoft.Identity.Client;
 using Mo_DataAccess.Repo;
+using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
 using Mo_Entities.Models;
 using System.Net.Sockets;
@@ -26,6 +27,7 @@ namespace Mo_DataAccess.Services.Interface;
     Task<Mo_Entities.ModelResponse.ProfileResponse> GetProfileByIdAsync(long userId);
 
 
+    Task<Account> UpdateProfileAsync(long userId, UpdateProfileRequest request);
 
-
+    Task<Account> UpdateKYCAsync(long userId, string identificationF, string identificationB);
 }
