@@ -188,3 +188,4 @@ D:\SWP391\1.1\SWP_Group6-master\Mo_Api\obj\Debug\net8.0\refint\Mo_Api.dll
 D:\SWP391\1.1\SWP_Group6-master\Mo_Api\obj\Debug\net8.0\Mo_Api.pdb
 D:\SWP391\1.1\SWP_Group6-master\Mo_Api\obj\Debug\net8.0\Mo_Api.genruntimeconfig.cache
 D:\SWP391\1.1\SWP_Group6-master\Mo_Api\obj\Debug\net8.0\ref\Mo_Api.dll
+D:\SWP391\1.1\SWP_Group6-master\Mo_Api\obj\Debug\net8.0\Mo_Api.sourcelink.json

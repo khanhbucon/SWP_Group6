@@ -24,13 +24,11 @@ public class ShopController : Controller
     }
 
     // GET: /Shop/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         // If user already has a shop, redirect to View Shop
-        var shopTask = _authApiClient.GetMyShopAsync();
-        shopTask.Wait();
-        var existed = shopTask.Result;
+        var existed = await _authApiClient.GetMyShopAsync();
         if (existed != null)
         {
             TempData["Success"] = "Bạn đã có shop. Chuyển tới trang Shop.";

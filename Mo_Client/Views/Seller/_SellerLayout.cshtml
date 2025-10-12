@@ -1,0 +1,71 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <aside class="col-12 col-md-3 col-lg-2 bg-light border-end min-vh-100 py-3">
+            <div class="fw-bold text-secondary px-3 mb-2">SALE</div>
+            <ul class="nav flex-column mb-3">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="Sales">
+                        <i class="fas fa-chart-line"></i> Sales
+                    </a>
+                </li>
+            </ul>
+
+            <div class="fw-bold text-secondary px-3 mb-2">SHOP</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="Shops">
+                        <i class="fas fa-store"></i> Qu?n l? gian hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="ProductOrders">
+                        <i class="fas fa-box-open"></i> Ðõn hàng s?n ph?m
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="ServiceOrders">
+                        <i class="fas fa-concierge-bell"></i> Ðõn hàng d?ch v?
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="Preorders">
+                        <i class="fas fa-clock"></i> Ð?t trý?c
+                    </a>
+                </li>
+                <!-- B? Khi?u n?i theo yêu c?u -->
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="Reseller">
+                        <i class="fas fa-users-cog"></i> Qu?n l? Reseller
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="Reviews">
+                        <i class="fas fa-comments"></i> Ðánh giá
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="Coupons">
+                        <i class="fas fa-tags"></i> M? gi?m giá
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Seller" asp-action="TopShops">
+                        <i class="fas fa-trophy"></i> Gian hàng Top 1
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="col-12 col-md-9 col-lg-10 p-4">
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

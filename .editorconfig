@@ -1,0 +1,7 @@
+[*]
+charset = utf-8-bom
+end_of_line = crlf
+insert_final_newline = true
+
+[*.{cs,cshtml,razor,js,css,md,json}]
+charset = utf-8-bom

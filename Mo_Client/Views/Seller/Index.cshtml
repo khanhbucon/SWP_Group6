@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Seller Dashboard";
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+}
+
+<h3 class="mb-4">Sales</h3>
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted">S? ðõn hàng</div>
+                <div class="display-6">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted">Doanh s?</div>
+                <div class="display-6">0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.HasShop == false)
+{
+    <div class="alert alert-info mt-4">
+        B?n chýa có gian hàng. <a asp-controller="Seller" asp-action="AddShop" class="alert-link">Thêm ngay</a>.
+    </div>
+}

@@ -44,3 +44,4 @@ D:\SWP391\1.1\SWP_Group6-master\Mo_DataAccess\obj\Debug\net8.0\Mo_DataAccess.dll
 D:\SWP391\1.1\SWP_Group6-master\Mo_DataAccess\obj\Debug\net8.0\refint\Mo_DataAccess.dll
 D:\SWP391\1.1\SWP_Group6-master\Mo_DataAccess\obj\Debug\net8.0\Mo_DataAccess.pdb
 D:\SWP391\1.1\SWP_Group6-master\Mo_DataAccess\obj\Debug\net8.0\ref\Mo_DataAccess.dll
+D:\SWP391\1.1\SWP_Group6-master\Mo_DataAccess\obj\Debug\net8.0\Mo_DataAccess.sourcelink.json

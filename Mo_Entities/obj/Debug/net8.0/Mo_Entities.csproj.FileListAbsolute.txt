@@ -41,3 +41,4 @@ D:\SWP391\1.1\SWP_Group6-master\Mo_Entities\obj\Debug\net8.0\refint\Mo_Entities.
 D:\SWP391\1.1\SWP_Group6-master\Mo_Entities\obj\Debug\net8.0\Mo_Entities.pdb
 D:\SWP391\1.1\SWP_Group6-master\Mo_Entities\obj\Debug\net8.0\Mo_Entities.genruntimeconfig.cache
 D:\SWP391\1.1\SWP_Group6-master\Mo_Entities\obj\Debug\net8.0\ref\Mo_Entities.dll
+D:\SWP391\1.1\SWP_Group6-master\Mo_Entities\obj\Debug\net8.0\Mo_Entities.sourcelink.json

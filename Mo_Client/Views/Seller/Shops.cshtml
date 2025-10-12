@@ -1,0 +1,53 @@
+@model Mo_Client.Services.AuthApiClient.ShopResponse
+@{
+    ViewData["Title"] = "Gian hàng";
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Gian hàng</h4>
+    <a class="btn btn-primary" asp-controller="Seller" asp-action="AddShop">Thêm m?i</a>
+</div>
+
+@if (Model == null)
+{
+    <div class="alert alert-warning">B?n chýa t?o gian hàng nào.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Thao tác</th>
+                    <th>Tên gian hàng</th>
+                    <th>Lo?i</th>
+                    <th>Trùng</th>
+                    <th>Reseller</th>
+                    <th>Ðõn giá</th>
+                    <th>Sàn</th>
+                    <th>Kho</th>
+                    <th>Ngày t?o</th>
+                    <th>Tr?ng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-nowrap">
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Seller" asp-action="EditShop">S?a</a>
+                        <a class="btn btn-sm btn-outline-info" asp-controller="Seller" asp-action="ShopStats">Th?ng kê</a>
+                    </td>
+                    <td>@Model.Name</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>@Model.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                    <td>@(Model.IsActive == true ? "Ho?t ð?ng" : "Không ho?t ð?ng")</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

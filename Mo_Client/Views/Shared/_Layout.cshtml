@@ -60,16 +60,10 @@
                             }
                             @if (!string.IsNullOrEmpty(roles) && roles.Contains("Seller"))
                             {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="sellerDropdown" role="button" data-bs-toggle="dropdown">
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Seller" asp-action="Index">
                                         <i class="fas fa-store"></i> Seller
                                     </a>
-                                    <ul class="dropdown-menu" aria-labelledby="sellerDropdown">
-                                        <li><a class="dropdown-item" asp-controller="Shop" asp-action="Create">Create Shop</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Shop" asp-action="Edit">Update Shop</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Shop" asp-action="Index">View Shop</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Shop" asp-action="Statistics">Shop Statistics</a></li>
-                                    </ul>
                                 </li>
                             }
                             <li class="nav-item">
