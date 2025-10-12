@@ -1,17 +1,17 @@
-@model Mo_Client.Services.AuthApiClient.ShopResponse
+Ôªø@model Mo_Client.Services.AuthApiClient.ShopResponse
 @{
-    ViewData["Title"] = "Gian h‡ng";
+    ViewData["Title"] = "Gian h√†ng";
     Layout = "~/Views/Seller/_SellerLayout.cshtml";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Gian h‡ng</h4>
-    <a class="btn btn-primary" asp-controller="Seller" asp-action="AddShop">ThÍm m?i</a>
+    <h4 class="mb-0">Gian h√†ng</h4>
+    <a class="btn btn-primary" asp-controller="Seller" asp-action="AddShop">Th√™m m·ªõi</a>
 </div>
 
 @if (Model == null)
 {
-    <div class="alert alert-warning">B?n ch˝a t?o gian h‡ng n‡o.</div>
+    <div class="alert alert-warning">B·∫°n ch∆∞a t·∫°o gian h√†ng n√†o.</div>
 }
 else
 {
@@ -19,23 +19,23 @@ else
         <table class="table table-bordered align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>Thao t·c</th>
-                    <th>TÍn gian h‡ng</th>
-                    <th>Lo?i</th>
-                    <th>Tr˘ng</th>
+                    <th>Thao t√°c</th>
+                    <th>T√™n gian h√†ng</th>
+                    <th>Lo·∫°i</th>
+                    <th>Tr√πng</th>
                     <th>Reseller</th>
-                    <th>–ın gi·</th>
-                    <th>S‡n</th>
+                    <th>ƒê∆°n gi√°</th>
+                    <th>S√†n</th>
                     <th>Kho</th>
-                    <th>Ng‡y t?o</th>
-                    <th>Tr?ng th·i</th>
+                    <th>Ng√†y t·∫°o</th>
+                    <th>Tr·∫°ng th√°i</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td class="text-nowrap">
-                        <a class="btn btn-sm btn-outline-primary" asp-controller="Seller" asp-action="EditShop">S?a</a>
-                        <a class="btn btn-sm btn-outline-info" asp-controller="Seller" asp-action="ShopStats">Th?ng kÍ</a>
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Seller" asp-action="EditShop">S·ª≠a</a>
+                        <a class="btn btn-sm btn-outline-info" asp-controller="Seller" asp-action="ShopStats">Th·ªëng k√™</a>
                     </td>
                     <td>@Model.Name</td>
                     <td>-</td>
@@ -45,7 +45,7 @@ else
                     <td>-</td>
                     <td>-</td>
                     <td>@Model.CreatedAt?.ToString("dd/MM/yyyy")</td>
-                    <td>@(Model.IsActive == true ? "Ho?t ?ng" : "KhÙng ho?t ?ng")</td>
+                    <td>@(Model.IsActive == true ? "Ho·∫°t ƒë·ªông" : "Kh√¥ng ho·∫°t ƒë·ªông")</td>
                 </tr>
             </tbody>
         </table>
