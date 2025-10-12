@@ -27,12 +27,12 @@ public class ShopController : Controller
     public async Task<IActionResult> Create()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        // If user already has a shop, redirect to View Shop
-        var existed = await _authApiClient.GetMyShopAsync();
-        if (existed != null)
+        // Allow up to 5 shops
+        var shops = await _authApiClient.GetMyShopsAsync();
+        if (shops != null && shops.Count >= 5)
         {
-            TempData["Success"] = "Bạn đã có shop. Chuyển tới trang Shop.";
-            return RedirectToAction("Index");
+            TempData["Error"] = "Bạn đã đạt giới hạn 5 gian hàng";
+            return RedirectToAction("Shops", "Seller");
         }
         return View();
     }
@@ -73,20 +73,23 @@ public class ShopController : Controller
     public async Task<IActionResult> Index()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var shop = await _authApiClient.GetMyShopAsync();
-        if (shop == null)
+        var shops = await _authApiClient.GetMyShopsAsync();
+        if (shops == null || shops.Count == 0)
         {
             return RedirectToAction("Create");
         }
 
-        return View(shop);
+        // For now reuse old view which expects a single shop: show the first
+        return View(shops.First());
     }
 
     // GET: /Shop/Edit
-    public async Task<IActionResult> Edit()
+    public async Task<IActionResult> Edit(long? shopId)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var shop = await _authApiClient.GetMyShopAsync();
+        var shop = shopId.HasValue
+            ? (await _authApiClient.GetMyShopsAsync())?.FirstOrDefault(s => s.Id == shopId.Value)
+            : await _authApiClient.GetMyShopAsync();
         if (shop == null)
         {
             return RedirectToAction("Create");
@@ -124,10 +127,12 @@ public class ShopController : Controller
     }
 
     // GET: /Shop/Statistics
-    public async Task<IActionResult> Statistics()
+    public async Task<IActionResult> Statistics(long? shopId)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var stats = await _authApiClient.GetShopStatisticsAsync();
+        var stats = shopId.HasValue
+            ? await _authApiClient.GetShopStatisticsByIdAsync(shopId.Value)
+            : await _authApiClient.GetShopStatisticsAsync();
         if (stats == null)
         {
             TempData["Error"] = "Bạn chưa tạo shop.";

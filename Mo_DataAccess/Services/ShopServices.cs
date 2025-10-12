@@ -22,11 +22,11 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             throw new InvalidOperationException("Tài khoản không tồn tại");
         }
 
-        // Check if account already has a shop
-        var existingShop = await _context.Set<Shop>().AsNoTracking().FirstOrDefaultAsync(s => s.AccountId == accountId);
-        if (existingShop != null)
+        // Limit: account can create up to 5 shops
+        var currentCount = await _context.Set<Shop>().AsNoTracking().CountAsync(s => s.AccountId == accountId);
+        if (currentCount >= 5)
         {
-            throw new InvalidOperationException($"Tài khoản đã có shop (ID: {existingShop.Id}, Tên: {existingShop.Name})");
+            throw new InvalidOperationException("Mỗi tài khoản chỉ được tạo tối đa 5 gian hàng");
         }
 
         var shop = new Shop
@@ -91,6 +91,51 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         };
     }
 
+    // New: list all shops of an account
+    public async Task<List<ShopResponse>> GetShopsResponseByAccountIdAsync(long accountId)
+    {
+        var shops = await _context.Set<Shop>()
+            .Include(s => s.Products)
+            .Where(s => s.AccountId == accountId)
+            .ToListAsync();
+
+        return shops.Select(shop => new ShopResponse
+        {
+            Id = shop.Id,
+            AccountId = shop.AccountId,
+            Name = shop.Name,
+            Description = shop.Description,
+            ReportCount = shop.ReportCount,
+            IsActive = shop.IsActive,
+            CreatedAt = shop.CreatedAt,
+            UpdatedAt = shop.UpdatedAt,
+            TotalProducts = shop.Products?.Count ?? 0
+        }).ToList();
+    }
+
+    // New: get a single shop of account by id
+    public async Task<ShopResponse?> GetShopResponseByIdAsync(long shopId, long accountId)
+    {
+        var shop = await _context.Set<Shop>()
+            .Include(s => s.Products)
+            .FirstOrDefaultAsync(s => s.Id == shopId && s.AccountId == accountId);
+
+        if (shop == null) return null;
+
+        return new ShopResponse
+        {
+            Id = shop.Id,
+            AccountId = shop.AccountId,
+            Name = shop.Name,
+            Description = shop.Description,
+            ReportCount = shop.ReportCount,
+            IsActive = shop.IsActive,
+            CreatedAt = shop.CreatedAt,
+            UpdatedAt = shop.UpdatedAt,
+            TotalProducts = shop.Products?.Count ?? 0
+        };
+    }
+
     public async Task<ShopStatisticsResponse?> GetShopStatisticsAsync(long accountId)
     {
         var shop = await _context.Set<Shop>()
@@ -133,6 +178,64 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         }
 
         // Average rating
+        var feedbacks = shop.Replies?.Select(r => r.Feedback).Where(f => f != null).ToList() ?? new List<Feedback>();
+        var totalFeedbacks = feedbacks.Count;
+        var averageRating = totalFeedbacks > 0 ? feedbacks.Average(f => f.Rating) : 0;
+
+        return new ShopStatisticsResponse
+        {
+            ShopId = shop.Id,
+            ShopName = shop.Name,
+            TotalProducts = totalProducts,
+            TotalProductsSold = totalProductsSold,
+            TotalRevenue = totalRevenue,
+            TotalOrders = totalOrders,
+            AverageRating = (decimal)averageRating,
+            TotalFeedbacks = totalFeedbacks
+        };
+    }
+
+    // New: stats for a specific shop of the account
+    public async Task<ShopStatisticsResponse?> GetShopStatisticsAsync(long shopId, long accountId)
+    {
+        var shop = await _context.Set<Shop>()
+            .Include(s => s.Products)
+            .ThenInclude(p => p.ProductVariants)
+            .ThenInclude(pv => pv.OrderProducts)
+            .Include(s => s.Replies)
+            .ThenInclude(r => r.Feedback)
+            .FirstOrDefaultAsync(s => s.Id == shopId && s.AccountId == accountId);
+
+        if (shop == null) return null;
+
+        var totalProducts = shop.Products?.Count ?? 0;
+
+        var totalProductsSold = 0;
+        decimal totalRevenue = 0;
+        var totalOrders = 0;
+
+        if (shop.Products != null)
+        {
+            foreach (var product in shop.Products)
+            {
+                if (product.ProductVariants != null)
+                {
+                    foreach (var variant in product.ProductVariants)
+                    {
+                        if (variant.OrderProducts != null)
+                        {
+                            foreach (var order in variant.OrderProducts.Where(o => o.Status == "CONFIRMED"))
+                            {
+                                totalProductsSold += order.Quantity;
+                                totalRevenue += order.TotalAmount;
+                                totalOrders++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         var feedbacks = shop.Replies?.Select(r => r.Feedback).Where(f => f != null).ToList() ?? new List<Feedback>();
         var totalFeedbacks = feedbacks.Count;
         var averageRating = totalFeedbacks > 0 ? feedbacks.Average(f => f.Rating) : 0;

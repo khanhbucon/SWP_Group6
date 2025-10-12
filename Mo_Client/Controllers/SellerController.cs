@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Services;
 
 namespace Mo_Client.Controllers;
@@ -19,21 +19,21 @@ public class SellerController : Controller
     public async Task<IActionResult> Index()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var shop = await _api.GetMyShopAsync();
-        ViewBag.HasShop = shop != null;
+        var shops = await _api.GetMyShopsAsync();
+        ViewBag.HasShop = (shops?.Any() ?? false);
         return View();
     }
 
     public async Task<IActionResult> Shops()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var shop = await _api.GetMyShopAsync();
-        return View(shop);
+        var shops = await _api.GetMyShopsAsync();
+        return View(shops ?? new List<AuthApiClient.ShopResponse>());
     }
 
     public IActionResult AddShop() => RedirectToAction("Create", "Shop");
-    public IActionResult EditShop() => RedirectToAction("Edit", "Shop");
-    public IActionResult ShopStats() => RedirectToAction("Statistics", "Shop");
+    public IActionResult EditShop(long shopId) => RedirectToAction("Edit", "Shop", new { shopId });
+    public IActionResult ShopStats(long shopId) => RedirectToAction("Statistics", "Shop", new { shopId });
 
     public IActionResult Sales() => View();
     public IActionResult ProductOrders() => View();

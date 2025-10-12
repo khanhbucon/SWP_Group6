@@ -269,6 +269,22 @@
   },
   {
     "ContainingType": "Mo_Api.ApiController.ShopController",
+    "Method": "GetShopStatisticsById",
+    "RelativePath": "api/Shop/{shopId}/statistics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "shopId",
+        "Type": "System.Int64",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.ShopController",
     "Method": "CreateShop",
     "RelativePath": "api/Shop/create",
     "HttpMethod": "POST",
@@ -297,6 +313,16 @@
     "ContainingType": "Mo_Api.ApiController.ShopController",
     "Method": "GetMyShop",
     "RelativePath": "api/Shop/my-shop",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.ShopController",
+    "Method": "GetMyShops",
+    "RelativePath": "api/Shop/my-shops",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

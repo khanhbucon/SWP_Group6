@@ -67,6 +67,7 @@ public class ShopController : ControllerBase
         }
     }
 
+    // Backward compatible: return the first shop if exists
     [HttpGet("my-shop")]
     [Authorize(Roles = "Seller")]
     public async Task<IActionResult> GetMyShop()
@@ -90,6 +91,28 @@ public class ShopController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi lấy thông tin shop" });
+        }
+    }
+
+    // New: list all shops of current seller
+    [HttpGet("my-shops")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> GetMyShops()
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token" });
+            }
+
+            var shops = await _shopServices.GetShopsResponseByAccountIdAsync(userId.Value);
+            return Ok(new { Success = true, Data = shops });
+        }
+        catch
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi lấy thông tin shops" });
         }
     }
 
@@ -144,6 +167,33 @@ public class ShopController : ControllerBase
             return Ok(new { Success = true, Data = stats });
         }
         catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi lấy thống kê shop" });
+        }
+    }
+
+    // New: statistics by shop id
+    [HttpGet("{shopId:long}/statistics")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> GetShopStatisticsById(long shopId)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token" });
+            }
+
+            var stats = await _shopServices.GetShopStatisticsAsync(shopId, userId.Value);
+            if (stats == null)
+            {
+                return NotFound(new { Success = false, Message = "Shop không tồn tại hoặc không thuộc tài khoản" });
+            }
+
+            return Ok(new { Success = true, Data = stats });
+        }
+        catch
         {
             return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi lấy thống kê shop" });
         }

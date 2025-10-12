@@ -150,6 +150,15 @@ public class AuthApiClient
         return result?.Data;
     }
 
+    // New: get all shops of current account
+    public async Task<List<ShopResponse>?> GetMyShopsAsync(CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync("/api/shop/my-shops", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var result = await resp.Content.ReadFromJsonAsync<ApiResponse<List<ShopResponse>>>(cancellationToken: ct);
+        return result?.Data;
+    }
+
     public async Task<bool> UpdateShopAsync(long shopId, UpdateShopRequest req, CancellationToken ct = default)
     {
         var resp = await _httpClient.PutAsJsonAsync($"/api/shop/update/{shopId}", req, ct);
@@ -159,6 +168,15 @@ public class AuthApiClient
     public async Task<ShopStatisticsResponse?> GetShopStatisticsAsync(CancellationToken ct = default)
     {
         var resp = await _httpClient.GetAsync("/api/shop/statistics", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var result = await resp.Content.ReadFromJsonAsync<ApiResponse<ShopStatisticsResponse>>(cancellationToken: ct);
+        return result?.Data;
+    }
+
+    // New: statistics by shop id
+    public async Task<ShopStatisticsResponse?> GetShopStatisticsByIdAsync(long shopId, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync($"/api/shop/{shopId}/statistics", ct);
         if (!resp.IsSuccessStatusCode) return null;
         var result = await resp.Content.ReadFromJsonAsync<ApiResponse<ShopStatisticsResponse>>(cancellationToken: ct);
         return result?.Data;
