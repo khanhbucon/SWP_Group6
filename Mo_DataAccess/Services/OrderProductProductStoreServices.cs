@@ -2,7 +2,7 @@
 
 public class OrderProductProductStoreServices:GenericRepository<OrderProductProductStore>,IOrderProductProductStoreServices
 {
-    public OrderProductProductStoreServices(AppDbContext context) : base(context)
+    public OrderProductProductStoreServices(SwpGroup6Context context) : base(context)
     {
     }
 }

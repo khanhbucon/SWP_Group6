@@ -17,6 +17,8 @@ public partial class PaymentTransaction
 
     public DateTime? CreatedAt { get; set; }
 
+    public string? Status { get; set; }
+
     public virtual Account User { get; set; } = null!;
 
     public virtual ICollection<VnpayTransaction> VnpayTransactions { get; set; } = new List<VnpayTransaction>();

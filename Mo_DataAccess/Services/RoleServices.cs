@@ -2,7 +2,7 @@
 
 public class RoleServices:GenericRepository<Role>    ,IRoleServices
 {
-    public RoleServices(AppDbContext context) : base(context)
+    public RoleServices(SwpGroup6Context context) : base(context)
     {
     }
 }

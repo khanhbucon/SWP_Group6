@@ -19,5 +19,8 @@ namespace Mo_Entities.ModelRequest
 
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? Phone { get; set; }
+
+        public string? IdentificationF { get; set; }  // Mặt trước căn cước
+        public string? IdentificationB { get; set; }
     }
 }

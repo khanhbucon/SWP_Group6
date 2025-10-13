@@ -2,7 +2,7 @@
 
 public class SupportTicketServices:GenericRepository<SupportTicket>,ISupportTicketServices
 {
-    public SupportTicketServices(AppDbContext context) : base(context)
+    public SupportTicketServices(SwpGroup6Context context) : base(context)
     {
     }
 }

@@ -52,7 +52,7 @@ public class ShopController : Controller
         if (success)
         {
             TempData["Success"] = "Tạo shop thành công!";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Shops", "Seller");
         }
         else
         {
@@ -60,8 +60,8 @@ public class ShopController : Controller
             var msg = (message ?? string.Empty).ToLowerInvariant();
             if (!string.IsNullOrEmpty(msg) && (msg.Contains("co shop") || msg.Contains("có shop") || msg.Contains("đã có shop") || msg.Contains("has a shop") || msg.Contains("already has") || msg.Contains("exists")))
             {
-                TempData["Success"] = "Bạn đã có shop. Chuyển sang trang xem shop.";
-                return RedirectToAction("Index");
+                TempData["Success"] = "Bạn đã có shop. Chuyển đến trang trang xem shop.";
+                return RedirectToAction("Shops", "Seller");
             }
 
             ModelState.AddModelError("", message ?? "Có lỗi xảy ra khi tạo shop.");

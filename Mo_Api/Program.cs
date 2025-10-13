@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,7 @@ public class Program
         {
             options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100);
         });
-        builder.Services.AddDbContext<AppDbContext>(options =>
+        builder.Services.AddDbContext<SwpGroup6Context>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
         });

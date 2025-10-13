@@ -2,7 +2,7 @@
 
 public class ProductServices :GenericRepository<Product>,IProductServices
 {
-    public ProductServices(AppDbContext context) : base(context)
+    public ProductServices(SwpGroup6Context context) : base(context)
     {
     }
 }

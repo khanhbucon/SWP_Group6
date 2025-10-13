@@ -2,7 +2,7 @@
 
 public class ReplyServices:GenericRepository<Reply>,IReplyServices
 {
-    public ReplyServices(AppDbContext context) : base(context)
+    public ReplyServices(SwpGroup6Context context) : base(context)
     {
     }
 }

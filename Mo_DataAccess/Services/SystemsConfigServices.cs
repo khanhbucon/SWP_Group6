@@ -2,7 +2,7 @@
 
 public class SystemsConfigServices  :GenericRepository<SystemsConfig>,ISystemsConfigServices
 {
-    public SystemsConfigServices(AppDbContext context) : base(context)
+    public SystemsConfigServices(SwpGroup6Context context) : base(context)
     {
     }
 }

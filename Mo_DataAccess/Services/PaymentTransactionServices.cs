@@ -2,7 +2,7 @@
 
 public class PaymentTransactionServices:GenericRepository<PaymentTransaction>,IPaymentTransactionServices
 {
-    public PaymentTransactionServices(AppDbContext context) : base(context)
+    public PaymentTransactionServices(SwpGroup6Context context) : base(context)
     {
     }
 }

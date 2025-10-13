@@ -2,7 +2,7 @@
 
 public class ImageMessageServices:GenericRepository<ImageMessage>,IImageMessageServices
 {
-    public ImageMessageServices(AppDbContext context) : base(context)
+    public ImageMessageServices(SwpGroup6Context context) : base(context)
     {
     }
 }
