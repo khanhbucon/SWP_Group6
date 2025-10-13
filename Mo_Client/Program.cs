@@ -1,6 +1,10 @@
-using Mo_Client.Services;
+﻿using Mo_Client.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpClient("MoApi", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7234/"); // hoặc port của Mo_Api
+});
 
 builder.Services.AddControllersWithViews();
 
