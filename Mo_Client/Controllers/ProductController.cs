@@ -17,7 +17,7 @@ public class ProductController : Controller
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         ViewBag.ShopId = shopId;
-        return View(new AuthApiClient.CreateProductRequest(shopId, "", null, 0, 0, 0));
+        return View(new AuthApiClient.CreateProductRequest(shopId, "", null, null, 0, 0, 0, null));
     }
 
     [HttpPost]

@@ -11,8 +11,11 @@ public class CreateProductRequest
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
+    [StringLength(200)]
+    public string? ShortDescription { get; set; }
+
     [StringLength(255)]
-    public string? Description { get; set; }
+    public string? DetailedDescription { get; set; }
 
     [Required]
     public long SubCategoryId { get; set; }
@@ -22,4 +25,7 @@ public class CreateProductRequest
 
     [Range(0, int.MaxValue)]
     public int Stock { get; set; }
+
+    // For image upload handling on client side
+    public string? ImageUrl { get; set; }
 }

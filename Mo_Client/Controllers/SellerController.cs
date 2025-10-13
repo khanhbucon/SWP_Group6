@@ -34,6 +34,7 @@ public class SellerController : Controller
     public IActionResult AddShop() => RedirectToAction("Create", "Shop");
     public IActionResult EditShop(long shopId) => RedirectToAction("Edit", "Shop", new { shopId });
     public IActionResult ShopStats(long shopId) => RedirectToAction("Statistics", "Shop", new { shopId });
+    public IActionResult ViewShop(long shopId) => RedirectToAction("Details", "Shop", new { shopId });
 
     public IActionResult Sales() => View();
     public IActionResult ProductOrders() => View();

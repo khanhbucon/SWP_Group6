@@ -89,7 +89,7 @@ public class AuthApiClient
     public record ShopStatisticsResponse(long ShopId, string ShopName, int TotalProducts, int TotalProductsSold, decimal TotalRevenue, int TotalOrders, decimal AverageRating, int TotalFeedbacks);
 
     // Product DTOs
-    public record CreateProductRequest(long ShopId, string Name, string? Description, long SubCategoryId, decimal Price, int Stock);
+    public record CreateProductRequest(long ShopId, string Name, string? ShortDescription, string? DetailedDescription, long SubCategoryId, decimal Price, int Stock, string? ImageUrl);
 
     public async Task<(bool Success, string? Message)> CreateShopAsync(CreateShopRequest req, CancellationToken ct = default)
     {

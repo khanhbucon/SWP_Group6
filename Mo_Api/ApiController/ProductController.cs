@@ -41,7 +41,7 @@ public class ProductController : ControllerBase
             ShopId = request.ShopId,
             SubCategoryId = request.SubCategoryId,
             Name = request.Name,
-            Description = request.Description,
+            Description = request.DetailedDescription,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
