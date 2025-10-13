@@ -20,7 +20,7 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 {
     private readonly IConfiguration _configuration;
 
-    public AccountServices(AppDbContext context, IConfiguration configuration) : base(context)
+    public AccountServices(SwpGroup6Context context, IConfiguration configuration) : base(context)
     {
         _configuration = configuration;
     }
@@ -431,11 +431,12 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             IsEKYCVerified = !string.IsNullOrEmpty(account.IdentificationF) && !string.IsNullOrEmpty(account.IdentificationB),
             TotalOrders = totalOrders,
             TotalShops = totalShops,
-            TotalProductsSold = totalProductsSold
+            TotalProductsSold = totalProductsSold,
+            //IdentificationF = account.IdentificationF,  // Thêm dòng này
+            //IdentificationB = account.IdentificationB    // Thêm dòng này
         };
     }
 
-    // Thêm method này vào AccountServices
     public async Task<Account> UpdateProfileAsync(long userId, UpdateProfileRequest request)
     {
         var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Id == userId);

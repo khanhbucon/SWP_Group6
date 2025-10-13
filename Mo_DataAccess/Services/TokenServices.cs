@@ -2,7 +2,7 @@
 
 public class TokenServices:GenericRepository<Token>,ITokenServices
 {
-    public TokenServices(AppDbContext context) : base(context)
+    public TokenServices(SwpGroup6Context context) : base(context)
     {
     }
 }

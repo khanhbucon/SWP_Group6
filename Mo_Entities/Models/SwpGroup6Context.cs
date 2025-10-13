@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mo_Entities.Models;
 
-public partial class AppDbContext : DbContext
+public partial class SwpGroup6Context : DbContext
 {
-    public AppDbContext()
+    public SwpGroup6Context()
     {
     }
 
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public SwpGroup6Context(DbContextOptions<SwpGroup6Context> options)
         : base(options)
     {
     }
@@ -54,6 +54,10 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Token> Tokens { get; set; }
 
     public virtual DbSet<VnpayTransaction> VnpayTransactions { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("server=KHANHVIDUY\\SQLEXPRESS; database = SWP_Group6; uid=sa;pwd=123;Encrypt=False;Trust Server Certificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -277,6 +281,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.PaymentDescription)
                 .HasMaxLength(100)
                 .HasColumnName("paymentDescription");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING")
+                .HasColumnName("status");
             entity.Property(e => e.Type)
                 .HasMaxLength(20)
                 .IsUnicode(false)
