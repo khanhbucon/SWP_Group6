@@ -72,12 +72,14 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
     public async Task<ShopResponse?> GetShopResponseByAccountIdAsync(long accountId)
     {
         var shop = await _context.Set<Shop>()
-            .Include(s => s.Products)
+            .Include(s => s.Products)            
+                .ThenInclude(p => p.SubCategory)
+                    .ThenInclude(sc => sc.Category)
             .FirstOrDefaultAsync(s => s.AccountId == accountId);
 
         if (shop == null) return null;
 
-        return new ShopResponse
+        var response = new ShopResponse
         {
             Id = shop.Id,
             AccountId = shop.AccountId,
@@ -89,6 +91,16 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             UpdatedAt = shop.UpdatedAt,
             TotalProducts = shop.Products?.Count ?? 0
         };
+        if (shop.Products != null)
+        {
+            response.CategoryNames = shop.Products
+                .Where(p => p.SubCategory != null && p.SubCategory.Category != null)
+                .Select(p => p.SubCategory.Category.Name)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList();
+        }
+        return response;
     }
 
     // New: list all shops of an account
@@ -96,20 +108,32 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
     {
         var shops = await _context.Set<Shop>()
             .Include(s => s.Products)
+                .ThenInclude(p => p.SubCategory)
+                    .ThenInclude(sc => sc.Category)
             .Where(s => s.AccountId == accountId)
             .ToListAsync();
 
-        return shops.Select(shop => new ShopResponse
+        return shops.Select(shop =>
         {
-            Id = shop.Id,
-            AccountId = shop.AccountId,
-            Name = shop.Name,
-            Description = shop.Description,
-            ReportCount = shop.ReportCount,
-            IsActive = shop.IsActive,
-            CreatedAt = shop.CreatedAt,
-            UpdatedAt = shop.UpdatedAt,
-            TotalProducts = shop.Products?.Count ?? 0
+            var dto = new ShopResponse
+            {
+                Id = shop.Id,
+                AccountId = shop.AccountId,
+                Name = shop.Name,
+                Description = shop.Description,
+                ReportCount = shop.ReportCount,
+                IsActive = shop.IsActive,
+                CreatedAt = shop.CreatedAt,
+                UpdatedAt = shop.UpdatedAt,
+                TotalProducts = shop.Products?.Count ?? 0,
+                CategoryNames = (shop.Products ?? new List<Product>())
+                    .Where(p => p.SubCategory != null && p.SubCategory.Category != null)
+                    .Select(p => p.SubCategory.Category.Name)
+                    .Distinct()
+                    .OrderBy(n => n)
+                    .ToList()
+            };
+            return dto;
         }).ToList();
     }
 
@@ -118,11 +142,13 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
     {
         var shop = await _context.Set<Shop>()
             .Include(s => s.Products)
+                .ThenInclude(p => p.SubCategory)
+                    .ThenInclude(sc => sc.Category)
             .FirstOrDefaultAsync(s => s.Id == shopId && s.AccountId == accountId);
 
         if (shop == null) return null;
 
-        return new ShopResponse
+        var dto2 = new ShopResponse
         {
             Id = shop.Id,
             AccountId = shop.AccountId,
@@ -132,8 +158,15 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             IsActive = shop.IsActive,
             CreatedAt = shop.CreatedAt,
             UpdatedAt = shop.UpdatedAt,
-            TotalProducts = shop.Products?.Count ?? 0
+            TotalProducts = shop.Products?.Count ?? 0,
+            CategoryNames = (shop.Products ?? new List<Product>())
+                .Where(p => p.SubCategory != null && p.SubCategory.Category != null)
+                .Select(p => p.SubCategory.Category.Name)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList()
         };
+        return dto2;
     }
 
     public async Task<ShopStatisticsResponse?> GetShopStatisticsAsync(long accountId)

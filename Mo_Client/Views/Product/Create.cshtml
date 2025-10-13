@@ -1,0 +1,178 @@
+﻿@model Mo_Client.Services.AuthApiClient.CreateProductRequest
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Seller" asp-action="Shops">Gian hàng</a></li>
+            <li class="breadcrumb-item active">Thêm sản phẩm</li>
+        </ol>
+    </nav>
+    <h4 class="mb-0">
+        <i class="fas fa-plus-circle me-2 text-success"></i>Thêm sản phẩm mới
+    </h4>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-success text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-box me-2"></i>Thông tin sản phẩm
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+            <input asp-for="ShopId" type="hidden" value="@ViewBag.ShopId" />
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Name" class="form-control form-control-lg" placeholder="Nhập tên sản phẩm" />
+                        <label asp-for="Name">
+                            <i class="fas fa-tag me-2"></i>Tên sản phẩm
+                        </label>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="SubCategoryId" class="form-control form-control-lg" placeholder="Nhập ID danh mục" />
+                        <label asp-for="SubCategoryId">
+                            <i class="fas fa-list me-2"></i>Danh mục (ID)
+                        </label>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Tạm thời nhập ID SubCategory - sẽ cải thiện thành dropdown
+                        </div>
+                        <span asp-validation-for="SubCategoryId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-floating">
+                        <textarea asp-for="Description" class="form-control" style="height: 120px" placeholder="Mô tả sản phẩm"></textarea>
+                        <label asp-for="Description">
+                            <i class="fas fa-align-left me-2"></i>Mô tả sản phẩm
+                        </label>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Price" class="form-control form-control-lg" placeholder="0" step="0.01" />
+                        <label asp-for="Price">
+                            <i class="fas fa-dollar-sign me-2"></i>Giá bán (VNĐ)
+                        </label>
+                        <span asp-validation-for="Price" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Stock" class="form-control form-control-lg" placeholder="0" />
+                        <label asp-for="Stock">
+                            <i class="fas fa-warehouse me-2"></i>Số lượng tồn kho
+                        </label>
+                        <span asp-validation-for="Stock" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4 pt-3 border-top">
+                <button class="btn btn-success btn-lg px-4" type="submit">
+                    <i class="fas fa-save me-2"></i>Thêm sản phẩm
+                </button>
+                <a class="btn btn-outline-secondary btn-lg px-4" asp-controller="Seller" asp-action="Shops">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: #495057;
+}
+
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    border: none;
+    padding: 1.5rem 2rem;
+}
+
+.form-floating > label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-outline-secondary {
+    border-width: 2px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
+}
+
+.form-text {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+@@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .d-flex.gap-3 {
+        flex-direction: column;
+    }
+    
+    .btn-lg {
+        width: 100%;
+    }
+}
+</style>

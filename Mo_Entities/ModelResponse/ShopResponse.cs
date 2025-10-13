@@ -1,4 +1,4 @@
-namespace Mo_Entities.ModelResponse;
+﻿namespace Mo_Entities.ModelResponse;
 
 public class ShopResponse
 {
@@ -11,4 +11,5 @@ public class ShopResponse
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int TotalProducts { get; set; }
+    public List<string> CategoryNames { get; set; } = new();
 }

@@ -85,8 +85,11 @@ public class AuthApiClient
     public record CreateShopRequest(string Name, string? Description);
     public record UpdateShopRequest(string Name, string? Description);
 
-    public record ShopResponse(long Id, long AccountId, string Name, string? Description, int? ReportCount, bool? IsActive, DateTime? CreatedAt, DateTime? UpdatedAt, int TotalProducts);
+    public record ShopResponse(long Id, long AccountId, string Name, string? Description, int? ReportCount, bool? IsActive, DateTime? CreatedAt, DateTime? UpdatedAt, int TotalProducts, List<string>? CategoryNames);
     public record ShopStatisticsResponse(long ShopId, string ShopName, int TotalProducts, int TotalProductsSold, decimal TotalRevenue, int TotalOrders, decimal AverageRating, int TotalFeedbacks);
+
+    // Product DTOs
+    public record CreateProductRequest(long ShopId, string Name, string? Description, long SubCategoryId, decimal Price, int Stock);
 
     public async Task<(bool Success, string? Message)> CreateShopAsync(CreateShopRequest req, CancellationToken ct = default)
     {
@@ -180,6 +183,20 @@ public class AuthApiClient
         if (!resp.IsSuccessStatusCode) return null;
         var result = await resp.Content.ReadFromJsonAsync<ApiResponse<ShopStatisticsResponse>>(cancellationToken: ct);
         return result?.Data;
+    }
+
+    // Generic helpers for feature pages
+    public async Task<(bool Success, string? Message)> PostJsonAsync<T>(string url, object body, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PostAsJsonAsync(url, body, ct);
+        if (resp.IsSuccessStatusCode) return (true, null);
+        try
+        {
+            var envelope = await resp.Content.ReadFromJsonAsync<ApiResponse<T>>(cancellationToken: ct);
+            if (envelope != null && !string.IsNullOrWhiteSpace(envelope.Message)) return (false, envelope.Message);
+        }
+        catch { }
+        return (false, resp.ReasonPhrase);
     }
 }
 
