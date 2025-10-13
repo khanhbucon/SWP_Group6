@@ -6,7 +6,7 @@ namespace Mo_DataAccess.Services;
 
 public class FeedbackServices :GenericRepository<Feedback>, IFeedbackServices
 {
-    public FeedbackServices(AppDbContext context) : base(context)
+    public FeedbackServices(SwpGroup6Context context) : base(context)
     {
     }
 }

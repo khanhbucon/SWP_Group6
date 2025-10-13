@@ -2,7 +2,7 @@
 
 public class ProductVariantServices:GenericRepository<ProductVariant>,IProductVariantServices
 {
-    public ProductVariantServices(AppDbContext context) : base(context)
+    public ProductVariantServices(SwpGroup6Context context) : base(context)
     {
     }
 }

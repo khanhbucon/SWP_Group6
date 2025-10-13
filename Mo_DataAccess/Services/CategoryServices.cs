@@ -6,7 +6,7 @@ namespace Mo_DataAccess.Services;
 
 public class CategoryServices : GenericRepository<Category>, ICategoryServices
 {
-    public CategoryServices(AppDbContext context) : base(context)
+    public CategoryServices(SwpGroup6Context context) : base(context)
     {
     }
 }

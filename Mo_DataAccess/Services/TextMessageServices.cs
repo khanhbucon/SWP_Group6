@@ -2,7 +2,7 @@
 
 public class TextMessageServices:GenericRepository<TextMessage>,ITextMessageServices
 {
-    public TextMessageServices(AppDbContext context) : base(context)
+    public TextMessageServices(SwpGroup6Context context) : base(context)
     {
     }
 }

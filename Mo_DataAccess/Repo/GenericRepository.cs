@@ -5,9 +5,9 @@ namespace Mo_DataAccess.Repo;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : class
 {   
-    protected readonly AppDbContext _context;
+    protected readonly SwpGroup6Context _context;
     protected readonly DbSet<T> _dbSet;
-    public GenericRepository(AppDbContext context)
+    public GenericRepository(SwpGroup6Context context)
     {
         _context = context;
         _dbSet = _context.Set<T>();

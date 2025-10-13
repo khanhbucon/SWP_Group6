@@ -2,7 +2,7 @@
 
 public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpayTransactionServices
 {
-    public VnpayTransactionServices(AppDbContext context) : base(context)
+    public VnpayTransactionServices(SwpGroup6Context context) : base(context)
     {
     }
 }

@@ -2,7 +2,7 @@
 
 public class ShopServices  :GenericRepository<Shop>  ,IShopServices
 {
-    public ShopServices(AppDbContext context) : base(context)
+    public ShopServices(SwpGroup6Context context) : base(context)
     {
     }
 }
