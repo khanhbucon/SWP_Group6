@@ -36,7 +36,12 @@ public class SellerController : Controller
     public IActionResult ShopStats(long shopId) => RedirectToAction("Statistics", "Shop", new { shopId });
     public IActionResult ViewShop(long shopId) => RedirectToAction("Details", "Shop", new { shopId });
 
-    public IActionResult Sales() => View();
+    public async Task<IActionResult> Sales()
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var stats = await _api.GetShopStatisticsAsync();
+        return View(stats);
+    }
     public IActionResult ProductOrders() => View();
     public IActionResult ServiceOrders() => View();
     public IActionResult Preorders() => View();

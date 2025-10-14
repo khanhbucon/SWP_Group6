@@ -11,351 +11,200 @@
             <li class="breadcrumb-item active">Thêm sản phẩm</li>
         </ol>
     </nav>
-    <h4 class="mb-0">
-        <i class="fas fa-plus-circle me-2 text-success"></i>Thêm sản phẩm mới
-    </h4>
+    <h4 class="mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>Thêm sản phẩm mới</h4>
+    <div class="section-nav mt-3">
+        <a href="#basic" class="section-pill"><i class="fas fa-info-circle me-1"></i>Thông tin cơ bản</a>
+        <a href="#desc" class="section-pill"><i class="fas fa-align-left me-1"></i>Mô tả</a>
+        <a href="#images" class="section-pill"><i class="fas fa-image me-1"></i>Hình ảnh</a>
+    </div>
+    <hr />
+    <small class="text-muted">Điền lần lượt từng phần như bên dưới. Bạn có thể quay lại chỉnh sửa trước khi lưu.</small>
+    <hr />
+    <div></div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-gradient-success text-white">
-        <h5 class="mb-0">
-            <i class="fas fa-box me-2"></i>Thông tin sản phẩm
-        </h5>
-    </div>
-    <div class="card-body p-4">
-        <form asp-action="Create" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
-            <input asp-for="ShopId" type="hidden" value="@ViewBag.ShopId" />
+<form asp-action="Create" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+    <input asp-for="ShopId" type="hidden" value="@ViewBag.ShopId" />
 
+    <!-- Section 1: Thông tin cơ bản -->
+    <section id="basic" class="section-card">
+        <div class="section-header">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <h5 class="mb-0">Thông Tin Cơ Bản</h5>
+                <small class="text-muted">Tên, danh mục, giá, số lượng, phí sàn</small>
+            </div>
+        </div>
+        <div class="section-body">
             <div class="row g-4">
                 <div class="col-md-6">
                     <div class="form-floating">
-                        <input asp-for="Name" class="form-control form-control-lg" placeholder="Nhập tên sản phẩm" />
-                        <label asp-for="Name">
-                            <i class="fas fa-tag me-2"></i>Tên sản phẩm
-                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Nhập tên sản phẩm" />
+                        <label asp-for="Name"><i class="fas fa-tag me-2"></i>Tên sản phẩm</label>
                         <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-floating">
-                        <input asp-for="SubCategoryId" class="form-control form-control-lg" placeholder="Nhập ID danh mục" />
-                        <label asp-for="SubCategoryId">
-                            <i class="fas fa-list me-2"></i>Danh mục (ID)
-                        </label>
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Tạm thời nhập ID SubCategory - sẽ cải thiện thành dropdown
-                        </div>
+                        <input asp-for="SubCategoryId" class="form-control" placeholder="Nhập ID danh mục" />
+                        <label asp-for="SubCategoryId"><i class="fas fa-list me-2"></i>Danh mục (ID)</label>
+                        <div class="form-text"><i class="fas fa-info-circle me-1"></i>Tạm thời nhập ID SubCategory - sẽ cải thiện thành dropdown</div>
                         <span asp-validation-for="SubCategoryId" class="text-danger small"></span>
                     </div>
                 </div>
 
-                <!-- Mô tả ngắn -->
-                <div class="col-12">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-file-alt me-2"></i>Mô tả ngắn*
-                    </label>
-                    <input asp-for="ShortDescription" class="form-control form-control-lg" 
-                           placeholder="Nhập mô tả ngắn gọn về sản phẩm..." maxlength="200" />
-                    <div class="form-text">Mô tả ngắn gọn, súc tích về sản phẩm (tối đa 200 ký tự)</div>
-                    <span asp-validation-for="ShortDescription" class="text-danger small"></span>
-                </div>
-
-                <!-- Mô tả chi tiết với Rich Text Editor -->
-                <div class="col-12">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-align-left me-2"></i>Mô tả chi tiết*
-                    </label>
-                    <div class="rich-editor-container">
-                        <div class="editor-toolbar">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary" data-command="bold" title="Bold">
-                                    <i class="fas fa-bold"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-command="italic" title="Italic">
-                                    <i class="fas fa-italic"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-command="underline" title="Underline">
-                                    <i class="fas fa-underline"></i>
-                                </button>
-                            </div>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary" data-command="justifyLeft" title="Align Left">
-                                    <i class="fas fa-align-left"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-command="justifyCenter" title="Align Center">
-                                    <i class="fas fa-align-center"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-command="justifyRight" title="Align Right">
-                                    <i class="fas fa-align-right"></i>
-                                </button>
-                            </div>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary" data-command="insertUnorderedList" title="Bullet List">
-                                    <i class="fas fa-list-ul"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-command="insertOrderedList" title="Numbered List">
-                                    <i class="fas fa-list-ol"></i>
-                                </button>
-                            </div>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary" data-command="createLink" title="Insert Link">
-                                    <i class="fas fa-link"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-command="insertImage" title="Insert Image">
-                                    <i class="fas fa-image"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="editor-content" contenteditable="true" 
-                             style="min-height: 200px; border: 1px solid #ced4da; padding: 12px; border-radius: 0 0 6px 6px;">
-                        </div>
-                        <textarea asp-for="DetailedDescription" class="d-none" id="hiddenDetailedDescription"></textarea>
-                    </div>
-                    <div class="form-text">Mô tả chi tiết về sản phẩm, tính năng, ưu điểm...</div>
-                    <span asp-validation-for="DetailedDescription" class="text-danger small"></span>
-                </div>
-
-                <!-- Upload ảnh gian hàng -->
-                <div class="col-12">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-camera me-2"></i>Ảnh gian hàng <span class="text-muted">(Kích thước lớn hơn 320px.)</span>
-                    </label>
-                    <div class="upload-area">
-                        <input type="file" id="productImage" accept="image/*" class="d-none" />
-                        <div class="upload-placeholder" onclick="document.getElementById('productImage').click()">
-                            <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                            <p class="mb-0 text-muted">Choose file</p>
-                            <small class="text-muted">Hoặc kéo thả ảnh vào đây</small>
-                        </div>
-                        <div class="image-preview d-none">
-                            <img src="" alt="Preview" class="img-thumbnail" style="max-width: 200px;" />
-                            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeImage()">
-                                <i class="fas fa-trash"></i> Xóa ảnh
-                            </button>
-                        </div>
-                    </div>
-                    <input asp-for="ImageUrl" type="hidden" />
-                </div>
-
-                <!-- Phí sàn (tuỳ chọn) -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-floating">
-                        <input asp-for="Fee" class="form-control form-control-lg" placeholder="0" step="0.01" />
-                        <label asp-for="Fee">
-                            <i class="fas fa-percentage me-2"></i>Phí sàn (%, tuỳ chọn)
-                        </label>
-                        <div class="form-text">Nếu bỏ trống sẽ dùng cấu hình mặc định của hệ thống.</div>
-                        <span asp-validation-for="Fee" class="text-danger small"></span>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input asp-for="Price" class="form-control form-control-lg" placeholder="0" step="0.01" />
-                        <label asp-for="Price">
-                            <i class="fas fa-dollar-sign me-2"></i>Giá bán (VNĐ)
-                        </label>
+                        <input asp-for="Price" class="form-control" placeholder="0" step="0.01" />
+                        <label asp-for="Price"><i class="fas fa-dollar-sign me-2"></i>Giá bán (VNĐ)</label>
                         <span asp-validation-for="Price" class="text-danger small"></span>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-floating">
-                        <input asp-for="Stock" class="form-control form-control-lg" placeholder="0" />
-                        <label asp-for="Stock">
-                            <i class="fas fa-warehouse me-2"></i>Số lượng tồn kho
-                        </label>
+                        <input asp-for="Stock" class="form-control" placeholder="0" />
+                        <label asp-for="Stock"><i class="fas fa-warehouse me-2"></i>Số lượng tồn kho</label>
                         <span asp-validation-for="Stock" class="text-danger small"></span>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input asp-for="Fee" class="form-control" placeholder="0" step="0.01" />
+                        <label asp-for="Fee"><i class="fas fa-percentage me-2"></i>Phí sàn (%, tuỳ chọn)</label>
+                        <div class="form-text">Nếu để trống sẽ dùng mặc định hệ thống.</div>
+                        <span asp-validation-for="Fee" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Mô tả sản phẩm -->
+    <section id="desc" class="section-card">
+        <div class="section-header">
+            <i class="fas fa-align-left"></i>
+            <div>
+                <h5 class="mb-0">Mô Tả Sản Phẩm</h5>
+                <small class="text-muted">Mô tả ngắn và mô tả chi tiết</small>
+            </div>
+        </div>
+        <div class="section-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold"><i class="fas fa-file-alt me-2"></i>Mô tả ngắn</label>
+                <input asp-for="ShortDescription" class="form-control" placeholder="Nhập mô tả ngắn gọn về sản phẩm..." maxlength="200" />
+                <div class="form-text">Mô tả ngắn gọn, súc tích (tối đa 200 ký tự)</div>
+                <span asp-validation-for="ShortDescription" class="text-danger small"></span>
             </div>
 
-            <div class="d-flex gap-3 mt-4 pt-3 border-top">
-                <button class="btn btn-success btn-lg px-4" type="submit">
-                    <i class="fas fa-save me-2"></i>Thêm sản phẩm
-                </button>
-                <a class="btn btn-outline-secondary btn-lg px-4" asp-controller="Seller" asp-action="Shops">
-                    <i class="fas fa-arrow-left me-2"></i>Quay lại
-                </a>
+            <label class="form-label fw-bold"><i class="fas fa-paragraph me-2"></i>Mô tả chi tiết</label>
+            <div class="rich-editor-container">
+                <div class="editor-toolbar">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-command="bold" title="Bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-command="italic" title="Italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-command="underline" title="Underline"><i class="fas fa-underline"></i></button>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-command="justifyLeft" title="Align Left"><i class="fas fa-align-left"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-command="justifyCenter" title="Align Center"><i class="fas fa-align-center"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-command="justifyRight" title="Align Right"><i class="fas fa-align-right"></i></button>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-command="insertUnorderedList" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-command="insertOrderedList" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-command="createLink" title="Insert Link"><i class="fas fa-link"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-command="insertImage" title="Insert Image"><i class="fas fa-image"></i></button>
+                    </div>
+                </div>
+                <div class="editor-content" contenteditable="true"></div>
+                <textarea asp-for="DetailedDescription" class="d-none" id="hiddenDetailedDescription"></textarea>
             </div>
-        </form>
+            <div class="form-text">Mô tả chi tiết về sản phẩm, tính năng, ưu điểm...</div>
+            <span asp-validation-for="DetailedDescription" class="text-danger small"></span>
+        </div>
+    </section>
+
+    <!-- Section 3: Hình ảnh sản phẩm -->
+    <section id="images" class="section-card">
+        <div class="section-header">
+            <i class="fas fa-image"></i>
+            <div>
+                <h5 class="mb-0">Hình Ảnh Sản Phẩm</h5>
+                <small class="text-muted">Upload ảnh đại diện sản phẩm</small>
+            </div>
+        </div>
+        <div class="section-body">
+            <div class="upload-area">
+                <input type="file" id="productImage" accept="image/*" class="d-none" />
+                <div class="upload-placeholder" onclick="document.getElementById('productImage').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                    <p class="mb-0 text-muted">Chọn tệp</p>
+                    <small class="text-muted">Có thể kéo thả ảnh vào đây</small>
+                </div>
+                <div class="image-preview d-none">
+                    <img src="" alt="Preview" class="img-thumbnail" style="max-width: 200px;" />
+                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeImage()"><i class="fas fa-trash"></i> Xóa ảnh</button>
+                </div>
+            </div>
+            <input asp-for="ImageUrl" type="hidden" />
+            <div class="alert alert-warning mt-3 mb-0">
+                <div class="fw-bold mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Lưu ý về hình ảnh:</div>
+                <ul class="mb-0 ps-3 small">
+                    <li>Sử dụng hình ảnh chất lượng cao, rõ nét</li>
+                    <li>Hình ảnh nên thể hiện đúng sản phẩm bán</li>
+                    <li>Không sử dụng hình ảnh có bản quyền</li>
+                    <li>Tránh hình ảnh chứa thông tin nhạy cảm</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <div class="d-flex gap-3 mt-4">
+        <button class="btn btn-success btn-lg px-4" type="submit"><i class="fas fa-save me-2"></i>Thêm sản phẩm</button>
+        <a class="btn btn-outline-secondary btn-lg px-4" asp-controller="Seller" asp-action="Shops"><i class="fas fa-arrow-left me-2"></i>Quay lại</a>
     </div>
-</div>
+</form>
 
 <style>
-.bg-gradient-success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-}
+/* Header and quick nav */
+.section-nav { display: flex; gap: .5rem; flex-wrap: wrap; }
+.section-pill { padding: .35rem .75rem; border-radius: 999px; background: #f1f5f9; color: #475569; text-decoration: none; border: 1px solid #e2e8f0; }
+.section-pill:hover { background: #e2e8f0; color: #0f172a; }
 
-.page-header {
-    margin-bottom: 2rem;
-}
+/* Section Card */
+.section-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,.04); }
+.section-header { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f1f5f9; background: linear-gradient(180deg, #f8fafc, #fff); }
+.section-header i { color: #2563eb; font-size: 1.1rem; }
+.section-body { padding: 16px; }
 
-.breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-}
+.form-floating > label { font-weight: 500; color: #495057; }
+.form-control:focus { border-color: #28a745; box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15); }
 
-.breadcrumb-item a {
-    color: #6c757d;
-    text-decoration: none;
-}
+/* Rich Editor */
+.rich-editor-container { border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; }
+.editor-toolbar { background: #f8f9fa; padding: 8px 12px; border-bottom: 1px solid #ced4da; display: flex; gap: 8px; flex-wrap: wrap; }
+.editor-toolbar .btn { border-radius: 4px; border: 1px solid #dee2e6; background: white; color: #495057; min-width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+.editor-toolbar .btn:hover { background-color: #e9ecef; border-color: #adb5bd; color: #212529; }
+.editor-toolbar .btn.active { background-color: #28a745; border-color: #28a745; color: white; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+.editor-content { min-height: 200px; padding: 12px; outline: none; background: white; border-top: 1px solid #e9ecef; }
 
-.breadcrumb-item a:hover {
-    color: #495057;
-}
+/* Upload */
+.upload-area { border: 2px dashed #ced4da; border-radius: 8px; padding: 2rem; text-align: center; transition: all 0.3s ease; cursor: pointer; }
+.upload-area:hover { border-color: #28a745; background-color: #f8fff8; }
+.upload-area.dragover { border-color: #28a745; background-color: #e8f5e8; }
+.upload-placeholder { padding: 1rem; }
 
-.card {
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.card-header {
-    border: none;
-    padding: 1.5rem 2rem;
-}
-
-.form-floating > label {
-    font-weight: 500;
-    color: #495057;
-}
-
-.form-control:focus {
-    border-color: #28a745;
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
-}
-
-/* Rich Editor Styles */
-.rich-editor-container {
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.editor-toolbar {
-    background: #f8f9fa;
-    padding: 8px 12px;
-    border-bottom: 1px solid #ced4da;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.editor-toolbar .btn {
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
-    background: white;
-    color: #495057;
-    min-width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.editor-toolbar .btn:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
-    color: #212529;
-}
-
-.editor-toolbar .btn.active {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: white;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.editor-toolbar .btn:focus {
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
-    outline: none;
-}
-
-.editor-content {
-    min-height: 200px;
-    padding: 12px;
-    outline: none;
-    background: white;
-}
-
-.editor-content:focus {
-    box-shadow: inset 0 0 0 1px #28a745;
-}
-
-/* Upload Area Styles */
-.upload-area {
-    border: 2px dashed #ced4da;
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.upload-area:hover {
-    border-color: #28a745;
-    background-color: #f8fff8;
-}
-
-.upload-area.dragover {
-    border-color: #28a745;
-    background-color: #e8f5e8;
-}
-
-.upload-placeholder {
-    padding: 1rem;
-}
-
-.btn-success {
-    background: linear-gradient(45deg, #28a745, #20c997);
-    border: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-success:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.btn-outline-secondary {
-    border-width: 2px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-secondary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
-}
-
-.form-text {
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-}
+.btn-success { background: linear-gradient(45deg, #28a745, #20c997); border: none; font-weight: 600; transition: all 0.3s ease; }
+.btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3); }
+.btn-outline-secondary { border-width: 2px; font-weight: 600; transition: all 0.3s ease; }
+.btn-outline-secondary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2); }
 
 @@media (max-width: 768px) {
-    .card-body {
-        padding: 1.5rem !important;
-    }
-    
-    .d-flex.gap-3 {
-        flex-direction: column;
-    }
-    
-    .btn-lg {
-        width: 100%;
-    }
-    
-    .editor-toolbar {
-        padding: 6px;
-        gap: 4px;
-    }
-    
-    .editor-toolbar .btn-group {
-        margin-bottom: 4px;
-    }
+    .d-flex.gap-3 { flex-direction: column; }
+    .btn-lg { width: 100%; }
+    .editor-toolbar { padding: 6px; gap: 4px; }
 }
 </style>
 

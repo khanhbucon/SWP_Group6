@@ -1,3 +1,175 @@
-﻿@{ Layout = "~/Views/Seller/_SellerLayout.cshtml"; ViewData["Title"] = "Sales"; }
-<h4>Sales</h4>
-<div class="alert alert-info">Dashboard doanh s? (đang để trống).</div>
+﻿@model Mo_Client.Services.AuthApiClient.ShopStatisticsResponse
+@{
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+    ViewData["Title"] = "Sales";
+}
+
+<div class="sales-dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="text-muted mb-1">Chào mừng Seller!</h5>
+            <div class="fw-bold fs-4">Quản lý hoạt động cộng tác viên của bạn</div>
+        </div>
+        <a href="/" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-home me-1"></i> Về trang chủ
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-bell text-primary me-2"></i>
+                <strong>Thông báo từ Admin</strong>
+            </div>
+        </div>
+        <div class="card-body py-3 text-muted">
+            Nội dung thông báo tại trang home của CTV Panel
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <div class="stat-card gradient-1">
+                <div class="icon"><i class="fas fa-wallet"></i></div>
+                <div class="title">Số dư hiện tại</div>
+                <div class="value">0đ</div>
+                <span class="badge bg-light text-secondary">Tài khoản chính</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card gradient-2">
+                <div class="icon"><i class="fas fa-shopping-basket"></i></div>
+                <div class="title">Đơn hàng hôm nay</div>
+                <div class="value">0</div>
+                <span class="badge bg-light text-secondary">Hôm nay</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card gradient-3">
+                <div class="icon"><i class="fas fa-chart-line"></i></div>
+                <div class="title">Doanh thu hôm nay</div>
+                <div class="value">0đ</div>
+                <span class="badge bg-light text-secondary">Hôm nay</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card gradient-4">
+                <div class="icon"><i class="fas fa-shopping-bag"></i></div>
+                <div class="title">Tổng đơn hàng</div>
+                <div class="value">@((Model?.TotalOrders ?? 0).ToString("N0"))</div>
+                <span class="badge bg-light text-secondary">Toàn thời gian</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="stat-card gradient-5">
+                <div class="icon"><i class="fas fa-donate"></i></div>
+                <div class="title">Tổng doanh thu</div>
+                <div class="value">@string.Format("{0:N0}đ", Model?.TotalRevenue ?? 0)</div>
+                <span class="badge bg-light text-secondary">Toàn thời gian</span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card gradient-6">
+                <div class="icon"><i class="fas fa-users"></i></div>
+                <div class="title">Khách hàng</div>
+                <div class="value">0</div>
+                <span class="badge bg-light text-secondary">Duy nhất</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <strong>Đơn hàng gần đây</strong>
+                    <a class="btn btn-sm btn-primary" href="#">Xem tất cả</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Sản phẩm</th>
+                                <th>Khách hàng</th>
+                                <th class="text-end">Số tiền</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Chưa có đơn hàng nào</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <strong>Thống kê nhanh</strong>
+                </div>
+                <div class="card-body">
+                    <div class="quick-block">
+                        <div class="small text-muted mb-2">7 ngày gần đây</div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Đơn hàng:</span><span class="text-muted">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Doanh thu:</span><span class="text-muted">0đ</span>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="quick-block">
+                        <div class="small text-muted mb-2">Tháng này</div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Đơn hàng:</span><span class="text-muted">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Doanh thu:</span><span class="text-muted">0đ</span>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="quick-block">
+                        <div class="small text-muted mb-2">Top sản phẩm bán chạy</div>
+                        <div class="text-muted">Chưa có dữ liệu</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sales-dashboard .stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    border: 0;
+    position: relative;
+}
+.sales-dashboard .stat-card .icon {
+    position: absolute; top: -14px; left: -14px;
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.85);
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.sales-dashboard .stat-card .title { font-size: .9rem; color: #6b7280; margin-left: 40px; }
+.sales-dashboard .stat-card .value { font-size: 1.5rem; font-weight: 800; color: #111827; margin-left: 40px; }
+.sales-dashboard .stat-card .badge { margin-left: 40px; }
+
+.gradient-1 { background: linear-gradient(135deg, #eef2ff, #e0e7ff); }
+.gradient-2 { background: linear-gradient(135deg, #ecfeff, #cffafe); }
+.gradient-3 { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+.gradient-4 { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+.gradient-5 { background: linear-gradient(135deg, #faf5ff, #f3e8ff); }
+.gradient-6 { background: linear-gradient(135deg, #f5f3ff, #ede9fe); }
+
+.quick-block { font-size: .95rem; }
+</style>
