@@ -15,6 +15,8 @@ public partial class Product
 
     public string? Description { get; set; }
 
+
+
     public byte[]? Image { get; set; }
 
     public bool? IsActive { get; set; }

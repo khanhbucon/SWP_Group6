@@ -55,10 +55,7 @@ public partial class SwpGroup6Context : DbContext
 
     public virtual DbSet<VnpayTransaction> VnpayTransactions { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("server=KHANHVIDUY\\SQLEXPRESS; database = SWP_Group6; uid=sa;pwd=123;Encrypt=False;Trust Server Certificate=True");
-
+   
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>

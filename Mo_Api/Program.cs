@@ -1,12 +1,14 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Mo_DataAccess;
 using Mo_DataAccess.Services;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
+using System.Text;
 
 namespace Mo_Api;
 
@@ -84,6 +86,12 @@ public class Program
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
+        builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddScoped<ProductRepository>();
+
+
+
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
         {
