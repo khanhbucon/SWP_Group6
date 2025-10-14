@@ -14,7 +14,8 @@ public class CreateProductRequest
     [StringLength(200)]
     public string? ShortDescription { get; set; }
 
-    [StringLength(255)]
+    // Details column allows up to 500 chars
+    [StringLength(500)]
     public string? DetailedDescription { get; set; }
 
     [Required]
@@ -28,4 +29,8 @@ public class CreateProductRequest
 
     // For image upload handling on client side
     public string? ImageUrl { get; set; }
+
+    // Optional per-product platform fee override (e.g., percentage like 5.50)
+    [Range(typeof(decimal), "0", "999.99", ErrorMessage = "Phí sàn phải từ 0 đến 999.99")]
+    public decimal? Fee { get; set; }
 }

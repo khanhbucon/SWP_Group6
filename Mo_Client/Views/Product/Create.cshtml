@@ -138,6 +138,18 @@
                     <input asp-for="ImageUrl" type="hidden" />
                 </div>
 
+                <!-- Phí sàn (tuỳ chọn) -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Fee" class="form-control form-control-lg" placeholder="0" step="0.01" />
+                        <label asp-for="Fee">
+                            <i class="fas fa-percentage me-2"></i>Phí sàn (%, tuỳ chọn)
+                        </label>
+                        <div class="form-text">Nếu bỏ trống sẽ dùng cấu hình mặc định của hệ thống.</div>
+                        <span asp-validation-for="Fee" class="text-danger small"></span>
+                    </div>
+                </div>
+
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input asp-for="Price" class="form-control form-control-lg" placeholder="0" step="0.01" />

@@ -36,16 +36,39 @@ public class ProductController : ControllerBase
         if (shop == null || shop.AccountId != userId.Value)
             return Forbid();
 
+        // Map: short -> description, detailed -> details, optional fee and image
         var product = new Product
         {
             ShopId = request.ShopId,
             SubCategoryId = request.SubCategoryId,
             Name = request.Name,
-            Description = request.DetailedDescription,
+            Description = request.ShortDescription,
+            Details = request.DetailedDescription,
+            Fee = request.Fee,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
+
+        // Convert base64 image (if provided) into byte[]
+        if (!string.IsNullOrWhiteSpace(request.ImageUrl))
+        {
+            try
+            {
+                var base64 = request.ImageUrl;
+                // Strip data URL prefix if present
+                var commaIdx = base64.IndexOf(',');
+                if (base64.StartsWith("data:") && commaIdx > -1)
+                {
+                    base64 = base64[(commaIdx + 1)..];
+                }
+                product.Image = Convert.FromBase64String(base64);
+            }
+            catch
+            {
+                // ignore image parse errors; keep null
+            }
+        }
 
         await _products.CreateAsync(product);
 
