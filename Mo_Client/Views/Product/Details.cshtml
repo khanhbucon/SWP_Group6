@@ -1,0 +1,25 @@
+﻿@model Mo_Client.Services.AuthApiClient.ProductDetail
+@{ Layout = "~/Views/Seller/_SellerLayout.cshtml"; ViewData["Title"] = "Chi tiết sản phẩm"; }
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="fas fa-box text-primary me-2"></i>@Model.Name</h4>
+  <div>
+    <a asp-action="List" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-arrow-left me-1"></i>Danh sách</a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i>Sửa</a>
+  </div>
+</div>
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">ID</dt><dd class="col-sm-9">@Model.Id</dd>
+      <dt class="col-sm-3">Mô tả ngắn</dt><dd class="col-sm-9">@Model.Description</dd>
+      <dt class="col-sm-3">Chi tiết</dt><dd class="col-sm-9">@Html.Raw(Model.Details)</dd>
+      <dt class="col-sm-3">Phí sàn</dt><dd class="col-sm-9">@Model.Fee</dd>
+      <dt class="col-sm-3">Trạng thái</dt><dd class="col-sm-9">
+        @if(Model.IsActive==true){<span class="badge bg-success">Hoạt động</span>}else if(Model.IsActive==false){<span class="badge bg-danger">Ngưng</span>}else{<span class="badge bg-secondary">?</span>}
+      </dd>
+      <dt class="col-sm-3">SubCategory</dt><dd class="col-sm-9">@Model.SubCategoryId</dd>
+      <dt class="col-sm-3">Ngày tạo</dt><dd class="col-sm-9">@Model.CreatedAt</dd>
+      <dt class="col-sm-3">Cập nhật</dt><dd class="col-sm-9">@Model.UpdatedAt</dd>
+    </dl>
+  </div>
+</div>

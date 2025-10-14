@@ -1,0 +1,32 @@
+﻿@model List<Mo_Client.Services.AuthApiClient.ProductOrderItem>
+@{ ViewData["Title"] = "Đơn hàng sản phẩm"; Layout = "~/Views/Seller/_SellerLayout.cshtml"; }
+
+<h4 class="mb-4"><i class="fas fa-box-open text-primary me-2"></i>Đơn hàng sản phẩm</h4>
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th><th>Sản phẩm</th><th>Biến thể</th><th class="text-end">SL</th><th class="text-end">Tổng (đ)</th><th>Trạng thái</th><th>Khách hàng</th>
+        </tr>
+      </thead>
+      <tbody>
+      @if(Model==null || !Model.Any()){
+        <tr><td colspan="7" class="text-center text-muted py-4">Chưa có đơn hàng nào</td></tr>
+      } else {
+        var i=1; foreach(var o in Model){
+          <tr>
+            <td>@i</td>
+            <td>@o.ProductName</td>
+            <td>@o.VariantName</td>
+            <td class="text-end">@o.Quantity</td>
+            <td class="text-end">@string.Format("{0:N0}", o.TotalAmount)</td>
+            <td><span class="badge bg-secondary">@o.Status</span></td>
+            <td>@o.BuyerName</td>
+          </tr>
+          i++; }
+      }
+      </tbody>
+    </table>
+  </div>
+</div>

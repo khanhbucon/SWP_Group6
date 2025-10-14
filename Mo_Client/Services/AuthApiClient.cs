@@ -19,6 +19,9 @@ public class AuthApiClient
         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 
+    public Uri GetBaseAddress() => _httpClient.BaseAddress!;
+    public System.Net.Http.Headers.AuthenticationHeaderValue? GetAuthHeader() => _httpClient.DefaultRequestHeaders.Authorization;
+
     public record LoginRequest(string Identifier, string Password, bool RememberMe);
     public record LoginResponse(string AccessToken, DateTime ExpiresAt, string? RefreshToken, List<string>? Roles);
 
@@ -197,6 +200,45 @@ public class AuthApiClient
         }
         catch { }
         return (false, resp.ReasonPhrase);
+    }
+
+    // Product Orders
+    public record ProductOrderItem(long OrderId, long ProductId, string ProductName, string VariantName, int Quantity, decimal TotalAmount, string Status, string BuyerName);
+
+    public async Task<List<ProductOrderItem>?> GetMyProductOrdersAsync(CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync("/api/orders/product", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var envelope = await resp.Content.ReadFromJsonAsync<ApiResponse<List<ProductOrderItem>>>(cancellationToken: ct);
+        return envelope?.Data;
+    }
+
+    // Product management
+    public record ProductSummary(long Id, string Name, string? Description, string? Details, long ShopId, string ShopName, DateTime? CreatedAt, DateTime? UpdatedAt, bool? IsActive);
+    public record ProductDetail(long Id, string Name, string? Description, string? Details, decimal? Fee, long SubCategoryId, long ShopId, DateTime? CreatedAt, DateTime? UpdatedAt, bool? IsActive);
+
+    public record UpdateProductRequest(long Id, string? Name, string? ShortDescription, string? DetailedDescription, decimal? Fee, bool? IsActive);
+
+    public async Task<List<ProductSummary>?> GetMyProductsAsync(CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync("/api/product/my", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<ProductSummary>>>(cancellationToken: ct);
+        return env?.Data;
+    }
+
+    public async Task<ProductDetail?> GetProductAsync(long id, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync($"/api/product/{id}", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<ApiResponse<ProductDetail>>(cancellationToken: ct);
+        return env?.Data;
+    }
+
+    public async Task<bool> UpdateProductAsync(UpdateProductRequest req, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PutAsJsonAsync("/api/product", req, ct);
+        return resp.IsSuccessStatusCode;
     }
 }
 

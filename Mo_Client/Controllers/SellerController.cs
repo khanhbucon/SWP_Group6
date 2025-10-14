@@ -42,7 +42,12 @@ public class SellerController : Controller
         var stats = await _api.GetShopStatisticsAsync();
         return View(stats);
     }
-    public IActionResult ProductOrders() => View();
+    public async Task<IActionResult> ProductOrders()
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var orders = await _api.GetMyProductOrdersAsync();
+        return View(orders ?? new List<AuthApiClient.ProductOrderItem>());
+    }
     public IActionResult ServiceOrders() => View();
     public IActionResult Preorders() => View();
     public IActionResult Reseller() => View();

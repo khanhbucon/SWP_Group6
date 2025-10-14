@@ -22,6 +22,53 @@ public class ProductController : ControllerBase
         _shops = shops;
     }
 
+    [HttpGet("my")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> GetMyProducts()
+    {
+        var userId = User.GetUserId();
+        if (!userId.HasValue) return Unauthorized();
+        var products = await _products.GetBySellerAccountIdAsync(userId.Value);
+        var result = products.Select(p => new
+        {
+            p.Id,
+            p.Name,
+            p.Description,
+            p.Details,
+            p.ShopId,
+            ShopName = p.Shop.Name,
+            p.CreatedAt,
+            p.UpdatedAt,
+            p.IsActive
+        }).ToList();
+        return Ok(new { Success = true, Data = result });
+    }
+
+    [HttpGet("{id:long}")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> GetById(long id)
+    {
+        var product = await _products.GetByIdAsync(id);
+        if (product == null) return NotFound(new { Success = false, Message = "Product not found" });
+        return Ok(new
+        {
+            Success = true,
+            Data = new
+            {
+                product.Id,
+                product.Name,
+                product.Description,
+                product.Details,
+                product.Fee,
+                product.SubCategoryId,
+                product.ShopId,
+                product.CreatedAt,
+                product.UpdatedAt,
+                product.IsActive
+            }
+        });
+    }
+
     [HttpPost]
     [Authorize(Roles = "Seller")]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
@@ -84,5 +131,23 @@ public class ProductController : ControllerBase
         });
 
         return Ok(new { Success = true, Id = product.Id });
+    }
+
+    [HttpPut]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> Update([FromBody] UpdateProductRequest request)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var product = await _products.GetByIdAsync(request.Id);
+        if (product == null) return NotFound(new { Success = false, Message = "Product not found" });
+
+        if (!string.IsNullOrWhiteSpace(request.Name)) product.Name = request.Name;
+        if (request.ShortDescription != null) product.Description = request.ShortDescription;
+        if (request.DetailedDescription != null) product.Details = request.DetailedDescription;
+        if (request.Fee.HasValue) product.Fee = request.Fee;
+        if (request.IsActive.HasValue) product.IsActive = request.IsActive;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _products.UpdateAsync(product);
+        return Ok(new { Success = true });
     }
 }

@@ -1,0 +1,36 @@
+﻿@model Mo_Client.Controllers.ProductController.EditProductVm
+@{ Layout = "~/Views/Seller/_SellerLayout.cshtml"; ViewData["Title"] = "Sửa sản phẩm"; }
+<h4 class="mb-3"><i class="fas fa-edit text-primary me-2"></i>Sửa sản phẩm</h4>
+<form asp-action="Edit" method="post" class="card shadow-sm border-0 p-4">
+  <input asp-for="Id" type="hidden" />
+  <div class="mb-3">
+    <label class="form-label">Tên</label>
+    <input asp-for="Name" class="form-control" />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Mô tả ngắn</label>
+    <input asp-for="ShortDescription" class="form-control" />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Chi tiết</label>
+    <textarea asp-for="DetailedDescription" class="form-control" rows="6"></textarea>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Phí sàn (%)</label>
+      <input asp-for="Fee" class="form-control" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Kích hoạt</label>
+      <select asp-for="IsActive" class="form-select">
+        <option value="">-- Giữ nguyên --</option>
+        <option value="true">Hoạt động</option>
+        <option value="false">Ngưng</option>
+      </select>
+    </div>
+  </div>
+  <div class="mt-4 d-flex gap-2">
+    <button class="btn btn-primary"><i class="fas fa-save me-1"></i>Lưu</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Hủy</a>
+  </div>
+</form>
