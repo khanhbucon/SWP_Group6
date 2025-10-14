@@ -1,0 +1,128 @@
+@model Mo_Client.Models.Admin.ShopManagementVm
+
+@{
+    ViewData["Title"] = "Quản lý cửa hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-store"></i> Quản lý cửa hàng
+        </h1>
+    </div>
+</div>
+
+<div class="card shadow">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách cửa hàng</h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Demo Mode:</strong> Đây là dữ liệu demo. Cần tích hợp API thực tế để hiển thị dữ liệu thật.
+            </div>
+            
+            <!-- Search Form -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form method="get" asp-action="Shops">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" value="@Model.SearchTerm" placeholder="Tìm kiếm cửa hàng...">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i> Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 text-right">
+                    <span class="text-muted">Tổng: @Model.TotalCount cửa hàng</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên cửa hàng</th>
+                            <th>Chủ sở hữu</th>
+                            <th>Trạng thái</th>
+                            <th>Số sản phẩm</th>
+                            <th>Số báo cáo</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var shop in Model.Shops)
+                        {
+                            <tr>
+                                <td>@shop.Id</td>
+                                <td>
+                                    <strong>@shop.Name</strong>
+                                    @if (!string.IsNullOrEmpty(shop.Description))
+                                    {
+                                        <br><small class="text-muted">@shop.Description</small>
+                                    }
+                                </td>
+                                <td>@shop.Owner</td>
+                                <td>
+                                    @if (shop.Status == "Active")
+                                    {
+                                        <span class="badge badge-success">Hoạt động</span>
+                                    }
+                                    else if (shop.Status == "Pending")
+                                    {
+                                        <span class="badge badge-warning">Chờ duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Tạm dừng</span>
+                                    }
+                                </td>
+                                <td><span class="badge badge-info">@shop.ProductCount</span></td>
+                                <td>
+                                    @if (shop.ReportCount > 0)
+                                    {
+                                        <span class="badge badge-danger">@shop.ReportCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-success">0</span>
+                                    }
+                                </td>
+                                <td>@shop.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-primary" disabled title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        @if (shop.Status == "Pending")
+                                        {
+                                            <button class="btn btn-sm btn-success" disabled title="Duyệt cửa hàng">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        @if (shop.Status == "Active")
+                                        {
+                                            <button class="btn btn-sm btn-warning" disabled title="Tạm dừng">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        }
+                                        else if (shop.Status == "Inactive")
+                                        {
+                                            <button class="btn btn-sm btn-success" disabled title="Kích hoạt">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>

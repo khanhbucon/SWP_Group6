@@ -6,7 +6,12 @@ builder.Services.AddControllersWithViews();
 
 // API options
 builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
-builder.Services.AddHttpClient<AuthApiClient>();
+
+// Register API Services
+builder.Services.AddHttpClient<AuthService>();
+builder.Services.AddHttpClient<UserService>();
+builder.Services.AddHttpClient<AdminService>();
+
 
 var app = builder.Build();
 

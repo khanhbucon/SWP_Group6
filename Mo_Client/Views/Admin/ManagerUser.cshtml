@@ -1,0 +1,228 @@
+@model List<Mo_Client.Models.ListAccountResponse>
+
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-users"></i> Quản lý người dùng
+        </h1>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">Danh sách người dùng</h6>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i>
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                @ViewBag.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped admin-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên đăng nhập</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Số dư</th>
+                        <th>Trạng thái</th>
+                        <th>Vai trò</th>
+                        <th>Ngày tạo</th>
+                        <th>Tổng đơn hàng</th>
+                        <th>Tổng cửa hàng</th>
+                        <th>Sản phẩm đã bán</th>
+                        <th>Xác thực eKYC</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@user.UserId</td>
+                                <td>
+                                    <strong>@user.Username</strong>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@(user.Phone ?? "N/A")</td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        @(user.Balance?.ToString("N0") ?? "0") VNĐ
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (user.IsActive == true)
+                                    {
+                                        <span class="badge badge-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Bị khóa</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.Roles != null && user.Roles.Any())
+                                    {
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            <span class="badge badge-primary mr-1">@role</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">User</span>
+                                    }
+                                </td>
+                                <td>@(user.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                <td>
+                                    <span class="badge badge-info">@user.TotalOrders</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-warning">@user.TotalShops</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-success">@user.TotalProductsSold</span>
+                                </td>
+                                <td>
+                                    @if (user.IsEKYCVerified)
+                                    {
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-check"></i> Đã xác thực
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-times"></i> Chưa xác thực
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        @if (user.IsActive == true)
+                                        {
+                                            <form method="post" action="@Url.Action("BanUser", "Admin")" class="d-inline">
+                                                <input type="hidden" name="userId" value="@user.UserId" />
+                                                <button type="submit" class="btn btn-sm btn-warning" 
+                                                        onclick="return confirm('Bạn có chắc chắn muốn khóa tài khoản này?')">
+                                                    <i class="fas fa-lock"></i> Khóa
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="@Url.Action("BanUser", "Admin")" class="d-inline">
+                                                <input type="hidden" name="userId" value="@user.UserId" />
+                                                <button type="submit" class="btn btn-sm btn-success" 
+                                                        onclick="return confirm('Bạn có chắc chắn muốn mở khóa tài khoản này?')">
+                                                    <i class="fas fa-unlock"></i> Mở khóa
+                                                </button>
+                                            </form>
+                                        }
+                                        
+                                        @if (!user.Roles.Contains("Seller"))
+                                        {
+                                            @if (user.IsEKYCVerified)
+                                            {
+                                                <form method="post" action="@Url.Action("GrantSellerRole", "Admin")" class="d-inline">
+                                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                                    <button type="submit" class="btn btn-sm btn-info" 
+                                                            onclick="return confirm('Bạn có chắc chắn muốn cấp phép Seller cho người dùng này?')">
+                                                        <i class="fas fa-store"></i> Cấp Seller
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-secondary" 
+                                                        title="Người dùng chưa xác minh danh tính (eKYC)" disabled>
+                                                    <i class="fas fa-store"></i> Cấp Seller
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="13" class="text-center">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Không có người dùng nào trong hệ thống
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Kiểm tra xem DataTable đã được khởi tạo chưa
+            if (!$.fn.DataTable.isDataTable('#usersTable')) {
+                $('#usersTable').DataTable({
+                    "responsive": true,
+                    "lengthChange": true,
+                    "autoWidth": true,
+                    "scrollX": true,
+                    "pageLength": 25,
+                    "order": [[0, "asc"]],
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
+                    },
+                    "columnDefs": [
+                        { "orderable": false, "targets": 12 }, // Cột thao tác không sắp xếp được
+                        { "width": "80px", "targets": 0 },    // ID column
+                        { "width": "120px", "targets": 1 },   // Username
+                        { "width": "150px", "targets": 2 },   // Email
+                        { "width": "100px", "targets": 3 },   // Phone
+                        { "width": "100px", "targets": 4 },   // Balance
+                        { "width": "80px", "targets": 5 },    // Status
+                        { "width": "100px", "targets": 6 },   // Roles
+                        { "width": "120px", "targets": 7 },   // Created Date
+                        { "width": "80px", "targets": 8 },    // Orders
+                        { "width": "80px", "targets": 9 },    // Shops
+                        { "width": "100px", "targets": 10 },  // Products
+                        { "width": "100px", "targets": 11 },  // eKYC
+                        { "width": "150px", "targets": 12 }   // Actions
+                    ]
+                });
+            }
+        });
+    </script>
+}
