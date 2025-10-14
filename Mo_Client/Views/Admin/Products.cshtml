@@ -1,0 +1,121 @@
+@model Mo_Client.Models.Admin.ProductManagementVm
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-box"></i> Quản lý sản phẩm
+        </h1>
+    </div>
+</div>
+
+<div class="card shadow">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách sản phẩm</h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Demo Mode:</strong> Đây là dữ liệu demo. Cần tích hợp API thực tế để hiển thị dữ liệu thật.
+            </div>
+            
+            <!-- Search Form -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form method="get" asp-action="Products">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" value="@Model.SearchTerm" placeholder="Tìm kiếm sản phẩm...">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i> Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 text-right">
+                    <span class="text-muted">Tổng: @Model.TotalCount sản phẩm</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Cửa hàng</th>
+                            <th>Danh mục</th>
+                            <th>Giá</th>
+                            <th>Đã bán</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in Model.Products)
+                        {
+                            <tr>
+                                <td>@product.Id</td>
+                                <td>
+                                    <strong>@product.Name</strong>
+                                    @if (!string.IsNullOrEmpty(product.Description))
+                                    {
+                                        <br><small class="text-muted">@product.Description</small>
+                                    }
+                                </td>
+                                <td>@product.ShopName</td>
+                                <td><span class="badge badge-secondary">@product.Category</span></td>
+                                <td>@product.Price.ToString("N0") VNĐ</td>
+                                <td><span class="badge badge-info">@product.SoldCount</span></td>
+                                <td>
+                                    @if (product.Status == "Active")
+                                    {
+                                        <span class="badge badge-success">Hoạt động</span>
+                                    }
+                                    else if (product.Status == "Pending")
+                                    {
+                                        <span class="badge badge-warning">Chờ duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Tạm dừng</span>
+                                    }
+                                </td>
+                                <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-primary" disabled title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        @if (product.Status == "Pending")
+                                        {
+                                            <button class="btn btn-sm btn-success" disabled title="Duyệt sản phẩm">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        @if (product.Status == "Active")
+                                        {
+                                            <button class="btn btn-sm btn-warning" disabled title="Tạm dừng">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        }
+                                        else if (product.Status == "Inactive")
+                                        {
+                                            <button class="btn btn-sm btn-success" disabled title="Kích hoạt">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>

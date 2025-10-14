@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>
+                    <i class="fas fa-cog"></i>
+                    Admin Panel
+                </h3>
+                <strong><i class="fas fa-bars"></i></strong>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <a href="@Url.Action("Dashboard", "Admin")">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "ManagerUser" ? "active" : "")">
+                    <a href="@Url.Action("ManagerUser", "Admin")">
+                        <i class="fas fa-users"></i>
+                        Quản lý người dùng
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Shops" ? "active" : "")">
+                    <a href="@Url.Action("Shops", "Admin")">
+                        <i class="fas fa-store"></i>
+                        Quản lý cửa hàng
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Products" ? "active" : "")">
+                    <a href="@Url.Action("Products", "Admin")">
+                        <i class="fas fa-box"></i>
+                        Quản lý sản phẩm
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Categories" ? "active" : "")">
+                    <a href="@Url.Action("Categories", "Admin")">
+                        <i class="fas fa-tags"></i>
+                        Quản lý danh mục
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="#pageSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-chart-bar"></i>
+                        Báo cáo & Thống kê
+                    </a>
+                    <ul class="collapse list-unstyled" id="pageSubmenu">
+                        <li>
+                            <a href="#" class="disabled">
+                                <i class="fas fa-chart-line"></i>
+                                Báo cáo doanh thu
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="disabled">
+                                <i class="fas fa-chart-pie"></i>
+                                Thống kê người dùng
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li>
+                    <a href="#settingsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-cog"></i>
+                        Cài đặt hệ thống
+                    </a>
+                    <ul class="collapse list-unstyled" id="settingsSubmenu">
+                        <li>
+                            <a href="#" class="disabled">
+                                <i class="fas fa-key"></i>
+                                Quản lý vai trò
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="disabled">
+                                <i class="fas fa-bell"></i>
+                                Cài đặt thông báo
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="list-unstyled CTAs">
+                <li>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-outline-light">
+                        <i class="fas fa-home"></i>
+                        Về trang chủ
+                    </a>
+                </li>
+                <li>
+                    <form method="post" action="/Account/Logout" class="d-inline">
+                        <button class="btn btn-outline-danger" type="submit">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-info">
+                        <i class="fas fa-align-left"></i>
+                        <span>Toggle Sidebar</span>
+                    </button>
+                    
+                    <div class="navbar-nav ms-auto">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
+                                @{
+                                    var token = Context.Request.Cookies["accessToken"];
+                                    var roles = Context.Request.Cookies["roles"];
+                                }
+                                @if (!string.IsNullOrEmpty(token))
+                                {
+                                    <span>Admin</span>
+                                }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("ViewProfile", "Account")">
+                                    <i class="fas fa-user"></i> Thông tin cá nhân
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Home")">
+                                    <i class="fas fa-home"></i> Về trang chủ
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="container-fluid">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle"></i>
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        @ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
