@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Mo_Api.Extensions;
 using Mo_DataAccess.Services.Interface;
@@ -50,6 +51,10 @@ public class ProductController : ControllerBase
     {
         var product = await _products.GetByIdAsync(id);
         if (product == null) return NotFound(new { Success = false, Message = "Product not found" });
+        // Get total stock and sold
+        var (totalStock, totalSold) = await _products.GetStockAndSoldAsync(id);
+        // Get min and max price        
+        var (minPrice, maxPrice) = await _products.GetPriceRangeAsync(id);
         return Ok(new
         {
             Success = true,
@@ -64,7 +69,11 @@ public class ProductController : ControllerBase
                 product.ShopId,
                 product.CreatedAt,
                 product.UpdatedAt,
-                product.IsActive
+                product.IsActive,
+                TotalStock = totalStock,
+                TotalSold = totalSold,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice
             }
         });
     }
@@ -123,7 +132,7 @@ public class ProductController : ControllerBase
         await _variants.CreateAsync(new ProductVariant
         {
             ProductId = product.Id,
-            Name = "Default",
+            Name = string.IsNullOrWhiteSpace(request.VariantName) ? "Default" : request.VariantName!,
             Price = request.Price,
             Stock = request.Stock,
             CreatedAt = DateTime.UtcNow,
@@ -148,6 +157,34 @@ public class ProductController : ControllerBase
         if (request.IsActive.HasValue) product.IsActive = request.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
         await _products.UpdateAsync(product);
+        return Ok(new { Success = true });
+    }
+
+    //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
+    //•	Không cho xóa nếu sản phẩm đã phát sinh đơn (có OrderProducts qua các ProductVariants).
+
+    [HttpDelete("{id:long}")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var userId = User.GetUserId();
+        if (!userId.HasValue) return Unauthorized();
+
+        // Tải sản phẩm để kiểm tra quyền sở hữu    
+        var product = await _products.GetByIdAsync(id);
+        if (product == null)
+            return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại" });
+        if (product.ShopId == 0)
+            return BadRequest(new { Success = false, Message = "Sản phẩm không hợp lệ" });
+
+        // Đảm bảo cửa hàng thuộc về người bán hiện tại (sử dụng dịch vụ cửa hàng để tránh điều hướng null)
+        var shop = await _shops.GetByIdAsync(product.ShopId);
+        if (shop == null || shop.AccountId != userId.Value)
+            return Forbid();
+
+        var ok = await _products.DeleteIfOwnedAsync(id, userId.Value);
+        if (!ok)
+            return BadRequest(new { Success = false, Message = "Không thể xoá sản phẩm (có thể sản phẩm đã phát sinh đơn hàng)" });
         return Ok(new { Success = true });
     }
 }

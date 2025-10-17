@@ -15,6 +15,15 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
 
     public async Task<Shop> CreateShopAsync(long accountId, CreateShopRequest request)
     {
+        // chuẩn hóa đầu vào
+        var name = request.Name?.Trim();
+        var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description!.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new InvalidOperationException("Tên shop không được để trống");
+        }
+
         // Ensure account exists
         var accountExists = await _context.Set<Account>().AnyAsync(a => a.Id == accountId);
         if (!accountExists)
@@ -32,8 +41,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         var shop = new Shop
         {
             AccountId = accountId,
-            Name = request.Name,
-            Description = request.Description,
+            Name = name!,
+            Description = description,
             ReportCount = 0,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
@@ -43,6 +52,51 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         _context.Set<Shop>().Add(shop);
         await _context.SaveChangesAsync();
         return shop;
+    }
+// xoa shop
+    public async Task<bool> DeleteShopAsync(long shopId, long accountId)
+    {
+        // Ensure the shop exists and belongs to the account
+        var shop = await _context.Set<Shop>()
+            .Include(s => s.Products)
+                .ThenInclude(p => p.ProductVariants)
+            .FirstOrDefaultAsync(s => s.Id == shopId && s.AccountId == accountId);
+        if (shop == null)
+        {
+            return false;
+        }
+
+        // Guard: do not allow deletion if any order exists for any variant of this shop
+        if (shop.Products != null && shop.Products.Any())
+        {
+            var variantIds = shop.Products
+                .SelectMany(p => p.ProductVariants ?? new List<ProductVariant>())
+                .Select(v => v.Id)
+                .ToList();
+            if (variantIds.Count > 0)
+            {
+                var hasOrders = await _context.Set<OrderProduct>()
+                    .AnyAsync(o => variantIds.Contains(o.ProductVariantId));
+                if (hasOrders) return false;
+            }
+        }
+
+        // Remove child entities first to satisfy FK constraints if cascade isn't configured
+        if (shop.Products != null && shop.Products.Any())
+        {
+            var variants = shop.Products
+                .SelectMany(p => p.ProductVariants ?? new List<ProductVariant>())
+                .ToList();
+            if (variants.Count > 0)
+            {
+                _context.Set<ProductVariant>().RemoveRange(variants);
+            }
+            _context.Set<Product>().RemoveRange(shop.Products);
+        }
+
+        _context.Set<Shop>().Remove(shop);
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<Shop?> GetShopByAccountIdAsync(long accountId)
@@ -60,8 +114,15 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             throw new InvalidOperationException("Shop không tồn tại hoặc không thuộc tài khoản này");
         }
 
-        shop.Name = request.Name;
-        shop.Description = request.Description;
+        var name = request.Name?.Trim();
+        var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description!.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new InvalidOperationException("Tên shop không được để trống");
+        }
+
+        shop.Name = name!;
+        shop.Description = description;
         shop.UpdatedAt = DateTime.UtcNow;
 
         _context.Set<Shop>().Update(shop);

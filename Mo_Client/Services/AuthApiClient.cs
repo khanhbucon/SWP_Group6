@@ -92,7 +92,7 @@ public class AuthApiClient
     public record ShopStatisticsResponse(long ShopId, string ShopName, int TotalProducts, int TotalProductsSold, decimal TotalRevenue, int TotalOrders, decimal AverageRating, int TotalFeedbacks);
 
     // Product DTOs
-    public record CreateProductRequest(long ShopId, string Name, string? ShortDescription, string? DetailedDescription, long SubCategoryId, decimal Price, int Stock, string? ImageUrl, decimal? Fee = null);
+    public record CreateProductRequest(long ShopId, string Name, string? ShortDescription, string? DetailedDescription, long SubCategoryId, decimal Price, int Stock, string? ImageUrl, decimal? Fee = null, string? VariantName = null);
 
     public async Task<(bool Success, string? Message)> CreateShopAsync(CreateShopRequest req, CancellationToken ct = default)
     {
@@ -187,6 +187,20 @@ public class AuthApiClient
         var result = await resp.Content.ReadFromJsonAsync<ApiResponse<ShopStatisticsResponse>>(cancellationToken: ct);
         return result?.Data;
     }
+    // xóa shop nếu shop thuộc về tài khoản và chưa có sản phẩm nào
+    public async Task<(bool Success, string? Message)> DeleteShopAsync(long shopId, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.DeleteAsync($"/api/shop/{shopId}", ct);
+        if (resp.IsSuccessStatusCode) return (true, null);
+        try
+        {
+            var env = await resp.Content.ReadFromJsonAsync<ApiResponse<object>>(cancellationToken: ct);
+            if (env != null && !string.IsNullOrWhiteSpace(env.Message))
+                return (false, env.Message);
+        }
+        catch { }
+        return (false, resp.ReasonPhrase);
+    }
 
     // Generic helpers for feature pages
     public async Task<(bool Success, string? Message)> PostJsonAsync<T>(string url, object body, CancellationToken ct = default)
@@ -215,7 +229,7 @@ public class AuthApiClient
 
     // Product management
     public record ProductSummary(long Id, string Name, string? Description, string? Details, long ShopId, string ShopName, DateTime? CreatedAt, DateTime? UpdatedAt, bool? IsActive);
-    public record ProductDetail(long Id, string Name, string? Description, string? Details, decimal? Fee, long SubCategoryId, long ShopId, DateTime? CreatedAt, DateTime? UpdatedAt, bool? IsActive);
+    public record ProductDetail(long Id, string Name, string? Description, string? Details, decimal? Fee, long SubCategoryId, long ShopId, DateTime? CreatedAt, DateTime? UpdatedAt, bool? IsActive, int TotalStock, int TotalSold, decimal? MinPrice, decimal? MaxPrice);
 
     public record UpdateProductRequest(long Id, string? Name, string? ShortDescription, string? DetailedDescription, decimal? Fee, bool? IsActive);
 
@@ -239,6 +253,21 @@ public class AuthApiClient
     {
         var resp = await _httpClient.PutAsJsonAsync("/api/product", req, ct);
         return resp.IsSuccessStatusCode;
+    }
+    //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
+	//Không cho xóa nếu sản phẩm đã phát sinh đơn(có OrderProducts qua các ProductVariants).
+    public async Task<(bool Success, string? Message)> DeleteProductAsync(long id, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.DeleteAsync($"/api/product/{id}", ct);
+        if (resp.IsSuccessStatusCode) return (true, null);
+        try
+        {
+            var env = await resp.Content.ReadFromJsonAsync<ApiResponse<object>>(cancellationToken: ct);
+            if (env != null && !string.IsNullOrWhiteSpace(env.Message))
+                return (false, env.Message);
+        }
+        catch { }
+        return (false, resp.ReasonPhrase);
     }
 }
 

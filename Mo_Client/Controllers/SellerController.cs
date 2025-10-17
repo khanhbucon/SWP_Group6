@@ -16,12 +16,20 @@ public class SellerController : Controller
         return true;
     }
 
+
+    // seller  dashboard 
     public async Task<IActionResult> Index()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         var shops = await _api.GetMyShopsAsync();
+        var profile = await _api.GetCurrentUserProfileAsync();
         ViewBag.HasShop = (shops?.Any() ?? false);
-        return View();
+        var vm = new Mo_Client.Models.SellerDashboardViewModel
+        {
+            Profile = profile,
+            Stats = await _api.GetShopStatisticsAsync()
+        };
+        return View(vm);
     }
 
     public async Task<IActionResult> Shops()
@@ -39,9 +47,32 @@ public class SellerController : Controller
     public async Task<IActionResult> Sales()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var profile = await _api.GetCurrentUserProfileAsync();
         var stats = await _api.GetShopStatisticsAsync();
-        return View(stats);
+        var vm = new Mo_Client.Models.SellerDashboardViewModel { Profile = profile, Stats = stats };
+        return View(vm);
     }
+
+
+    //xoa shop
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteShop(long shopId)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var (success, message) = await _api.DeleteShopAsync(shopId);
+        if (success)
+            TempData["Success"] = "Xóa shop thành công";
+        else
+            TempData["Error"] = string.IsNullOrWhiteSpace(message) ? "Không thể xóa shop" : message;
+        return RedirectToAction("Shops");
+    }
+
+
+
+
+
+
     public async Task<IActionResult> ProductOrders()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");

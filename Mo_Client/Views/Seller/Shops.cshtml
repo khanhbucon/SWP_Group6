@@ -139,10 +139,17 @@ else
                                 <a class="btn btn-outline-info" asp-controller="Seller" asp-action="ShopStats" asp-route-shopId="@s.Id">
                                     <i class="fas fa-chart-bar me-1"></i>Thống kê
                                 </a>
+                                <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Bạn có chắc chắn muốn xóa shop này? Hành động không thể hoàn tác.')) document.getElementById('delete-form-@s.Id').submit();">
+                                    <i class="fas fa-trash me-1"></i>Xóa
+                                </button>
                             </div>
                             <a class="btn btn-success btn-sm" asp-controller="Product" asp-action="Create" asp-route-shopId="@s.Id">
                                 <i class="fas fa-plus me-1"></i>Thêm sản phẩm
                             </a>
+                            <form id="delete-form-@s.Id" asp-controller="Seller" asp-action="DeleteShop" method="post" class="d-none">
+                                <input type="hidden" name="shopId" value="@s.Id" />
+                                @Html.AntiForgeryToken()
+                            </form>
                         </div>
                     </div>
                 </div>

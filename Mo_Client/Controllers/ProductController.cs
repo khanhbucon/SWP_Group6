@@ -93,6 +93,24 @@ public class ProductController : Controller
         ModelState.AddModelError("", "Không thể cập nhật sản phẩm");
         return View(model);
     }
+    //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
+    //•	Không cho xóa nếu sản phẩm đã phát sinh đơn (có OrderProducts qua các ProductVariants).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(long id)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var result = await _api.DeleteProductAsync(id);
+        if (result.Success)
+        {
+            TempData["Success"] = "Đã xoá sản phẩm";
+        }
+        else
+        {
+            TempData["Error"] = result.Message ?? "Không thể xoá sản phẩm (không thuộc quyền sở hữu hoặc đã có đơn hàng)";
+        }
+        return RedirectToAction("List");
+    }
 
     private record CreateProductEnvelope(bool Success, long Id);
 

@@ -75,6 +75,13 @@
                         <span asp-validation-for="Fee" class="text-danger small"></span>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input asp-for="VariantName" class="form-control" placeholder="Ví dụ: LQ 50Skin, Default" />
+                        <label asp-for="VariantName"><i class="fas fa-code-branch me-2"></i>Tên biến thể mặc định</label>
+                        <div class="form-text">Ví dụ:"LQ 50Skin" Tên ngắn gọn của Sp để dễ quản lý.</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

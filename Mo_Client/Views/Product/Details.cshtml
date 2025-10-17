@@ -13,7 +13,21 @@
       <dt class="col-sm-3">ID</dt><dd class="col-sm-9">@Model.Id</dd>
       <dt class="col-sm-3">Mô tả ngắn</dt><dd class="col-sm-9">@Model.Description</dd>
       <dt class="col-sm-3">Chi tiết</dt><dd class="col-sm-9">@Html.Raw(Model.Details)</dd>
+      <dt class="col-sm-3">Giá</dt>
+      <dd class="col-sm-9">
+        @if(Model.MinPrice.HasValue && Model.MaxPrice.HasValue){
+            if(Model.MinPrice.Value == Model.MaxPrice.Value){
+                @string.Format("{0:N0} đ", Model.MinPrice)
+            } else {
+                @string.Format("{0:N0} - {1:N0} đ", Model.MinPrice, Model.MaxPrice)
+            }
+        } else {
+            <span class="text-muted">Chưa có biến thể</span>
+        }
+      </dd>
       <dt class="col-sm-3">Phí sàn</dt><dd class="col-sm-9">@Model.Fee</dd>
+      <dt class="col-sm-3">Đã bán</dt><dd class="col-sm-9">@Model.TotalSold</dd>
+      <dt class="col-sm-3">Tồn kho</dt><dd class="col-sm-9">@Model.TotalStock</dd>
       <dt class="col-sm-3">Trạng thái</dt><dd class="col-sm-9">
         @if(Model.IsActive==true){<span class="badge bg-success">Hoạt động</span>}else if(Model.IsActive==false){<span class="badge bg-danger">Ngưng</span>}else{<span class="badge bg-secondary">?</span>}
       </dd>

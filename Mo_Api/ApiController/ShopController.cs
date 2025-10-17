@@ -146,6 +146,32 @@ public class ShopController : ControllerBase
         }
     }
 
+    // Delete shop by id
+    [HttpDelete("{shopId:long}")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> DeleteShop(long shopId)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token" });
+            }
+
+            var ok = await _shopServices.DeleteShopAsync(shopId, userId.Value);
+            if (!ok)
+            {
+                return BadRequest(new { Success = false, Message = "Không thể xóa shop. Shop không thuộc tài khoản hoặc đã phát sinh đơn hàng." });
+            }
+            return Ok(new { Success = true, Message = "Xóa shop thành công" });
+        }
+        catch
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi xóa shop" });
+        }
+    }
+
     [HttpGet("statistics")]
     [Authorize(Roles = "Seller")]
     public async Task<IActionResult> GetShopStatistics()

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Mo_Client.Models.SellerDashboardViewModel
+@{
     ViewData["Title"] = "Seller Dashboard";
     Layout = "~/Views/Seller/_SellerLayout.cshtml";
 }
@@ -18,6 +19,14 @@
             <div class="card-body">
                 <div class="text-muted">Doanh số</div>
                 <div class="display-6">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted">Số dư</div>
+                <div class="display-6">@string.Format("{0:N0}đ", Model?.Profile?.Balance ?? 0)</div>
             </div>
         </div>
     </div>

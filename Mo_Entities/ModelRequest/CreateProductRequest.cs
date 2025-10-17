@@ -30,7 +30,11 @@ public class CreateProductRequest
     // For image upload handling on client side
     public string? ImageUrl { get; set; }
 
-    // Optional per-product platform fee override (e.g., percentage like 5.50)
-    [Range(typeof(decimal), "0", "999.99", ErrorMessage = "Phí sàn phải từ 0 đến 999.99")]
+    // Optional per-product platform fee override (e.g., percentage like 5%)
+    [Range(typeof(decimal), "0", "5", ErrorMessage = "Phí sàn phải từ 0 đến 5")]
     public decimal? Fee { get; set; }
+
+    // Tên biến thể để dễ quản lý
+    [StringLength(100)]
+    public string? VariantName { get; set; }
 }
