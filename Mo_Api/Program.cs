@@ -17,7 +17,18 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        
+        // Thêm cấu hình CORS cho phép client gọi API
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+
+
         builder.Services.AddControllers().AddOData(options =>
         {
             options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100);
@@ -104,6 +115,7 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.UseCors("AllowAll");
         app.UseAuthentication();
         app.UseAuthorization();
          app.UseCors(options =>
