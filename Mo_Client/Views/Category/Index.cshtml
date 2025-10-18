@@ -1,0 +1,25 @@
+﻿@model IEnumerable<Mo_Client.Models.Category>
+
+@{
+    ViewData["Title"] = "Category List";
+}
+
+<h2>Category List</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Id</td>
+                <td>@c.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
