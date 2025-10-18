@@ -12,6 +12,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
 builder.Services.AddHttpClient<AuthApiClient>();
 
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

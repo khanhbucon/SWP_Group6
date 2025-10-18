@@ -1,6 +1,14 @@
-﻿namespace Mo_DataAccess.Services.Interface;
+﻿using Mo_Entities.Models;
+using System.Collections.Generic;
 
-public interface ISubCategoryServices:IGenericRepository<SubCategory>
+namespace Mo_DataAccess.Services.Interface
 {
-    
+    public interface ISubCategoryServices
+    {
+        List<SubCategory> GetAll();
+        SubCategory? GetById(long id);
+        void Add(SubCategory subCategory);
+        void Update(SubCategory subCategory);
+        void Delete(long id);
+    }
 }
