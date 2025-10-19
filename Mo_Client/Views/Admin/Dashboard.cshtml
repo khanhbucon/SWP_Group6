@@ -1,0 +1,150 @@
+@model Mo_Client.Models.Admin.DashboardVm
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h1>
+    </div>
+</div>
+
+    <!-- Thống kê tổng quan -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng người dùng</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tổng cửa hàng</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalShops</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-store fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tổng sản phẩm</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalProducts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Chờ duyệt</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingShops cửa hàng, @Model.PendingProducts sản phẩm</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("ManagerUser", "Account")" class="btn btn-primary btn-block">
+                                <i class="fas fa-users"></i> Quản lý người dùng
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Shops", "Admin")" class="btn btn-success btn-block">
+                                <i class="fas fa-store"></i> Quản lý cửa hàng
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Products", "Admin")" class="btn btn-info btn-block">
+                                <i class="fas fa-box"></i> Quản lý sản phẩm
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Categories", "Admin")" class="btn btn-warning btn-block">
+                                <i class="fas fa-tags"></i> Quản lý danh mục
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Người dùng mới đăng ký -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Người dùng mới đăng ký</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Tên đăng nhập</th>
+                                    <th>Email</th>
+                                    <th>Ngày đăng ký</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model.RecentUsers)
+                                {
+                                    <tr>
+                                        <td>@user.Username</td>
+                                        <td>@user.Email</td>
+                                        <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -201,5 +201,121 @@ public class AccountController : ControllerBase
         });
     }
 
+    [HttpPut("update-profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token - User ID not found" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var account = await _accountServices.UpdateProfileAsync(userId.Value, request);
+
+            return Ok(new { 
+                Success = true, 
+                Message = "Cập nhật thông tin thành công",
+                Data = new {
+                    Id = account.Id,
+                    Username = account.Username,
+                    Email = account.Email,
+                    Phone = account.Phone,
+                    IdentificationF = account.IdentificationF,
+                    IdentificationB = account.IdentificationB,
+                    UpdatedAt = account.UpdatedAt
+                }
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Success = false, Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi cập nhật thông tin" });
+        }
+    }
+
+    [HttpPost("upload-kyc")]
+    [Authorize]
+    public async Task<IActionResult> UploadKYC(IFormFile identificationF, IFormFile identificationB)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token" });
+            }
+
+            if (identificationF == null || identificationB == null)
+            {
+                return BadRequest(new { Success = false, Message = "Vui lòng upload đầy đủ 2 mặt căn cước" });
+            }
+
+            // Validate file types
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            
+            var identificationFExtension = Path.GetExtension(identificationF.FileName).ToLowerInvariant();
+            var identificationBExtension = Path.GetExtension(identificationB.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(identificationFExtension) || !allowedExtensions.Contains(identificationBExtension))
+            {
+                return BadRequest(new { Success = false, Message = "Chỉ chấp nhận file ảnh (.jpg, .jpeg, .png, .gif)" });
+            }
+
+            // Generate unique filenames
+            var identificationFName = $"kyc_f_{userId}_{DateTime.UtcNow:yyyyMMddHHmmss}{identificationFExtension}";
+            var identificationBName = $"kyc_b_{userId}_{DateTime.UtcNow:yyyyMMddHHmmss}{identificationBExtension}";
+
+            // Save files
+            var uploadsPath = Path.Combine("wwwroot", "images", "kyc");
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var identificationFPath = Path.Combine(uploadsPath, identificationFName);
+            var identificationBPath = Path.Combine(uploadsPath, identificationBName);
+
+            using (var stream = new FileStream(identificationFPath, FileMode.Create))
+            {
+                await identificationF.CopyToAsync(stream);
+            }
+
+            using (var stream = new FileStream(identificationBPath, FileMode.Create))
+            {
+                await identificationB.CopyToAsync(stream);
+            }
+
+            // Update account with KYC URLs
+            var identificationFUrl = $"/images/kyc/{identificationFName}";
+            var identificationBUrl = $"/images/kyc/{identificationBName}";
+
+            await _accountServices.UpdateKYCAsync(userId.Value, identificationFUrl, identificationBUrl);
+
+            return Ok(new { 
+                Success = true, 
+                Message = "Upload ảnh KYC thành công",
+                Data = new {
+                    IdentificationF = identificationFUrl,
+                    IdentificationB = identificationBUrl
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi upload ảnh KYC" });
+        }
+    }
+
 
 }

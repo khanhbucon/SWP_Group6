@@ -1,5 +1,4 @@
 ﻿<!DOCTYPE html>
-<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,6 +39,7 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="ViewProfile">
                                     <i class="fas fa-user"></i> Thông tin cá nhân
                                 </a>
                             </li>
@@ -53,8 +53,11 @@
                                        
                                         <li><a class="dropdown-item" asp-controller="Account" asp-action="ManagerUser">
                                             <i class="fas fa-users"></i> Quản lý người dùng
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                                            <i class="fas fa-tachometer-alt"></i> Dashboard
                                         </a></li>
                                        
+                                      
                                     </ul>
                                 </li>
                             }

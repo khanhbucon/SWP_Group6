@@ -18,5 +18,7 @@ namespace Mo_Client.Models
         public int TotalOrders { get; set; }
         public int TotalShops { get; set; }
         public int TotalProductsSold { get; set; }
+        public string? IdentificationF { get; set; }  // Thêm field này
+        public string? IdentificationB { get; set; }  // Thêm field này
     }
 }

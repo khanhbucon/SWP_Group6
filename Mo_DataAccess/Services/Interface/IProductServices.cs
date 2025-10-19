@@ -20,7 +20,7 @@ public interface IProductServices : IGenericRepository<Product>
     /// Compute total stock (sum of variant stock) and total sold quantity (confirmed orders) for a product.
     /// </summary>
     Task<(int totalStock, int totalSold)> GetStockAndSoldAsync(long productId);
-
+    
     /// <summary>
     /// Get min and max price across all variants of a product.
     /// </summary>

@@ -1,0 +1,101 @@
+@model Mo_Client.Models.Admin.CategoryManagementVm
+
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-tags"></i> Quản lý danh mục
+        </h1>
+    </div>
+</div>
+
+<div class="card shadow">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách danh mục</h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Demo Mode:</strong> Đây là dữ liệu demo. Cần tích hợp API thực tế để hiển thị dữ liệu thật.
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <button class="btn btn-success" disabled>
+                        <i class="fas fa-plus"></i> Thêm danh mục mới
+                    </button>
+                </div>
+                <div class="col-md-6 text-right">
+                    <span class="text-muted">Tổng: @Model.TotalCount danh mục</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên danh mục</th>
+                            <th>Mô tả</th>
+                            <th>Số sản phẩm</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr>
+                                <td>@category.Id</td>
+                                <td>
+                                    <strong>@category.Name</strong>
+                                    @if (category.SubCategories.Any())
+                                    {
+                                        <br><small class="text-muted">
+                                            @foreach (var sub in category.SubCategories)
+                                            {
+                                                <span class="badge badge-light">@sub.Name (@sub.ProductCount)</span>
+                                            }
+                                        </small>
+                                    }
+                                </td>
+                                <td>@category.Description</td>
+                                <td><span class="badge badge-info">@category.ProductCount</span></td>
+                                <td>
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="badge badge-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Tạm dừng</span>
+                                    }
+                                </td>
+                                <td>@category.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-primary" disabled title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" disabled title="Sửa danh mục">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-info" disabled title="Quản lý danh mục con">
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" disabled title="Xóa danh mục">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>

@@ -15,6 +15,7 @@ namespace Mo_Entities.ModelResponse
         public DateTime? UpdatedAt { get; set; }
         public List<string> Roles { get; set; } = new();
         public bool IsEKYCVerified { get; set; }
+
         public int TotalOrders { get; set; }
         public int TotalShops { get; set; }
         public int TotalProductsSold { get; set; }

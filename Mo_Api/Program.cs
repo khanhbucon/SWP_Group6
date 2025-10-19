@@ -97,9 +97,9 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseCors(options =>
-        {
-            options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+         app.UseCors(options =>
+         {
+              options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
         });
 
         app.MapControllers();

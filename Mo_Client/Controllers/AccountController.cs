@@ -6,10 +6,12 @@ namespace Mo_Client.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly AuthApiClient _authApiClient;
-    public AccountController(AuthApiClient authApiClient)
+    private readonly AuthService _authApiClient;
+    private readonly UserService _userService;
+    public AccountController(AuthService authApiClient, UserService userService )
     {
         _authApiClient = authApiClient;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -30,7 +32,7 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var res = await _authApiClient.LoginAsync(new AuthApiClient.LoginRequest(vm.Identifier, vm.Password, vm.RememberMe), ct);
+        var res = await _authApiClient.LoginAsync(new AuthService.LoginRequest(vm.Identifier, vm.Password, vm.RememberMe), ct);
         if (res == null)
         {
             vm.Error = "Đăng nhập thất bại";
@@ -71,7 +73,7 @@ public class AccountController : Controller
 
         try
         {
-            var res = await _authApiClient.RegisterAsync(new AuthApiClient.RegisterRequest(vm.Username, vm.Email, vm.Phone, vm.Password), ct);
+            var res = await _authApiClient.RegisterAsync(new AuthService.RegisterRequest(vm.Username, vm.Email, vm.Phone, vm.Password), ct);
             if (res == null)
             {
                 vm.Error = "Đăng ký thất bại. Tên đăng nhập, email hoặc số điện thoại có thể đã tồn tại.";
@@ -102,7 +104,7 @@ public class AccountController : Controller
         try
         {
             var success = await _authApiClient.ForgotPasswordAsync(
-                new AuthApiClient.ForgotPasswordRequest(vm.Email), ct);
+                new AuthService.ForgotPasswordRequest(vm.Email), ct);
 
             if (success)
             {
@@ -141,7 +143,7 @@ public class AccountController : Controller
         try
         {
             var success = await _authApiClient.ResetPasswordAsync(
-                new AuthApiClient.ResetPasswordRequest(vm.Token, vm.NewPassword), ct);
+                new AuthService.ResetPasswordRequest(vm.Token, vm.NewPassword), ct);
 
             if (success)
             {
@@ -170,7 +172,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Profile()
+    public async Task<IActionResult> ViewProfile()
     {
         try
         {
@@ -181,7 +183,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
-            var profile = await _authApiClient.GetCurrentUserProfileAsync();
+            var profile = await _userService.GetCurrentUserProfileAsync();
             
             if (profile == null)
             {
@@ -203,7 +205,9 @@ public class AccountController : Controller
                 IsEKYCVerified = profile.IsEKYCVerified,
                 TotalOrders = profile.TotalOrders,
                 TotalShops = profile.TotalShops,
-                TotalProductsSold = profile.TotalProductsSold
+                TotalProductsSold = profile.TotalProductsSold,
+                IdentificationF = profile.IdentificationF,  // Thêm dòng này
+                IdentificationB = profile.IdentificationB   // Thêm dòng này
             };
 
             return View(vm);
@@ -215,8 +219,8 @@ public class AccountController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> ManagerUser()
+    [HttpPost]
+    public async Task<IActionResult> UpdateProfile(ProfileVm vm)
     {
         try
         {
@@ -229,31 +233,52 @@ public class AccountController : Controller
                 return RedirectToAction("Login");
             }
 
-            // Kiểm tra role Admin
-            if (string.IsNullOrEmpty(roles) || !roles.Contains("Admin"))
+            if (!ModelState.IsValid)
             {
-                ViewBag.Error = "Bạn không có quyền truy cập trang này. Chỉ Admin mới được phép.";
-                return RedirectToAction("Index", "Home");
+                return View("ViewProfile", vm);
             }
 
             _authApiClient.SetToken(token);
-            var users = await _authApiClient.GetAllUsersAsync();
-            if (users == null)
+            
+            var updateRequest = new UserService.UpdateProfileRequest(
+                vm.Username,
+                vm.Email,
+                vm.Phone,
+                vm.IdentificationF,
+                vm.IdentificationB
+            );
+
+            Console.WriteLine($"Update Request: Username={vm.Username}, Email={vm.Email}, Phone={vm.Phone}");
+            
+            var success = await _userService.UpdateProfileAsync(updateRequest);
+            
+            Console.WriteLine($"Update Result: {success}");
+            
+            if (success)
             {
-                ViewBag.Error = "Không thể tải danh sách người dùng";
-                return View(new List<ListAccountResponse>());
+                TempData["Success"] = "Cập nhật thông tin thành công!";
+                return RedirectToAction("ViewProfile");
+            }
+            else
+            {
+                TempData["Error"] = "Cập nhật thông tin thất bại. Vui lòng thử lại.";
+                // Load lại data từ API để giữ nguyên thông tin hiện tại
+                vm = await LoadProfileVmAsync();
             }
             return View(users);
         }
         catch (Exception ex)
         {
-            ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-            return View(new List<ListAccountResponse>());
+            TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            // Load lại data từ API để giữ nguyên thông tin hiện tại
+            vm = await LoadProfileVmAsync();
         }
+
+        return View("ViewProfile", vm);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> BanUser(long userId)
+    // Helper method để load ProfileVm từ API
+    private async Task<ProfileVm> LoadProfileVmAsync()
     {
         try
         {
@@ -262,37 +287,45 @@ public class AccountController : Controller
             
             if (string.IsNullOrEmpty(token))
             {
-                TempData["Error"] = "Bạn cần đăng nhập để thực hiện thao tác này";
-                return RedirectToAction("Login");
-            }
-
-            // Kiểm tra role Admin
-            if (string.IsNullOrEmpty(roles) || !roles.Contains("Admin"))
-            {
-                TempData["Error"] = "Bạn không có quyền thực hiện thao tác này. Chỉ Admin mới được phép.";
-                return RedirectToAction("Index", "Home");
+                return new ProfileVm();
             }
 
             _authApiClient.SetToken(token);
-            var success = await _authApiClient.BanUserAsync(userId);
-            if (success)
+            var profile = await _userService.GetCurrentUserProfileAsync();
+            
+            if (profile == null)
             {
-                TempData["Success"] = "Thay đổi trạng thái người dùng thành công";
+                return new ProfileVm();
             }
-            else
+
+            return new ProfileVm
             {
-                TempData["Error"] = "Không thể thay đổi trạng thái người dùng";
-            }
+                Id = profile.Id,
+                Username = profile.Username,
+                Email = profile.Email,
+                Phone = profile.Phone ?? "",
+                Balance = profile.Balance ?? 0,
+                IsActive = profile.IsActive ?? false,
+                CreatedAt = profile.CreatedAt ?? DateTime.Now,
+                UpdatedAt = profile.UpdatedAt,
+                Roles = profile.Roles,
+                IsEKYCVerified = profile.IsEKYCVerified,
+                TotalOrders = profile.TotalOrders,
+                TotalShops = profile.TotalShops,
+                TotalProductsSold = profile.TotalProductsSold,
+                IdentificationF = profile.IdentificationF,
+                IdentificationB = profile.IdentificationB
+            };
         }
-        catch (Exception ex)
+        catch
         {
-            TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            return new ProfileVm();
         }
         return RedirectToAction("ManagerUser");
     }
 
     [HttpPost]
-    public async Task<IActionResult> GrantSellerRole(long userId)
+    public async Task<IActionResult> UploadKYC(IFormFile identificationF, IFormFile identificationB)
     {
         try
         {
@@ -301,49 +334,35 @@ public class AccountController : Controller
             
             if (string.IsNullOrEmpty(token))
             {
-                TempData["Error"] = "Bạn cần đăng nhập để thực hiện thao tác này";
-                return RedirectToAction("Login");
+                return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện thao tác này" });
             }
 
-            // Kiểm tra role Admin
-            if (string.IsNullOrEmpty(roles) || !roles.Contains("Admin"))
+            if (identificationF == null || identificationB == null)
             {
-                TempData["Error"] = "Bạn không có quyền thực hiện thao tác này. Chỉ Admin mới được phép.";
-                return RedirectToAction("Index", "Home");
+                return Json(new { success = false, message = "Vui lòng chọn đầy đủ 2 ảnh" });
             }
 
             // Kiểm tra xác minh danh tính trước khi cấp quyền Seller
             _authApiClient.SetToken(token);
-            var users = await _authApiClient.GetAllUsersAsync();
-            if (users != null)
-            {
-                var targetUser = users.FirstOrDefault(u => u.UserId == userId);
-                if (targetUser != null)
-                {
-                    if (!targetUser.IsEKYCVerified)
-                    {
-                        TempData["Error"] = $"Không thể cấp quyền Seller cho người dùng '{targetUser.Username}'. Người dùng chưa xác minh danh tính (eKYC).";
-                        return RedirectToAction("ManagerUser");
-                    }
-                }
-            }
-
+            var success = await _userService.UploadKYCAsync(identificationF, identificationB);
+            
             var success = await _authApiClient.GrantSellerRoleAsync(userId);
             if (success)
             {
-                TempData["Success"] = "Cấp phép Seller thành công";
+                return Json(new { success = true, message = "Upload ảnh KYC thành công!" });
             }
             else
             {
-                TempData["Error"] = "Không thể cấp phép Seller";
+                return Json(new { success = false, message = "Upload ảnh KYC thất bại. Vui lòng thử lại." });
             }
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
         return RedirectToAction("ManagerUser");
     }
+
 }
 
 
