@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Models;
 using Mo_Client.Services;
@@ -183,6 +184,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             var profile = await _userService.GetCurrentUserProfileAsync();
             
             if (profile == null)
@@ -236,6 +238,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             
             var updateRequest = new UserService.UpdateProfileRequest(
                 vm.Username,
@@ -285,6 +288,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             var profile = await _userService.GetCurrentUserProfileAsync();
             
             if (profile == null)
@@ -334,6 +338,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             var success = await _userService.UploadKYCAsync(identificationF, identificationB);
             
             if (success)
