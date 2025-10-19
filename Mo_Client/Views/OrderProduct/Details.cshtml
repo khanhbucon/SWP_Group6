@@ -1,0 +1,49 @@
+﻿@model Mo_Entities.Models.OrderProduct
+
+@{
+    ViewData["Title"] = "Chi Tiết Đơn Hàng";
+}
+
+<div class="container mt-4">
+    <div class="card p-4 shadow-sm">
+        <h3 class="mb-3 text-primary">Chi Tiết Đơn Hàng</h3>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        @if (Model != null)
+        {
+            <dl class="row">
+                <dt class="col-sm-3">ID</dt>
+                <dd class="col-sm-9">@Model.Id</dd>
+
+                <dt class="col-sm-3">Account ID</dt>
+                <dd class="col-sm-9">@Model.AccountId</dd>
+
+                <dt class="col-sm-3">Product Variant ID</dt>
+                <dd class="col-sm-9">@Model.ProductVariantId</dd>
+
+                <dt class="col-sm-3">Số lượng</dt>
+                <dd class="col-sm-9">@Model.Quantity</dd>
+
+                <dt class="col-sm-3">Tổng tiền (VNĐ)</dt>
+                <dd class="col-sm-9">@Model.TotalAmount.ToString("N0")</dd>
+
+                <dt class="col-sm-3">Trạng thái</dt>
+                <dd class="col-sm-9">@Model.Status</dd>
+            </dl>
+
+            <a asp-action="Index" class="btn btn-secondary">← Quay lại</a>
+        }
+        else
+        {
+            <p class="text-danger">Không tìm thấy thông tin đơn hàng.</p>
+        }
+    </div>
+</div>

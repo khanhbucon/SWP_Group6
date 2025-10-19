@@ -12,8 +12,9 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.20" />
         <PackageReference Include="Microsoft.AspNetCore.OData" Version="8.3.1" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.20" />
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -27,6 +28,10 @@
     <ItemGroup>
       <ProjectReference Include="..\Mo_DataAccess\Mo_DataAccess.csproj" />
       <ProjectReference Include="..\Mo_Entities\Mo_Entities.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Model\DTOs\" />
     </ItemGroup>
 
 </Project>

@@ -17,6 +17,9 @@ public partial class OrderProduct
 
     public string Status { get; set; } = null!;
 
+   
+
+
     public virtual Account Account { get; set; } = null!;
 
     public virtual ProductVariant ProductVariant { get; set; } = null!;

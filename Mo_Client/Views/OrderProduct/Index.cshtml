@@ -1,0 +1,89 @@
+﻿@model IEnumerable<Mo_Entities.Models.OrderProduct>
+
+@{
+    ViewData["Title"] = "Danh Sách Đơn Hàng";
+}
+
+<div class="container mt-4">
+    <div class="card p-4 shadow-sm">
+        <h3 class="mb-3 text-primary text-center">📋 Danh Sách Đơn Hàng</h3>
+
+        <!-- ✅ Thông báo kết quả hành động -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success text-center">@TempData["Success"]</div>
+        }
+        else if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger text-center">@TempData["Error"]</div>
+        }
+
+        <!-- ✅ Nút tạo đơn -->
+        <div class="text-center mb-3">
+            <a asp-action="Create" class="btn btn-primary px-4">➕ Tạo Đơn Hàng</a>
+        </div>
+
+        <!-- ✅ Hiển thị bảng dữ liệu -->
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ID</th>
+                        <th>Account ID</th>
+                        <th>Số lượng</th>
+                        <th>Tổng tiền (VNĐ)</th>
+                        <th>Trạng thái</th>
+                        <th style="width:150px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@item.Id</td>
+                            <td class="text-center">@item.AccountId</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-end">@item.TotalAmount.ToString("N0")</td>
+                            <td class="text-center">
+                                @if (item.Status.ToUpper() == "CONFIRMED")
+                                {
+                                    <span class="badge bg-success">@item.Status</span>
+                                }
+                                else if (item.Status.ToUpper() == "PENDING")
+                                {
+                                    <span class="badge bg-warning text-dark">@item.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@item.Status</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm me-1">
+                                    <i class="bi bi-eye"></i> Chi tiết
+                                </a>
+                                <form asp-action="Delete" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Bạn có chắc muốn xóa đơn này không?')">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <!-- ✅ Chỉ hiện khi không có dữ liệu -->
+            <p class="text-muted text-center mt-3">Không có đơn hàng nào để hiển thị.</p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

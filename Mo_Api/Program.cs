@@ -84,6 +84,19 @@ public class Program
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
+        // ✅ Cho phép Client 7164 gọi API 7234
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowClient7164", policy =>
+            {
+                policy
+                    .WithOrigins("https://localhost:7164") // ✅ Mo_Client đang chạy ở đây
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
         {
@@ -94,7 +107,10 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
-         app.UseCors(options =>
+        // ✅ Chính sách riêng cho bạn
+        app.UseCors("AllowClient7164");
+
+        app.UseCors(options =>
          {
               options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
          })  ;

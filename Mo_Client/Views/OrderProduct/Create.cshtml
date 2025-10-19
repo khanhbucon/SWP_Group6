@@ -1,7 +1,13 @@
-﻿@model Mo_Entities.ModelRequest.OrderProductRequest
+﻿@model Mo_Entities.Models.Request.OrderProductRq
 
 @{
     ViewData["Title"] = "Tạo Đơn Hàng";
+    var statusList = new List<SelectListItem>
+    {
+        new SelectListItem("PENDING", "PENDING"),
+        new SelectListItem("CONFIRMED", "CONFIRMED"),
+        new SelectListItem("CANCELLED", "CANCELLED")
+    };
 }
 
 <div class="container mt-4">
@@ -19,63 +25,41 @@
 
         <form asp-action="Create" method="post">
             <div class="mb-3">
-                <label class="form-label">Account ID</label>
-                <input asp-for="AccountId" class="form-control" type="number" min="1" required />
+                <label asp-for="AccountId" class="form-label">Account ID</label>
+                <input asp-for="AccountId" class="form-control" />
+                <span asp-validation-for="AccountId" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Chọn sản phẩm</label>
-                <select asp-for="ProductVariantId" class="form-select" id="productSelect">
-                    <option value="">-- Chọn sản phẩm --</option>
-                    @foreach (var item in ViewBag.ProductVariants)
-                    {
-                        <option value="@item.Id" data-price="@item.Price">@item.Name (@item.Price.ToString("N0") VNĐ)</option>
-                    }
-                </select>
+                <label asp-for="ProductVariantId" class="form-label">Product Variant ID</label>
+                <input asp-for="ProductVariantId" class="form-control" />
+                <span asp-validation-for="ProductVariantId" class="text-danger"></span>
             </div>
 
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Số lượng</label>
-                    <input asp-for="Quantity" class="form-control" id="quantityInput" type="number" min="1" value="1" />
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Tổng tiền (VNĐ)</label>
-                    <input asp-for="TotalAmount" class="form-control" id="totalAmountInput" type="number" step="0.01" readonly />
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Trạng thái</label>
-                    <select asp-for="Status" class="form-select">
-                        <option value="PENDING">PENDING</option>
-                        <option value="CONFIRMED">CONFIRMED</option>
-                        <option value="RELEASED">RELEASED</option>
-                        <option value="REFUNDED">REFUNDED</option>
-                        <option value="CANCELLED">CANCELLED</option>
-                        <option value="HOLDING">HOLDING</option>
-                    </select>
-                </div>
+            <div class="mb-3">
+                <label asp-for="Quantity" class="form-label">Số lượng</label>
+                <input asp-for="Quantity" class="form-control" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary">Tạo đơn</button>
+            <div class="mb-3">
+                <label asp-for="TotalAmount" class="form-label">Tổng tiền (VNĐ)</label>
+                <input asp-for="TotalAmount" class="form-control" />
+                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">Trạng thái</label>
+                <select asp-for="Status" asp-items="statusList" class="form-select"></select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Tạo</button>
+            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        const select = document.getElementById("productSelect");
-        const qty = document.getElementById("quantityInput");
-        const total = document.getElementById("totalAmountInput");
-
-        select.addEventListener("change", calcTotal);
-        qty.addEventListener("input", calcTotal);
-
-        function calcTotal() {
-            const price = parseFloat(select.options[select.selectedIndex]?.dataset.price || 0);
-            const quantity = parseInt(qty.value) || 1;
-            total.value = price * quantity;
-        }
-    </script>
+    <partial name="_ValidationScriptsPartial" />
 }

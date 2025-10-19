@@ -1,7 +1,13 @@
-﻿namespace Mo_DataAccess.Services.Interface;
+﻿using Mo_Entities.Models;
 
-public interface IOrderProductServices :IGenericRepository<OrderProduct>
+namespace Mo_DataAccess.Services.Interface
 {
-    Task<IEnumerable<OrderProduct>> GetOrdersByAccountIdAsync(long accountId);
-    Task UpdateStatusAsync(long orderId, string status);
+    public interface IOrderProductServices
+    {
+        Task<IEnumerable<OrderProduct>> GetAllAsync();
+        Task<OrderProduct?> GetByIdAsync(long id);
+        Task<OrderProduct> CreateAsync(OrderProduct order);
+        Task<OrderProduct?> UpdateAsync(long id, OrderProduct order);
+        Task<bool> DeleteAsync(long id);
+    }
 }

@@ -1,6 +1,7 @@
-﻿namespace Mo_Entities.ModelRequest
+﻿namespace Mo_Entities.Models.Request
 {
-    public class OrderProductRequest
+    public class OrderProductRq
+
     {
         public long AccountId { get; set; }
         public long ProductVariantId { get; set; }

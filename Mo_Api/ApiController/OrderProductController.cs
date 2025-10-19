@@ -1,91 +1,99 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
-using Mo_Entities.ModelRequest;
+using Mo_Entities.Models.Request;
+using Mo_Entities.Models.Response;
 
-namespace Mo_Api.ApiController
+namespace Mo_Api.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class OrderProductController : ControllerBase
     {
-        private readonly IOrderProductServices _orderService;
+        private readonly IOrderProductServices _service;
 
-        public OrderProductController(IOrderProductServices orderService)
+        public OrderProductController(IOrderProductServices service)
         {
-            _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
+            _service = service;
         }
 
-        // 🟢 API: Fake tạo đơn hàng (không lưu DB)
-        [HttpPost("Create")]
-        public IActionResult Create([FromBody] OrderProductRequest model)
+        // =================== LẤY TẤT CẢ ===================
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            if (model == null)
-                return BadRequest(new { message = "Dữ liệu trống!" });
+            var result = await _service.GetAllAsync();
 
-            var random = new Random();
-
-            // 🧩 Nếu không nhập hoặc nhập sai thì tạo ngẫu nhiên
-            if (model.AccountId <= 0)
-                model.AccountId = random.Next(1000, 9999);
-
-            if (model.ProductVariantId <= 0)
-                model.ProductVariantId = random.Next(1000, 9999);
-
-            // 🧩 Giả lập đơn hàng mới (không ghi vào DB)
-            var fakeOrder = new OrderProduct
+            var response = result.Select(o => new OrderProductRp
             {
-                Id = random.Next(1, 999999),
-                AccountId = model.AccountId,
-                ProductVariantId = model.ProductVariantId,
-                Quantity = model.Quantity,
-                TotalAmount = model.TotalAmount,
-                Status = model.Status ?? "PENDING"
+                Id = o.Id,
+                AccountId = o.AccountId,
+                AccountName = o.Account?.Username,
+                ProductVariantId = o.ProductVariantId,
+                ProductName = o.ProductVariant?.Name,
+                TotalAmount = o.TotalAmount,
+                Quantity = o.Quantity,
+                Status = o.Status
+            });
+
+            return Ok(response);
+        }
+
+        // =================== LẤY THEO ID ===================
+        [HttpGet("{id:long}")]
+        public async Task<IActionResult> GetById(long id)
+        {
+            var order = await _service.GetByIdAsync(id);
+            if (order == null)
+                return NotFound(new { message = $"Không tìm thấy đơn hàng ID {id}" });
+
+            var response = new OrderProductRp
+            {
+                Id = order.Id,
+                AccountId = order.AccountId,
+                AccountName = order.Account?.Username,
+                ProductVariantId = order.ProductVariantId,
+                ProductName = order.ProductVariant?.Name,
+                TotalAmount = order.TotalAmount,
+                Quantity = order.Quantity,
+                Status = order.Status
             };
 
-            // ✅ Trả phản hồi thành công như thật
-            return Ok(new
-            {
-                message = "Fake đơn hàng tạo thành công (không lưu DB)",
-                data = fakeOrder
-            });
+            return Ok(response);
         }
 
-        // 🟢 API: Lấy đơn hàng theo AccountId
-        [HttpGet("ByAccount/{accountId:long}")]
-        public async Task<IActionResult> GetByAccount(long accountId)
+        // =================== TẠO MỚI ===================
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] OrderProductRq rq)
         {
-            try
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var order = new OrderProduct
             {
-                var result = await _orderService.GetOrdersByAccountIdAsync(accountId);
-                return result != null && result.Any()
-                    ? Ok(result)
-                    : NotFound(new { message = "Không tìm thấy đơn hàng." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server.", error = ex.Message });
-            }
+                AccountId = rq.AccountId,
+                ProductVariantId = rq.ProductVariantId,
+                TotalAmount = rq.TotalAmount,
+                Quantity = rq.Quantity,
+                Status = rq.Status
+            };
+
+            var created = await _service.CreateAsync(order);
+            return Ok(new { message = "Tạo đơn hàng thành công", id = created.Id });
         }
 
-        // 🟢 API: Cập nhật trạng thái đơn
-        [HttpPut("UpdateStatus/{orderId:long}")]
-        public async Task<IActionResult> UpdateStatus(long orderId, [FromBody] string newStatus)
+        // =================== XÓA ===================
+        [HttpDelete("{id:long}")]
+        public async Task<IActionResult> Delete(long id)
         {
-            if (string.IsNullOrEmpty(newStatus))
-            {
-                return BadRequest(new { message = "Trạng thái không được để trống." });
-            }
+            var order = await _service.GetByIdAsync(id);
+            if (order == null)
+                return NotFound(new { message = $"Không tìm thấy đơn hàng ID {id}" });
 
-            try
-            {
-                await _orderService.UpdateStatusAsync(orderId, newStatus);
-                return Ok(new { message = "Cập nhật trạng thái thành công!" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server.", error = ex.Message });
-            }
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted)
+                return StatusCode(500, new { message = "Xóa đơn hàng thất bại" });
+
+            return Ok(new { message = "Đã xóa đơn hàng thành công" });
         }
     }
 }
