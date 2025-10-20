@@ -53,5 +53,13 @@ namespace Mo_Client.Services
             var resp = await _httpClient.PostAsJsonAsync("/api/account/reset-password", req, ct);
             return resp.IsSuccessStatusCode;
         }
+
+        public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+        public async Task<bool> ChangePasswordAsync(ChangePasswordRequest req, CancellationToken ct = default)
+        {
+            var resp = await _httpClient.PostAsJsonAsync("/api/account/change-password", req, ct);
+            return resp.IsSuccessStatusCode;
+        }
     }
 }

@@ -77,7 +77,8 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(durationInMinutes);
+        // RememberMe affects access token duration
+        var expires = rememberMe ? DateTime.UtcNow.AddMinutes(5) : DateTime.UtcNow.AddMinutes(1);
 
         var claims = new List<Claim>
         {
@@ -535,5 +536,27 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
         account.IsActive = !account.IsActive;
         account.UpdatedAt = DateTime.UtcNow;
         return await UpdateAsync(account);
+    }
+
+    public async Task<bool> ChangePasswordAsync(long userId, string currentPassword, string newPassword)
+    {
+        var account = await GetByIdAsync(userId);
+        if (account == null)
+            return false;
+
+        // Verify current password
+        var hashedCurrentPassword = ComputeSha256(currentPassword);
+        if (account.Password != hashedCurrentPassword)
+            return false;
+
+        // Hash new password
+        var hashedNewPassword = ComputeSha256(newPassword);
+        
+        // Update password
+        account.Password = hashedNewPassword;
+        account.UpdatedAt = DateTime.UtcNow;
+        
+        await UpdateAsync(account);
+        return true;
     }
 }
