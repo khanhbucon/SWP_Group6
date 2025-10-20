@@ -233,8 +233,11 @@ public class AccountController : Controller
         try
         {
             var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
             if (string.IsNullOrEmpty(token))
             {
+                ViewBag.Error = "Bạn cần đăng nhập để truy cập trang này";
                 return RedirectToAction("Login");
             }
 
@@ -271,6 +274,7 @@ public class AccountController : Controller
                 // Load lại data từ API để giữ nguyên thông tin hiện tại
                 vm = await LoadProfileVmAsync();
             }
+            return View(users);
         }
         catch (Exception ex)
         {
@@ -288,6 +292,8 @@ public class AccountController : Controller
         try
         {
             var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
             if (string.IsNullOrEmpty(token))
             {
                 return new ProfileVm();
@@ -325,6 +331,7 @@ public class AccountController : Controller
         {
             return new ProfileVm();
         }
+        return RedirectToAction("ManagerUser");
     }
 
     [HttpGet]
@@ -377,6 +384,8 @@ public class AccountController : Controller
         try
         {
             var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
             if (string.IsNullOrEmpty(token))
             {
                 return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện thao tác này" });
@@ -387,10 +396,12 @@ public class AccountController : Controller
                 return Json(new { success = false, message = "Vui lòng chọn đầy đủ 2 ảnh" });
             }
 
+            // Kiểm tra xác minh danh tính trước khi cấp quyền Seller
             _authApiClient.SetToken(token);
             _userService.SetToken(token);
             var success = await _userService.UploadKYCAsync(identificationF, identificationB);
             
+            var success = await _authApiClient.GrantSellerRoleAsync(userId);
             if (success)
             {
                 return Json(new { success = true, message = "Upload ảnh KYC thành công!" });
@@ -404,6 +415,7 @@ public class AccountController : Controller
         {
             return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
+        return RedirectToAction("ManagerUser");
     }
 
 }

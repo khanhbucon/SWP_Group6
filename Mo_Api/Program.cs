@@ -1,4 +1,5 @@
-using System.Text;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,8 @@ public class Program
         {
             options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100);
         });
+        // Register CORS services
+        builder.Services.AddCors();
         builder.Services.AddDbContext<SwpGroup6Context>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -97,7 +100,7 @@ public class Program
          app.UseCors(options =>
          {
               options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-         })  ;
+        });
 
         app.MapControllers();
 

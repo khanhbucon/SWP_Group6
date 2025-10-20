@@ -4,6 +4,14 @@
     var roles = Context.Request.Cookies["roles"];
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
