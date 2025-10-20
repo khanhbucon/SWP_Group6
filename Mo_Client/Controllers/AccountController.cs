@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Models;
 using Mo_Client.Services;
@@ -32,6 +33,9 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
+        // Debug logging
+        Console.WriteLine($"Login attempt - Identifier: {vm.Identifier}, RememberMe: {vm.RememberMe}");
+
         var res = await _authApiClient.LoginAsync(new AuthService.LoginRequest(vm.Identifier, vm.Password, vm.RememberMe), ct);
         if (res == null)
         {
@@ -48,6 +52,9 @@ public class AccountController : Controller
         {
             Expires = res.ExpiresAt
         });
+
+        // Debug logging
+        Console.WriteLine($"Login successful - RememberMe: {vm.RememberMe}, ExpiresAt: {res.ExpiresAt}");
 
         if (!string.IsNullOrWhiteSpace(vm.ReturnUrl)) return Redirect(vm.ReturnUrl);
         return RedirectToAction("Index", "Home");
@@ -183,6 +190,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             var profile = await _userService.GetCurrentUserProfileAsync();
             
             if (profile == null)
@@ -236,6 +244,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             
             var updateRequest = new UserService.UpdateProfileRequest(
                 vm.Username,
@@ -285,6 +294,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             var profile = await _userService.GetCurrentUserProfileAsync();
             
             if (profile == null)
@@ -317,6 +327,50 @@ public class AccountController : Controller
         }
     }
 
+    [HttpGet]
+    public IActionResult ChangePassword()
+    {
+        return View(new ChangePasswordVm());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword(ChangePasswordVm vm, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return View(vm);
+
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Login");
+            }
+
+            _authApiClient.SetToken(token);
+
+            var success = await _authApiClient.ChangePasswordAsync(
+                new AuthService.ChangePasswordRequest(vm.CurrentPassword, vm.NewPassword), ct);
+
+            if (success)
+            {
+                vm.Success = "Đổi mật khẩu thành công!";
+                vm.CurrentPassword = string.Empty;
+                vm.NewPassword = string.Empty;
+                vm.ConfirmPassword = string.Empty;
+            }
+            else
+            {
+                vm.Error = "Mật khẩu hiện tại không đúng. Vui lòng thử lại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            vm.Error = "Có lỗi xảy ra: " + ex.Message;
+        }
+
+        return View(vm);
+    }
+
     [HttpPost]
     public async Task<IActionResult> UploadKYC(IFormFile identificationF, IFormFile identificationB)
     {
@@ -334,6 +388,7 @@ public class AccountController : Controller
             }
 
             _authApiClient.SetToken(token);
+            _userService.SetToken(token);
             var success = await _userService.UploadKYCAsync(identificationF, identificationB);
             
             if (success)

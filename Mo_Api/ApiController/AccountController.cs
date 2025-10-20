@@ -244,6 +244,49 @@ public class AccountController : ControllerBase
         }
     }
 
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token - User ID not found" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var success = await _accountServices.ChangePasswordAsync(userId.Value, request.CurrentPassword, request.NewPassword);
+
+            if (success)
+            {
+                return Ok(new { 
+                    Success = true, 
+                    Message = "Đổi mật khẩu thành công" 
+                });
+            }
+            else
+            {
+                return BadRequest(new { 
+                    Success = false, 
+                    Message = "Mật khẩu hiện tại không đúng" 
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { 
+                Success = false, 
+                Message = "Có lỗi xảy ra khi đổi mật khẩu" 
+            });
+        }
+    }
+
     [HttpPost("upload-kyc")]
     [Authorize]
     public async Task<IActionResult> UploadKYC(IFormFile identificationF, IFormFile identificationB)

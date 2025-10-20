@@ -30,4 +30,5 @@ namespace Mo_DataAccess.Services.Interface;
     Task<Account> UpdateProfileAsync(long userId, UpdateProfileRequest request);
 
     Task<Account> UpdateKYCAsync(long userId, string identificationF, string identificationB);
+    Task<bool> ChangePasswordAsync(long userId, string currentPassword, string newPassword);
 }
