@@ -216,8 +216,17 @@ public class AuthApiClient
         return (false, resp.ReasonPhrase);
     }
 
-    // Product Orders
-    public record ProductOrderItem(long OrderId, long ProductId, string ProductName, string VariantName, int Quantity, decimal TotalAmount, string Status, string BuyerName);
+    // Product Orders DTO used by Views/Seller/ProductOrders.cshtml
+    public record ProductOrderItem(
+        long OrderId,
+        long ProductId,
+        string ProductName,
+        string VariantName,
+        int Quantity,
+        decimal TotalAmount,
+        string Status,
+        string BuyerName
+    );
 
     public async Task<List<ProductOrderItem>?> GetMyProductOrdersAsync(CancellationToken ct = default)
     {

@@ -265,7 +265,7 @@ public class AccountController : Controller
                 // Load lại data từ API để giữ nguyên thông tin hiện tại
                 vm = await LoadProfileVmAsync();
             }
-            return View(users);
+            return View("ViewProfile", vm);
         }
         catch (Exception ex)
         {
@@ -321,7 +321,6 @@ public class AccountController : Controller
         {
             return new ProfileVm();
         }
-        return RedirectToAction("ManagerUser");
     }
 
     [HttpPost]
@@ -345,8 +344,6 @@ public class AccountController : Controller
             // Kiểm tra xác minh danh tính trước khi cấp quyền Seller
             _authApiClient.SetToken(token);
             var success = await _userService.UploadKYCAsync(identificationF, identificationB);
-            
-            var success = await _authApiClient.GrantSellerRoleAsync(userId);
             if (success)
             {
                 return Json(new { success = true, message = "Upload ảnh KYC thành công!" });
@@ -360,7 +357,6 @@ public class AccountController : Controller
         {
             return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
-        return RedirectToAction("ManagerUser");
     }
 
 }

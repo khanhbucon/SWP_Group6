@@ -11,6 +11,7 @@ builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
 builder.Services.AddHttpClient<AuthService>();
 builder.Services.AddHttpClient<UserService>();
 builder.Services.AddHttpClient<AdminService>();
+builder.Services.AddHttpClient<AuthApiClient>();
 
 
 var app = builder.Build();
