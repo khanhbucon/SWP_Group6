@@ -18,4 +18,9 @@ public interface IShopServices : IGenericRepository<Shop>
     Task<List<ShopResponse>> GetShopsResponseByAccountIdAsync(long accountId);
     Task<ShopResponse?> GetShopResponseByIdAsync(long shopId, long accountId);
     Task<ShopStatisticsResponse?> GetShopStatisticsAsync(long shopId, long accountId);
+    
+    // Admin operations
+    Task<bool> ApproveShopAsync(long shopId);
+    Task<bool> SuspendShopAsync(long shopId);
+    Task<bool> SetShopActiveAsync(long shopId, bool isActive);
 }

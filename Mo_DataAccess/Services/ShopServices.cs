@@ -44,7 +44,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             Name = name!,
             Description = description,
             ReportCount = 0,
-            IsActive = true,
+            IsActive = false,
+            Status = ShopStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -148,6 +149,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             Description = shop.Description,
             ReportCount = shop.ReportCount,
             IsActive = shop.IsActive,
+            Status = shop.Status == ShopStatus.Active ? "Active" : 
+                     shop.Status == ShopStatus.Suspended ? "Suspended" : "Pending",
             CreatedAt = shop.CreatedAt,
             UpdatedAt = shop.UpdatedAt,
             TotalProducts = shop.Products?.Count ?? 0
@@ -184,6 +187,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
                 Description = shop.Description,
                 ReportCount = shop.ReportCount,
                 IsActive = shop.IsActive,
+                Status = shop.Status == ShopStatus.Active ? "Active" : 
+                         shop.Status == ShopStatus.Suspended ? "Suspended" : "Pending",
                 CreatedAt = shop.CreatedAt,
                 UpdatedAt = shop.UpdatedAt,
                 TotalProducts = shop.Products?.Count ?? 0,
@@ -217,6 +222,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             Description = shop.Description,
             ReportCount = shop.ReportCount,
             IsActive = shop.IsActive,
+            Status = shop.Status == ShopStatus.Active ? "Active" : 
+                     shop.Status == ShopStatus.Suspended ? "Suspended" : "Pending",
             CreatedAt = shop.CreatedAt,
             UpdatedAt = shop.UpdatedAt,
             TotalProducts = shop.Products?.Count ?? 0,
@@ -345,5 +352,37 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             AverageRating = (decimal)averageRating,
             TotalFeedbacks = totalFeedbacks
         };
+    }
+
+    // Admin: approve shop (set status to Active)
+    public async Task<bool> ApproveShopAsync(long shopId)
+    {
+        var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId);
+        if (shop == null) return false;
+        shop.Status = ShopStatus.Active;
+        shop.IsActive = true;
+        shop.UpdatedAt = DateTime.UtcNow;
+        _context.Set<Shop>().Update(shop);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    // Admin: suspend shop (set status to Suspended)
+    public async Task<bool> SuspendShopAsync(long shopId)
+    {
+        var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId);
+        if (shop == null) return false;
+        shop.Status = ShopStatus.Suspended;
+        shop.IsActive = false;
+        shop.UpdatedAt = DateTime.UtcNow;
+        _context.Set<Shop>().Update(shop);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    // Backward compatible
+    public async Task<bool> SetShopActiveAsync(long shopId, bool isActive)
+    {
+        return isActive ? await ApproveShopAsync(shopId) : await SuspendShopAsync(shopId);
     }
 }
