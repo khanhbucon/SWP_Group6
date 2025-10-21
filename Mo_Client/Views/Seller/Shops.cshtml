@@ -53,6 +53,7 @@ else
     <div class="row g-4">
         @foreach (var s in Model)
         {
+            var isPending = s.IsActive == null; // null = pending approval
             <div class="col-lg-6 col-xl-4">
                 <div class="card shop-card h-100 shadow-sm border-0">
                     <div class="card-header bg-gradient-primary-light border-0 pb-3">
@@ -64,10 +65,20 @@ else
                                     @s.CreatedAt?.ToString("dd/MM/yyyy")
                                 </div>
                             </div>
-                            <span class="badge @(s.IsActive == true ? "bg-success" : "bg-secondary") ms-2 px-2 py-1">
-                                <i class="fas @(s.IsActive == true ? "fa-check" : "fa-pause") fa-xs me-1"></i>
-                                @(s.IsActive == true ? "Hoạt động" : "Tạm dừng")
-                            </span>
+                            @if (isPending)
+                            {
+                                <span class="badge bg-warning text-dark ms-2 px-2 py-1">
+                                    <i class="fas fa-hourglass-half fa-xs me-1"></i>
+                                    Chờ duyệt
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge @(s.IsActive == true ? "bg-success" : "bg-secondary") ms-2 px-2 py-1">
+                                    <i class="fas @(s.IsActive == true ? "fa-check" : "fa-pause") fa-xs me-1"></i>
+                                    @(s.IsActive == true ? "Hoạt động" : "Tạm dừng")
+                                </span>
+                            }
                         </div>
                     </div>
                     
@@ -89,23 +100,23 @@ else
                             <div class="col-6">
                                 <div class="stat-item">
                                     <div class="d-flex align-items-center">
-                                        <div class="icon-box bg-info">
-                                            <i class="fas fa-tags text-white"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <div class="stat-number">
-                                                @if (s.CategoryNames != null && s.CategoryNames.Any())
-                                                {
-                                                    @s.CategoryNames.Count
-                                                }
-                                                else
-                                                {
-                                                    @:0
-                                                }
+                                            <div class="icon-box bg-info">
+                                                <i class="fas fa-tags text-white"></i>
                                             </div>
-                                            <small class="stat-label">Danh mục</small>
+                                            <div class="ms-3">
+                                                <div class="stat-number">
+                                                    @if (s.CategoryNames != null && s.CategoryNames.Any())
+                                                    {
+                                                        @s.CategoryNames.Count
+                                                    }
+                                                    else
+                                                    {
+                                                        @:0
+                                                    }
+                                                </div>
+                                                <small class="stat-label">Danh mục</small>
+                                            </div>
                                         </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -133,17 +144,17 @@ else
                     <div class="card-footer bg-white border-0 pt-0">
                         <div class="d-grid gap-2">
                             <div class="btn-group btn-group-sm" role="group">
-                                <a class="btn btn-outline-primary" asp-controller="Seller" asp-action="EditShop" asp-route-shopId="@s.Id">
+                                <a class="btn btn-outline-primary @(isPending ? "disabled" : string.Empty)" asp-controller="Seller" asp-action="EditShop" asp-route-shopId="@s.Id">
                                     <i class="fas fa-edit me-1"></i>Sửa
                                 </a>
-                                <a class="btn btn-outline-info" asp-controller="Seller" asp-action="ShopStats" asp-route-shopId="@s.Id">
+                                <a class="btn btn-outline-info @(isPending ? "disabled" : string.Empty)" asp-controller="Seller" asp-action="ShopStats" asp-route-shopId="@s.Id">
                                     <i class="fas fa-chart-bar me-1"></i>Thống kê
                                 </a>
                                 <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Bạn có chắc chắn muốn xóa shop này? Hành động không thể hoàn tác.')) document.getElementById('delete-form-@s.Id').submit();">
                                     <i class="fas fa-trash me-1"></i>Xóa
                                 </button>
                             </div>
-                            <a class="btn btn-success btn-sm" asp-controller="Product" asp-action="Create" asp-route-shopId="@s.Id">
+                            <a class="btn btn-success btn-sm @(isPending ? "disabled" : string.Empty)" asp-controller="Product" asp-action="Create" asp-route-shopId="@s.Id">
                                 <i class="fas fa-plus me-1"></i>Thêm sản phẩm
                             </a>
                             <form id="delete-form-@s.Id" asp-controller="Seller" asp-action="DeleteShop" method="post" class="d-none">
@@ -151,6 +162,10 @@ else
                                 @Html.AntiForgeryToken()
                             </form>
                         </div>
+                        @if (isPending)
+                        {
+                            <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Gian hàng đang chờ Admin duyệt. Bạn chưa thể thêm sản phẩm.</small>
+                        }
                     </div>
                 </div>
             </div>

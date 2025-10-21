@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Models;
 using Mo_Client.Models.Admin;
 using Mo_Client.Services;
+using AdminShopListItemDto = Mo_Entities.ModelResponse.AdminShopListItem;
 
 namespace Mo_Client.Controllers
 {
@@ -76,64 +77,98 @@ namespace Mo_Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Shops(string? search = null, int page = 1)
+        public async Task<IActionResult> Shops(string? search = null, int page = 1)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
 
             try
             {
-                // TODO: Gọi API để lấy danh sách cửa hàng
-                var shopsVm = new ShopManagementVm
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var items = await _adminService.GetShopsAsync(search);
+
+                if (items == null)
+                {
+                    TempData["Error"] = "Không thể tải danh sách cửa hàng";
+                    return View(new ShopManagementVm());
+                }
+
+                var vm = new ShopManagementVm
                 {
                     SearchTerm = search,
                     PageNumber = page,
-                    TotalCount = 3, // Demo data
-                    Shops = new List<ShopVm>
+                    TotalCount = items.Count,
+                    Shops = items.Select(s => new ShopVm
                     {
-                        new ShopVm 
-                        { 
-                            Id = 1, 
-                            Name = "Cửa hàng demo 1", 
-                            Owner = "user1", 
-                            Status = "Active", 
-                            CreatedAt = DateTime.Now.AddDays(-10), 
-                            ProductCount = 15,
-                            ReportCount = 0,
-                            Description = "Cửa hàng chuyên bán điện tử"
-                        },
-                        new ShopVm 
-                        { 
-                            Id = 2, 
-                            Name = "Cửa hàng demo 2", 
-                            Owner = "user2", 
-                            Status = "Pending", 
-                            CreatedAt = DateTime.Now.AddDays(-5), 
-                            ProductCount = 8,
-                            ReportCount = 2,
-                            Description = "Cửa hàng thời trang"
-                        },
-                        new ShopVm 
-                        { 
-                            Id = 3, 
-                            Name = "Cửa hàng demo 3", 
-                            Owner = "user3", 
-                            Status = "Inactive", 
-                            CreatedAt = DateTime.Now.AddDays(-15), 
-                            ProductCount = 0,
-                            ReportCount = 5,
-                            Description = "Cửa hàng gia dụng"
-                        }
-                    }
+                        Id = s.Id,
+                        Name = s.Name,
+                        Owner = s.Owner,
+                        Status = s.Status,
+                        CreatedAt = s.CreatedAt ?? DateTime.UtcNow,
+                        ProductCount = s.ProductCount,
+                        ReportCount = s.ReportCount,
+                        Description = null
+                    }).ToList()
                 };
 
-                return View(shopsVm);
+                return View(vm);
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
                 return View(new ShopManagementVm());
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ApproveShop(long shopId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ApproveShopAsync(shopId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Duyệt cửa hàng thành công" : "Không thể duyệt cửa hàng";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Shops");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SuspendShop(long shopId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.SuspendShopAsync(shopId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Tạm dừng cửa hàng thành công" : "Không thể tạm dừng cửa hàng";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Shops");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActivateShop(long shopId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ActivateShopAsync(shopId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Kích hoạt cửa hàng thành công" : "Không thể kích hoạt cửa hàng";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Shops");
         }
 
         [HttpGet]

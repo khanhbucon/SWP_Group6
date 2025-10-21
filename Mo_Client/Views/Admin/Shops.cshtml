@@ -17,10 +17,14 @@
             <h6 class="m-0 font-weight-bold text-primary">Danh sách c?a hàng</h6>
         </div>
         <div class="card-body">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> 
-                <strong>Demo Mode:</strong> Ðây là d? li?u demo. C?n tích h?p API th?c t? ð? hi?n th? d? li?u th?t.
-            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success"><i class="fas fa-check-circle"></i> @TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> @TempData["Error"]</div>
+            }
             
             <!-- Search Form -->
             <div class="row mb-3">
@@ -96,26 +100,38 @@
                                 <td>@shop.CreatedAt.ToString("dd/MM/yyyy")</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-primary" disabled title="Xem chi ti?t">
+                                        <a class="btn btn-sm btn-primary" title="Xem chi ti?t" href="#" onclick="return false;">
                                             <i class="fas fa-eye"></i>
-                                        </button>
+                                        </a>
                                         @if (shop.Status == "Pending")
                                         {
-                                            <button class="btn btn-sm btn-success" disabled title="Duy?t c?a hàng">
-                                                <i class="fas fa-check"></i>
-                                            </button>
+                                            <form asp-action="ApproveShop" method="post" class="d-inline">
+                                                <input type="hidden" name="shopId" value="@shop.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-success" title="Duy?t c?a hàng" type="submit">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
                                         }
                                         @if (shop.Status == "Active")
                                         {
-                                            <button class="btn btn-sm btn-warning" disabled title="T?m d?ng">
-                                                <i class="fas fa-pause"></i>
-                                            </button>
+                                            <form asp-action="SuspendShop" method="post" class="d-inline">
+                                                <input type="hidden" name="shopId" value="@shop.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-warning" title="T?m d?ng" type="submit">
+                                                    <i class="fas fa-pause"></i>
+                                                </button>
+                                            </form>
                                         }
                                         else if (shop.Status == "Inactive")
                                         {
-                                            <button class="btn btn-sm btn-success" disabled title="Kích ho?t">
-                                                <i class="fas fa-play"></i>
-                                            </button>
+                                            <form asp-action="ActivateShop" method="post" class="d-inline">
+                                                <input type="hidden" name="shopId" value="@shop.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-success" title="Kích ho?t" type="submit">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            </form>
                                         }
                                     </div>
                                 </td>

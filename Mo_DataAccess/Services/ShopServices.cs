@@ -44,7 +44,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             Name = name!,
             Description = description,
             ReportCount = 0,
-            IsActive = true,
+            // Pending by default until admin approves
+            IsActive = null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -345,5 +346,65 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
             AverageRating = (decimal)averageRating,
             TotalFeedbacks = totalFeedbacks
         };
+    }
+
+    // Admin operations
+    public async Task<List<AdminShopListItem>> AdminListShopsAsync(string? search)
+    {
+        var query = _context.Set<Shop>()
+            .Include(s => s.Account)
+            .Include(s => s.Products)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(s => s.Name.ToLower().Contains(term) || s.Account.Username.ToLower().Contains(term));
+        }
+
+        var data = await query
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => new AdminShopListItem
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Owner = s.Account.Username,
+                Status = s.IsActive == null ? "Pending" : (s.IsActive == true ? "Active" : "Inactive"),
+                ProductCount = s.Products.Count,
+                ReportCount = s.ReportCount ?? 0,
+                CreatedAt = s.CreatedAt
+            })
+            .ToListAsync();
+        return data;
+    }
+
+    public async Task<bool> AdminApproveShopAsync(long shopId)
+    {
+        var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId);
+        if (shop == null) return false;
+        shop.IsActive = true; // approve -> active
+        shop.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AdminActivateShopAsync(long shopId)
+    {
+        var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId);
+        if (shop == null) return false;
+        shop.IsActive = true;
+        shop.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AdminSuspendShopAsync(long shopId)
+    {
+        var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId);
+        if (shop == null) return false;
+        shop.IsActive = false;
+        shop.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

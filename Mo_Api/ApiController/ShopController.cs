@@ -224,4 +224,40 @@ public class ShopController : ControllerBase
             return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi lấy thống kê shop" });
         }
     }
+
+    // ADMIN ENDPOINTS
+    [HttpGet("admin/list")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminList([FromQuery] string? search)
+    {
+        var list = await _shopServices.AdminListShopsAsync(search);
+        return Ok(new { Success = true, Data = list });
+    }
+
+    [HttpPost("admin/{shopId:long}/approve")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Approve(long shopId)
+    {
+        var ok = await _shopServices.AdminApproveShopAsync(shopId);
+        if (!ok) return NotFound(new { Success = false, Message = "Shop không tồn tại" });
+        return Ok(new { Success = true, Message = "Duyệt shop thành công" });
+    }
+
+    [HttpPost("admin/{shopId:long}/activate")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Activate(long shopId)
+    {
+        var ok = await _shopServices.AdminActivateShopAsync(shopId);
+        if (!ok) return NotFound(new { Success = false, Message = "Shop không tồn tại" });
+        return Ok(new { Success = true, Message = "Kích hoạt shop thành công" });
+    }
+
+    [HttpPost("admin/{shopId:long}/suspend")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Suspend(long shopId)
+    {
+        var ok = await _shopServices.AdminSuspendShopAsync(shopId);
+        if (!ok) return NotFound(new { Success = false, Message = "Shop không tồn tại" });
+        return Ok(new { Success = true, Message = "Tạm dừng shop thành công" });
+    }
 }
