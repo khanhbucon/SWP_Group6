@@ -16,8 +16,6 @@ public partial class Shop
     public int? ReportCount { get; set; }
 
     public bool? IsActive { get; set; }
-    
-    public ShopStatus Status { get; set; } = ShopStatus.Pending;
 
     public DateTime? CreatedAt { get; set; }
 

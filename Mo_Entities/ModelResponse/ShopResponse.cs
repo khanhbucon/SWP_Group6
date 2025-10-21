@@ -8,7 +8,6 @@ public class ShopResponse
     public string? Description { get; set; }
     public int? ReportCount { get; set; }
     public bool? IsActive { get; set; }
-    public string Status { get; set; } = "Pending"; // "Pending", "Active", "Suspended"
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int TotalProducts { get; set; }

@@ -467,10 +467,6 @@ public partial class SwpGroup6Context : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(false)
                 .HasColumnName("isActive");
-            entity.Property(e => e.Status)
-                .HasConversion<int>()
-                .HasDefaultValue(0)
-                .HasColumnName("Status");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)
