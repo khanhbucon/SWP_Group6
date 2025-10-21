@@ -290,7 +290,7 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             //  Đếm số gian hàng
             var totalShops = user.Shops?.Count ?? 0;
 
-            // ✅ Đếm số sản phẩm đã bán (từ Products của Shop)
+            //  Đếm số sản phẩm đã bán (từ Products của Shop)
             var totalProductsSold = 0;
             if (user.Shops != null && user.Shops.Any())
             {
