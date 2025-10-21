@@ -19,5 +19,7 @@ namespace Mo_Entities.ModelResponse
         public int TotalOrders { get; set; }
         public int TotalShops { get; set; }
         public int TotalProductsSold { get; set; }
+        public string? IdentificationF { get; set; }  
+        public string? IdentificationB { get; set; } 
     }
 }

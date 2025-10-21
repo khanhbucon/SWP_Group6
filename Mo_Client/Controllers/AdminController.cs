@@ -8,10 +8,12 @@ namespace Mo_Client.Controllers
     public class AdminController : Controller
     {
         private readonly AdminService _adminService;
+        private readonly CategoryService _categoryService;
 
-        public AdminController(AdminService adminService)
+        public AdminController(AdminService adminService, CategoryService categoryService)
         {
             _adminService = adminService;
+            _categoryService = categoryService;
         }
 
         /// <summary>
@@ -201,52 +203,36 @@ namespace Mo_Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Categories()
+        public async Task<IActionResult> Categories(string? search = null)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
 
             try
             {
-                // TODO: Gọi API để lấy danh sách danh mục
+                var categories = await _categoryService.GetAllCategoriesAsync(search);
                 var categoriesVm = new CategoryManagementVm
                 {
-                    TotalCount = 3, // Demo data
-                    Categories = new List<CategoryVm>
+                    TotalCount = categories.Count,
+                    SearchTerm = search,
+                    Categories = categories.Select(c => new CategoryVm
                     {
-                        new CategoryVm 
-                        { 
-                            Id = 1, 
-                            Name = "Điện tử", 
-                            Description = "Thiết bị điện tử", 
-                            ProductCount = 45, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-30),
-                            SubCategories = new List<SubCategoryVm>
-                            {
-                                new SubCategoryVm { Id = 1, Name = "Điện thoại", Description = "Smartphone", ProductCount = 20, IsActive = true, CategoryId = 1 },
-                                new SubCategoryVm { Id = 2, Name = "Laptop", Description = "Máy tính xách tay", ProductCount = 25, IsActive = true, CategoryId = 1 }
-                            }
-                        },
-                        new CategoryVm 
-                        { 
-                            Id = 2, 
-                            Name = "Thời trang", 
-                            Description = "Quần áo, giày dép", 
-                            ProductCount = 120, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-25)
-                        },
-                        new CategoryVm 
-                        { 
-                            Id = 3, 
-                            Name = "Gia dụng", 
-                            Description = "Đồ dùng gia đình", 
-                            ProductCount = 80, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-20)
-                        }
-                    }
+                        Id = c.Id,
+                        Name = c.Name,
+                        Description = "", // Category model không có description
+                        ProductCount = 0, // Cần tính từ API khác
+                        IsActive = true, // Category model không có IsActive
+                        CreatedAt = DateTime.UtcNow, // Sử dụng thời gian hiện tại
+                        SubCategories = c.SubCategories?.Select(sc => new SubCategoryVm
+                        {
+                            Id = sc.Id,
+                            Name = sc.Name,
+                            Description = "",
+                            ProductCount = 0,
+                            IsActive = sc.IsActive ?? true,
+                            CategoryId = sc.CategoryId
+                        }).ToList() ?? new List<SubCategoryVm>()
+                    }).ToList()
                 };
 
                 return View(categoriesVm);
@@ -254,9 +240,118 @@ namespace Mo_Client.Controllers
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new CategoryManagementVm());
+                System.Diagnostics.Debug.WriteLine($"Category Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Category StackTrace: {ex.StackTrace}");
+                
+                var emptyVm = new CategoryManagementVm
+                {
+                    SearchTerm = search,
+                    TotalCount = 0,
+                    Categories = new List<CategoryVm>()
+                };
+                return View(emptyVm);
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCategory(string Name)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                if (string.IsNullOrEmpty(Name))
+                {
+                    ViewBag.Error = "Tên danh mục không được để trống";
+                    return RedirectToAction("Categories");
+                }
+
+                // Gọi API để tạo category
+                var category = await _categoryService.CreateCategoryAsync(Name);
+                
+                if (category != null)
+                {
+                    TempData["Success"] = "Thêm danh mục thành công: " + Name;
+                }
+                else
+                {
+                    TempData["Error"] = "Có lỗi xảy ra khi thêm danh mục";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction("Categories");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditCategory(long id)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                var category = await _categoryService.GetCategoryByIdAsync(id);
+                var request = new UpdateCategoryRequest
+                {
+                    Name = category.Name
+                };
+                return View(request);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+                return RedirectToAction("Categories");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditCategory(long id, UpdateCategoryRequest request)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(request);
+                }
+
+                await _categoryService.UpdateCategoryAsync(id, request);
+                TempData["Success"] = "Cập nhật danh mục thành công";
+                return RedirectToAction("Categories");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
+                return View(request);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCategory(long id)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                await _categoryService.DeleteCategoryAsync(id);
+                TempData["Success"] = "Xóa danh mục thành công";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction("Categories");
+        }
+      
 
         [HttpGet]
         public async Task<IActionResult> ManagerUser()

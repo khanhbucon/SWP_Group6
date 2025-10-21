@@ -9,6 +9,7 @@ namespace Mo_Client.Models.Admin
         public string? Error { get; set; }
         public string? Success { get; set; }
         public int TotalCount { get; set; }
+        public string? SearchTerm { get; set; }
     }
 
     public class CategoryVm
