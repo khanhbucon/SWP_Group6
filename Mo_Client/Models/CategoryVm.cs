@@ -1,15 +1,15 @@
 namespace Mo_Client.Models;
 
-public class CategoryResponse
+public class CategoryVm
 {
     public long Id { get; set; }
     public string Name { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public List<SubCategoryResponse> SubCategories { get; set; } = new List<SubCategoryResponse>();
+    public List<SubCategoryVm> SubCategories { get; set; } = new List<SubCategoryVm>();
 }
 
-public class SubCategoryResponse
+public class SubCategoryVm
 {
     public long Id { get; set; }
     public string Name { get; set; } = null!;
@@ -17,12 +17,12 @@ public class SubCategoryResponse
     public bool? IsActive { get; set; }
 }
 
-public class CreateCategoryRequest
+public class CreateCategoryVm
 {
     public string Name { get; set; } = null!;
 }
 
-public class UpdateCategoryRequest
+public class UpdateCategoryVm
 {
     public string Name { get; set; } = null!;
 }

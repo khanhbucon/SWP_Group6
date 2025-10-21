@@ -106,7 +106,7 @@ public class CategoryController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
+    public async Task<IActionResult> CreateCategory([FromBody] Mo_Entities.ModelRequest.CreateCategoryRequest request)
     {
         try
         {
@@ -147,7 +147,7 @@ public class CategoryController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateCategory(long id, [FromBody] UpdateCategoryRequest request)
+    public async Task<IActionResult> UpdateCategory(long id, [FromBody] Mo_Entities.ModelRequest.UpdateCategoryRequest request)
     {
         try
         {

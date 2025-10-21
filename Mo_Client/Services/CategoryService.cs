@@ -18,7 +18,7 @@ public class CategoryService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<CategoryResponse>> GetAllCategoriesAsync(string? searchTerm = null)
+    public async Task<List<CategoryVm>> GetAllCategoriesAsync(string? searchTerm = null)
     {
         try
         {
@@ -43,12 +43,12 @@ public class CategoryService
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<List<CategoryResponse>>>(content, new JsonSerializerOptions
+                var result = JsonSerializer.Deserialize<ApiResponse<List<CategoryVm>>>(content, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
 
-                return result?.Data ?? new List<CategoryResponse>();
+                return result?.Data ?? new List<CategoryVm>();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -66,7 +66,7 @@ public class CategoryService
         }
     }
 
-    public async Task<CategoryResponse> GetCategoryByIdAsync(long id)
+    public async Task<CategoryVm> GetCategoryByIdAsync(long id)
     {
         try
         {
@@ -84,7 +84,7 @@ public class CategoryService
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<CategoryResponse>>(content, new JsonSerializerOptions
+                var result = JsonSerializer.Deserialize<ApiResponse<CategoryVm>>(content, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
@@ -110,7 +110,7 @@ public class CategoryService
         }
     }
 
-    public async Task<CategoryResponse> CreateCategoryAsync(CreateCategoryRequest request)
+    public async Task<CategoryVm> CreateCategoryAsync(CreateCategoryVm request)
     {
         try
         {
@@ -131,7 +131,7 @@ public class CategoryService
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<CategoryResponse>>(responseContent, new JsonSerializerOptions
+                var result = JsonSerializer.Deserialize<ApiResponse<CategoryVm>>(responseContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
@@ -162,7 +162,7 @@ public class CategoryService
         }
     }
 
-    public async Task<CategoryResponse> UpdateCategoryAsync(long id, UpdateCategoryRequest request)
+    public async Task<CategoryVm> UpdateCategoryAsync(long id, UpdateCategoryVm request)
     {
         try
         {
@@ -183,7 +183,7 @@ public class CategoryService
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<CategoryResponse>>(responseContent, new JsonSerializerOptions
+                var result = JsonSerializer.Deserialize<ApiResponse<CategoryVm>>(responseContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
@@ -265,11 +265,11 @@ public class CategoryService
         }
     }
 
-    public async Task<CategoryResponse?> CreateCategoryAsync(string name)
+    public async Task<CategoryVm?> CreateCategoryAsync(string name)
     {
         try
         {
-            var request = new CreateCategoryRequest { Name = name };
+            var request = new CreateCategoryVm { Name = name };
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -306,7 +306,7 @@ public class CategoryService
 
             if (response.IsSuccessStatusCode)
             {
-                var result = JsonSerializer.Deserialize<ApiResponse<CategoryResponse>>(responseContent, new JsonSerializerOptions
+                var result = JsonSerializer.Deserialize<ApiResponse<CategoryVm>>(responseContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });

@@ -77,7 +77,6 @@ public class Program
         builder.Services.AddScoped<IReplyServices, ReplyServices>();
         builder.Services.AddScoped<IRoleServices, RoleServices>();
         builder.Services.AddScoped<IShopServices, ShopServices>();
-        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<ISupportTicketServices, SupportTicketServices>();
         builder.Services.AddScoped<ISystemsConfigServices, SystemsConfigServices>();
         builder.Services.AddScoped<ITextMessageServices, TextMessageServices>();
