@@ -56,11 +56,11 @@ public class AuthApiClient
         return resp.IsSuccessStatusCode;
     }
 
-    public async Task<List<ListAccountResponse>?> GetAllUsersAsync(CancellationToken ct = default)
+    public async Task<List<ListAccountVm>?> GetAllUsersAsync(CancellationToken ct = default)
     {
         var resp = await _httpClient.GetAsync("/api/account/Admin/GetAllAccount", ct);
         if (!resp.IsSuccessStatusCode) return null;
-        return await resp.Content.ReadFromJsonAsync<List<ListAccountResponse>>(cancellationToken: ct);
+        return await resp.Content.ReadFromJsonAsync<List<ListAccountVm>>(cancellationToken: ct);
     }
 
     public async Task<bool> BanUserAsync(long userId, CancellationToken ct = default)

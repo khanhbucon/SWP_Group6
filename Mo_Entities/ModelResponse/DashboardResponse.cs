@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
 
-namespace Mo_Client.Models.Admin
+namespace Mo_Entities.ModelResponse
 {
-    public class DashboardVm
+    public class DashboardStatsResponse
     {
         public int TotalUsers { get; set; }
         public int TotalShops { get; set; }
@@ -11,15 +10,15 @@ namespace Mo_Client.Models.Admin
         public int PendingShops { get; set; }
         public int PendingProducts { get; set; }
         public int BannedUsers { get; set; }
-
-        public List<RecentUserVm> RecentUsers { get; set; } = new List<RecentUserVm>();
+        public List<RecentUserResponse> RecentUsers { get; set; } = new List<RecentUserResponse>();
     }
 
-    public class RecentUserVm
+    public class RecentUserResponse
     {
+        public long UserId { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
     }
 }

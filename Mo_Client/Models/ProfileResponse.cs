@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-
-namespace Mo_Client.Models
+﻿namespace Mo_Client.Models
 {
     public class ProfileResponse
     {

@@ -2,18 +2,23 @@ using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Models;
 using Mo_Client.Models.Admin;
 using Mo_Client.Services;
+using System.Linq;
+using System;
 using AdminShopListItemDto = Mo_Entities.ModelResponse.AdminShopListItem;
+
 
 namespace Mo_Client.Controllers
 {
     public class AdminController : Controller
     {
         private readonly AdminService _adminService;
+        private readonly CategoryService _categoryService;
 
-        public AdminController(AdminService adminService)
+        public AdminController(AdminService adminService, CategoryService categoryService)
         {
             _adminService = adminService;
-        }
+            _categoryService = categoryService;
+       }
 
         /// <summary>
         /// Kiểm tra quyền Admin
@@ -50,21 +55,24 @@ namespace Mo_Client.Controllers
                 if (!IsAdmin())
                     return RedirectToLogin();
 
-                // TODO: Gọi API để lấy thống kê thực tế
+                _adminService.SetToken(Request.Cookies["accessToken"]);
+                var stats = await _adminService.GetDashboardStatsAsync();
+                
                 var dashboardVm = new DashboardVm
                 {
-                    TotalUsers = 1250, // Demo data
-                    TotalShops = 45,   // Demo data
-                    TotalProducts = 320, // Demo data
-                    PendingShops = 3,  // Demo data
-                    PendingProducts = 8, // Demo data
-                    BannedUsers = 12,  // Demo data
-                    RecentUsers = new List<RecentUserVm>
+                    TotalUsers = stats?.TotalUsers ?? 0,
+                    TotalShops = stats?.TotalShops ?? 0,
+                    TotalProducts = stats?.TotalProducts ?? 0,
+                    PendingShops = stats?.PendingShops ?? 0,
+                    PendingProducts = stats?.PendingProducts ?? 0,
+                    BannedUsers = stats?.BannedUsers ?? 0,
+                    RecentUsers = stats?.RecentUsers?.Select(u => new RecentUserVm
                     {
-                        new RecentUserVm { Username = "user1", Email = "user1@example.com", CreatedAt = DateTime.Now.AddDays(-1) },
-                        new RecentUserVm { Username = "user2", Email = "user2@example.com", CreatedAt = DateTime.Now.AddDays(-2) },
-                        new RecentUserVm { Username = "user3", Email = "user3@example.com", CreatedAt = DateTime.Now.AddDays(-3) }
-                    }
+                        Username = u.Username,
+                        Email = u.Email,
+                        CreatedAt = u.CreatedAt,
+                        IsActive = u.IsActive
+                    }).ToList() ?? new List<RecentUserVm>()
                 };
 
                 return View(dashboardVm);
@@ -235,63 +243,7 @@ namespace Mo_Client.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult Categories()
-        {
-            if (!IsAdmin())
-                return RedirectToLogin();
-
-            try
-            {
-                // TODO: Gọi API để lấy danh sách danh mục
-                var categoriesVm = new CategoryManagementVm
-                {
-                    TotalCount = 3, // Demo data
-                    Categories = new List<CategoryVm>
-                    {
-                        new CategoryVm 
-                        { 
-                            Id = 1, 
-                            Name = "Điện tử", 
-                            Description = "Thiết bị điện tử", 
-                            ProductCount = 45, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-30),
-                            SubCategories = new List<SubCategoryVm>
-                            {
-                                new SubCategoryVm { Id = 1, Name = "Điện thoại", Description = "Smartphone", ProductCount = 20, IsActive = true, CategoryId = 1 },
-                                new SubCategoryVm { Id = 2, Name = "Laptop", Description = "Máy tính xách tay", ProductCount = 25, IsActive = true, CategoryId = 1 }
-                            }
-                        },
-                        new CategoryVm 
-                        { 
-                            Id = 2, 
-                            Name = "Thời trang", 
-                            Description = "Quần áo, giày dép", 
-                            ProductCount = 120, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-25)
-                        },
-                        new CategoryVm 
-                        { 
-                            Id = 3, 
-                            Name = "Gia dụng", 
-                            Description = "Đồ dùng gia đình", 
-                            ProductCount = 80, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-20)
-                        }
-                    }
-                };
-
-                return View(categoriesVm);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new CategoryManagementVm());
-            }
-        }
+       
 
         [HttpGet]
         public async Task<IActionResult> ManagerUser()
@@ -306,14 +258,14 @@ namespace Mo_Client.Controllers
                 if (users == null)
                 {
                     ViewBag.Error = "Không thể tải danh sách người dùng";
-                    return View(new List<ListAccountResponse>());
+                    return View(new List<ListAccountVm>());
                 }
                 return View(users);
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new List<ListAccountResponse>());
+                return View(new List<ListAccountVm>());
             }
         }
 
