@@ -18,6 +18,6 @@ namespace Mo_Entities.ModelRequest
         public string Content { get; set; } = string.Empty;
 
         [Required]
-        public string BankCode { get; set; } = "BIDV";
+        public string BankCode { get; set; } = "BIDV"; // Mặc định BIDV
     }
 }

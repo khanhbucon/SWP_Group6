@@ -6,8 +6,10 @@ using System.Text.Json;
 
 namespace Mo_DataAccess.Services;
 
-public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpayTransactionServices
+public class VnpayTransactionServices : GenericRepository<VnpayTransaction>, IVnpayTransactionServices
 {
+
+    private readonly SwpGroup6Context _context;
     private readonly IAccountServices _accountServices;
     private readonly IPaymentTransactionServices _paymentTransactionServices;
     private readonly HttpClient _httpClient;
@@ -20,6 +22,7 @@ public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpay
         HttpClient httpClient,
         IConfiguration configuration) : base(context)
     {
+        _context = context;
         _accountServices = accountServices;
         _paymentTransactionServices = paymentTransactionServices;
         _httpClient = httpClient;
@@ -49,12 +52,13 @@ public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpay
                 Date = DateTime.UtcNow,
                 Content = request.Content,
                 BankName = "BIDV",
-                PaymentAccount = _configuration["VnPay:BIDVAccount"] ?? "1234567890", // Số tài khoản BIDV của bạn
+                PaymentAccount = _configuration["SePay:BIDVAccount"] ?? "1234567890", // Số tài khoản BIDV của bạn
                 PaymentNumber = transactionId,
                 Value = request.Amount
             };
 
             await _context.AddAsync(vnpayTransaction);
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             // Tạo QR Code content
@@ -90,27 +94,10 @@ public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpay
     {
         try
         {
-            // Gọi API VnPay để verify transaction (hoặc SePay nếu bạn dùng SePay)
-            var verifyRequest = new
-            {
-                TransactionId = transactionId,
-                Amount = amount,
-                ApiKey = _configuration["VnPay:ApiKey"]
-            };
-
-            var json = JsonSerializer.Serialize(verifyRequest);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(_configuration["VnPay:VerifyUrl"], content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<VnPayVerifyResponse>(responseContent);
-                return result?.Success == true;
-            }
-
-            return false;
+            // Tạm thời return true để test - sau này sẽ tích hợp với SePay API
+            // TODO: Implement SePay verification API
+            await Task.Delay(100); // Simulate API call
+            return true;
         }
         catch
         {
@@ -129,7 +116,7 @@ public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpay
             if (account == null) return false;
 
             account.Balance = (account.Balance ?? 0) + amount;
-            account.UpdateAt = DateTime.UtcNow;
+            account.UpdatedAt = DateTime.UtcNow;
 
             // Cập nhật trạng thái PaymentTransaction
             var vnpayTransaction = await _context.VnpayTransactions
@@ -157,14 +144,15 @@ public class VnpayTransactionServices:GenericRepository<VnpayTransaction>,IVnpay
     private string GenerateQRContent(VnpayTransaction transaction)
     {
         // Tạo nội dung QR code theo chuẩn VietQR
-        var qrContent = $"https://img.vietqr.io/image/{transaction.BankName}-{transaction.PaymentAccount}-compact2.jpg?amount={transaction.Value}&addInfo={Uri.EscapeDataString(transaction.Content)}&accountName=YOUR_ACCOUNT_NAME";
+        var accountName = _configuration["SePay:BIDVAccountName"] ?? "YOUR_ACCOUNT_NAME";
+        var qrContent = $"https://img.vietqr.io/image/{transaction.BankName}-{transaction.PaymentAccount}-compact2.jpg?amount={transaction.Value}&addInfo={Uri.EscapeDataString(transaction.Content)}&accountName={Uri.EscapeDataString(accountName)}";
         return qrContent;
     }
-}
+
+}  
 
 public class VnPayVerifyResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
 }
-

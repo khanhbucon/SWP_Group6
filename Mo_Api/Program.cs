@@ -70,6 +70,7 @@ public class Program
         });
         builder.Services.AddScoped<IAccountServices, AccountServices>();
         builder.Services.AddScoped<ICategoryServices, CategoryServices>();
+        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<IFeedbackServices, FeedbackServices>();
         builder.Services.AddScoped<IImageMessageServices, ImageMessageServices>();
         builder.Services.AddScoped<IMessageServices, MessageServices>();
@@ -87,6 +88,7 @@ public class Program
         builder.Services.AddScoped<ITextMessageServices, TextMessageServices>();
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
+        builder.Services.AddHttpClient<VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
