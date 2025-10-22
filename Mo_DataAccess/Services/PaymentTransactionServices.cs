@@ -5,4 +5,30 @@ public class PaymentTransactionServices:GenericRepository<PaymentTransaction>,IP
     public PaymentTransactionServices(SwpGroup6Context context) : base(context)
     {
     }
+
+    public async Task<PaymentTransaction> CreateDepositTransactionAsync(long userId, decimal amount, string description)
+    {
+        var paymentTransaction = new PaymentTransaction
+        {
+            UserId = userId,
+            Type = "DEPOSIT",
+            Amount = amount,
+            PaymentDescription = description,
+            CreatedAt = DateTime.UtcNow,
+            Status = "PENDING"
+        };
+
+        await _context.AddAsync(paymentTransaction);
+        return paymentTransaction;
+    }
+
+    public async Task<bool> UpdateTransactionStatusAsync(long transactionId, string status)
+    {
+        var transaction = await GetByIdAsync(transactionId);
+        if (transaction == null) return false;
+
+        transaction.Status = status;
+        await UpdateAsync(transaction);
+        return true;
+    }
 }
