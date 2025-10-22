@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Mo_Entities.Models.OrderProduct>
+﻿@model IEnumerable<Mo_Entities.Models.Response.OrderProductRp>
 
 @{
     ViewData["Title"] = "Danh Sách Đơn Hàng";
@@ -6,31 +6,38 @@
 
 <div class="container mt-4">
     <div class="card p-4 shadow-sm">
-        <h3 class="mb-3 text-primary text-center">📋 Danh Sách Đơn Hàng</h3>
 
-        <!-- ✅ Thông báo kết quả hành động -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-primary mb-0">📋 Danh Sách Đơn Hàng</h3>
+
+            <form asp-action="Index" method="get" class="d-flex" style="max-width: 300px;">
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control me-2"
+                       placeholder="🔍 Tìm theo tên SP hoặc tài khoản..." />
+                <button type="submit" class="btn btn-outline-primary">Tìm</button>
+            </form>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success text-center">@TempData["Success"]</div>
-        }
-        else if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger text-center">@TempData["Error"]</div>
+            <div class="alert alert-success">@TempData["Success"]</div>
         }
 
-        <!-- ✅ Nút tạo đơn -->
         <div class="text-center mb-3">
             <a asp-action="Create" class="btn btn-primary px-4">➕ Tạo Đơn Hàng</a>
         </div>
 
-        <!-- ✅ Hiển thị bảng dữ liệu -->
         @if (Model != null && Model.Any())
         {
             <table class="table table-hover table-bordered align-middle">
                 <thead class="table-primary text-center">
                     <tr>
                         <th>ID</th>
-                        <th>Account ID</th>
+                        <th>Account</th>
+                        <th>Tên sản phẩm</th>
                         <th>Số lượng</th>
                         <th>Tổng tiền (VNĐ)</th>
                         <th>Trạng thái</th>
@@ -42,7 +49,8 @@
                     {
                         <tr>
                             <td class="text-center">@item.Id</td>
-                            <td class="text-center">@item.AccountId</td>
+                            <td class="text-center">@item.AccountName</td>
+                            <td>@item.ProductName</td>
                             <td class="text-center">@item.Quantity</td>
                             <td class="text-end">@item.TotalAmount.ToString("N0")</td>
                             <td class="text-center">
@@ -60,14 +68,12 @@
                                 }
                             </td>
                             <td class="text-center">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm me-1">
-                                    <i class="bi bi-eye"></i> Chi tiết
-                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm me-1">👁️</a>
                                 <form asp-action="Delete" method="post" style="display:inline;">
                                     <input type="hidden" name="id" value="@item.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm"
                                             onclick="return confirm('Bạn có chắc muốn xóa đơn này không?')">
-                                        <i class="bi bi-trash"></i> Xóa
+                                        🗑️
                                     </button>
                                 </form>
                             </td>
@@ -78,12 +84,7 @@
         }
         else
         {
-            <!-- ✅ Chỉ hiện khi không có dữ liệu -->
             <p class="text-muted text-center mt-3">Không có đơn hàng nào để hiển thị.</p>
         }
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

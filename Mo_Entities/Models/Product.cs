@@ -5,7 +5,7 @@ namespace Mo_Entities.Models;
 
 public partial class Product
 {
-    public string ShopName { get; set; }
+    //public string ShopName { get; set; }
 
     public long Id { get; set; }
 

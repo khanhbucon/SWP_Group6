@@ -110,10 +110,7 @@ public class Program
         // ✅ Chính sách riêng cho bạn
         app.UseCors("AllowClient7164");
 
-        app.UseCors(options =>
-         {
-              options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-         })  ;
+       
 
         app.MapControllers();
 

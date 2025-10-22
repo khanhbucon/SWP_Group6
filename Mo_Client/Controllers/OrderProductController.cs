@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Mo_Entities.Models;
 using Mo_Entities.Models.Request;
+using Mo_Entities.Models.Response;
 using Newtonsoft.Json;
 using System.Text;
+
+
 
 namespace Mo_Client.Controllers
 {
@@ -15,9 +17,9 @@ namespace Mo_Client.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        // ======================= DANH SÁCH =======================
+        // ======================= DANH SÁCH (CÓ TÌM KIẾM) =======================
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? keyword)
         {
             try
             {
@@ -26,24 +28,32 @@ namespace Mo_Client.Controllers
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    TempData["Error"] = "Không thể tải danh sách đơn hàng từ server.";
-                    return View(new List<OrderProduct>());
+                    // Read API error body to show helpful message for debugging
+                    var apiError = await response.Content.ReadAsStringAsync();
+                    TempData["Error"] = $"Không thể tải danh sách đơn hàng từ server. API response: {apiError}";
+                    return View(new List<OrderProductRp>());
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<List<OrderProduct>>(json) ?? new List<OrderProduct>();
+                var data = JsonConvert.DeserializeObject<List<OrderProductRp>>(json) ?? new List<OrderProductRp>();
 
-                if (data.Count == 0)
+                // ✅ Lọc theo từ khóa (theo tên sản phẩm hoặc tài khoản)
+                if (!string.IsNullOrEmpty(keyword))
                 {
-                    ViewBag.Message = "Không có đơn hàng nào để hiển thị.";
+                    keyword = keyword.Trim().ToLower();
+                    data = data.Where(o =>
+                        (!string.IsNullOrEmpty(o.ProductName) && o.ProductName.ToLower().Contains(keyword)) ||
+                        (!string.IsNullOrEmpty(o.AccountName) && o.AccountName.ToLower().Contains(keyword))
+                    ).ToList();
                 }
 
+                ViewBag.Keyword = keyword;
                 return View(data);
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Lỗi kết nối API: " + ex.Message;
-                return View(new List<OrderProduct>());
+                return View(new List<OrderProductRp>());
             }
         }
 
@@ -51,13 +61,11 @@ namespace Mo_Client.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            // Gửi sẵn model mặc định
             return View(new OrderProductRq { Status = "PENDING" });
         }
 
-        // ======================= TẠO ĐƠN =======================
+        // ======================= TẠO MỚI =======================
         [HttpPost]
-        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(OrderProductRq rq)
         {
             if (!ModelState.IsValid)
@@ -82,8 +90,6 @@ namespace Mo_Client.Controllers
                 var apiError = await response.Content.ReadAsStringAsync();
                 TempData["Error"] = $"❌ Tạo đơn hàng thất bại! (API: {apiError})";
                 return View(rq);
-
-
             }
             catch (Exception ex)
             {
@@ -92,7 +98,7 @@ namespace Mo_Client.Controllers
             }
         }
 
-        // ======================= CHI TIẾT =======================
+        // ======================= XEM CHI TIẾT =======================
         [HttpGet]
         public async Task<IActionResult> Details(long id)
         {
@@ -114,14 +120,13 @@ namespace Mo_Client.Controllers
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var order = JsonConvert.DeserializeObject<OrderProduct>(json);
+                var order = JsonConvert.DeserializeObject<OrderProductRp>(json);
 
                 if (order == null)
                 {
                     TempData["Error"] = "Không thể đọc dữ liệu đơn hàng từ API.";
                     return RedirectToAction(nameof(Index));
                 }
-
 
                 return View(order);
             }
@@ -134,7 +139,6 @@ namespace Mo_Client.Controllers
 
         // ======================= XÓA =======================
         [HttpPost]
-        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id)
         {
             if (id <= 0)

@@ -21,21 +21,36 @@ namespace Mo_Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _service.GetAllAsync();
-
-            var response = result.Select(o => new OrderProductRp
+            try
             {
-                Id = o.Id,
-                AccountId = o.AccountId,
-                AccountName = o.Account?.Username,
-                ProductVariantId = o.ProductVariantId,
-                ProductName = o.ProductVariant?.Name,
-                TotalAmount = o.TotalAmount,
-                Quantity = o.Quantity,
-                Status = o.Status
-            });
+                var result = await _service.GetAllAsync();
 
-            return Ok(response);
+                // ✅ Chuyển sang response model, tránh lỗi null
+                var response = result.Select(o => new OrderProductRp
+                {
+                    Id = o.Id,
+                    AccountId = o.AccountId,
+                    AccountName = o.Account?.Username ?? "(Không có tài khoản)",
+                    ProductVariantId = o.ProductVariantId,
+                    ProductName = o.ProductVariant?.Product?.Name
+                                  ?? o.ProductVariant?.Name
+                                  ?? "(Không có sản phẩm)",
+                    TotalAmount = o.TotalAmount,
+                    Quantity = o.Quantity,
+                    Status = o.Status
+                }).ToList();
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Lỗi khi lấy danh sách đơn hàng",
+                    error = ex.Message,
+                    stack = ex.StackTrace
+                });
+            }
         }
 
         // =================== LẤY THEO ID ===================
@@ -50,9 +65,11 @@ namespace Mo_Api.Controllers
             {
                 Id = order.Id,
                 AccountId = order.AccountId,
-                AccountName = order.Account?.Username,
+                AccountName = order.Account?.Username ?? "(Không có tài khoản)",
                 ProductVariantId = order.ProductVariantId,
-                ProductName = order.ProductVariant?.Name,
+                ProductName = order.ProductVariant?.Product?.Name
+                              ?? order.ProductVariant?.Name
+                              ?? "(Không có sản phẩm)",
                 TotalAmount = order.TotalAmount,
                 Quantity = order.Quantity,
                 Status = order.Status

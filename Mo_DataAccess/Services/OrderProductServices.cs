@@ -13,22 +13,27 @@ namespace Mo_DataAccess.Services
             _context = context;
         }
 
+        // =================== LẤY TẤT CẢ ===================
         public async Task<IEnumerable<OrderProduct>> GetAllAsync()
         {
             return await _context.OrderProducts
                 .Include(o => o.Account)
                 .Include(o => o.ProductVariant)
+                    .ThenInclude(v => v.Product) // ✅ Thêm dòng này để load tên sản phẩm
                 .ToListAsync();
         }
 
+        // =================== LẤY THEO ID ===================
         public async Task<OrderProduct?> GetByIdAsync(long id)
         {
             return await _context.OrderProducts
                 .Include(o => o.Account)
                 .Include(o => o.ProductVariant)
+                    .ThenInclude(v => v.Product) // ✅ Thêm dòng này luôn
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
+        // =================== TẠO MỚI ===================
         public async Task<OrderProduct> CreateAsync(OrderProduct order)
         {
             _context.OrderProducts.Add(order);
@@ -36,6 +41,7 @@ namespace Mo_DataAccess.Services
             return order;
         }
 
+        // =================== CẬP NHẬT ===================
         public async Task<OrderProduct?> UpdateAsync(long id, OrderProduct order)
         {
             var existing = await _context.OrderProducts.FindAsync(id);
@@ -52,6 +58,7 @@ namespace Mo_DataAccess.Services
             return existing;
         }
 
+        // =================== XÓA ===================
         public async Task<bool> DeleteAsync(long id)
         {
             var existing = await _context.OrderProducts.FindAsync(id);
