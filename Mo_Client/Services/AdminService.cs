@@ -28,6 +28,7 @@ namespace Mo_Client.Services
             return await resp.Content.ReadFromJsonAsync<List<ListAccountVm>>(cancellationToken: ct);
         }
 
+
         public async Task<bool> BanUserAsync(long userId, CancellationToken ct = default)
         {
             var resp = await _httpClient.PostAsync($"/api/account/admin/{userId}/banUser", null, ct);

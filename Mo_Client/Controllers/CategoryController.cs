@@ -84,40 +84,8 @@ namespace Mo_Client.Controllers
                 return View(emptyVm);
             }
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateCategory(string Name)
-        {
-            if (!IsAdmin())
-                return RedirectToLogin();
-
-            try
-            {
-                if (string.IsNullOrEmpty(Name))
-                {
-                    ViewBag.Error = "Tên danh mục không được để trống";
-                    return RedirectToAction("Categories");
-                }
-
-                // Gọi API để tạo category
-                var category = await _categoryService.CreateCategoryAsync(Name);
-
-                if (category != null)
-                {
-                    TempData["Success"] = "Thêm danh mục thành công: " + Name;
-                }
-                else
-                {
-                    TempData["Error"] = "Có lỗi xảy ra khi thêm danh mục";
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
-            }
-
-            return RedirectToAction("Categories");
-        }
+     
+      
 
         [HttpGet]
         public async Task<IActionResult> EditCategory(long id)
@@ -166,6 +134,7 @@ namespace Mo_Client.Controllers
         }
 
         [HttpPost]
+        [Route("Category/DeleteCategory/{id}")]
         public async Task<IActionResult> DeleteCategory(long id)
         {
             if (!IsAdmin())
@@ -184,7 +153,116 @@ namespace Mo_Client.Controllers
             return RedirectToAction("Categories");
         }
 
+        [HttpPost]
+        [Route("Category/CreateCategory")]
+        public async Task<IActionResult> CreateCategory(string Name)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
 
+            try
+            {
+                if (string.IsNullOrEmpty(Name))
+                {
+                    TempData["Error"] = "Tên danh mục không được để trống";
+                    return RedirectToAction("Categories");
+                }
+
+                var result = await _categoryService.CreateCategoryAsync(Name);
+                if (result != null)
+                {
+                    TempData["Success"] = "Thêm danh mục thành công";
+                }
+                else
+                {
+                    TempData["Error"] = "Không thể thêm danh mục";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction("Categories");
+        }
+
+        [HttpPost]
+        [Route("Category/CreateSubCategory")]
+        public async Task<IActionResult> CreateSubCategory(long CategoryId, string Name)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                if (string.IsNullOrEmpty(Name))
+                {
+                    TempData["Error"] = "Tên danh mục con không được để trống";
+                    return RedirectToAction("Categories");
+                }
+
+                if (CategoryId <= 0)
+                {
+                    TempData["Error"] = "Danh mục cha không hợp lệ";
+                    return RedirectToAction("Categories");
+                }
+
+                var result = await _categoryService.CreateSubCategoryAsync(CategoryId, Name);
+                if (result != null)
+                {
+                    TempData["Success"] = "Thêm danh mục con thành công";
+                }
+                else
+                {
+                    TempData["Error"] = "Không thể thêm danh mục con";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction("Categories");
+        }
+
+        [HttpPost]
+        [Route("Category/UpdateSubCategory")]
+        public async Task<IActionResult> UpdateSubCategory(long Id, string Name, bool IsActive = true)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                if (string.IsNullOrEmpty(Name))
+                {
+                    TempData["Error"] = "Tên danh mục con không được để trống";
+                    return RedirectToAction("Categories");
+                }
+
+                if (Id <= 0)
+                {
+                    TempData["Error"] = "ID danh mục con không hợp lệ";
+                    return RedirectToAction("Categories");
+                }
+
+                var result = await _categoryService.UpdateSubCategoryAsync(Id, Name, IsActive);
+                if (result != null)
+                {
+                    TempData["Success"] = "Cập nhật danh mục con thành công";
+                }
+                else
+                {
+                    TempData["Error"] = "Không thể cập nhật danh mục con";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction("Categories");
+        }
 
         // Helper methods for SubCategory views
         [HttpGet]

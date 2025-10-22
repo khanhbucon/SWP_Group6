@@ -1,0 +1,126 @@
+@model Mo_Client.Models.DepositVm
+@{
+    ViewData["Title"] = "Nạp tiền";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Nạp tiền vào tài khoản</h4>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(ViewBag.Error))
+                    {
+                        <div class="alert alert-danger">@ViewBag.Error</div>
+                    }
+                    @if (!string.IsNullOrEmpty(ViewBag.Success))
+                    {
+                        <div class="alert alert-success">@ViewBag.Success</div>
+                    }
+
+                    <form asp-action="CreateDeposit" method="post">
+                        <div class="mb-3">
+                            <label asp-for="Amount" class="form-label">Số tiền nạp (VNĐ)</label>
+                            <input asp-for="Amount" class="form-control" type="number" min="10000" max="100000000" step="1000" />
+                            <span asp-validation-for="Amount" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Content" class="form-label">Nội dung chuyển khoản</label>
+                            <input asp-for="Content" class="form-control" placeholder="Nạp tiền tài khoản" />
+                            <span asp-validation-for="Content" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ngân hàng</label>
+                            <select class="form-select" disabled>
+                                <option value="BIDV" selected>Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Tạo yêu cầu nạp tiền</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model?.DepositData != null)
+{
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Thông tin chuyển khoản</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Số tài khoản:</strong> @Model.DepositData.BankAccount</p>
+                                <p><strong>Ngân hàng:</strong> @Model.DepositData.BankName</p>
+                                <p><strong>Số tiền:</strong> @Model.DepositData.Amount.ToString("N0") VNĐ</p>
+                                <p><strong>Nội dung:</strong> @Model.DepositData.Content</p>
+                                <p><strong>Hết hạn:</strong> @Model.DepositData.ExpiredAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <img src="@Model.DepositData.QrCode" alt="QR Code" class="img-fluid" style="max-width: 200px;" />
+                                <p class="mt-2"><small>Quét QR code để chuyển khoản</small></p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <h6>Hướng dẫn:</h6>
+                            <ol>
+                                <li>Mở ứng dụng ngân hàng BIDV</li>
+                                <li>Chọn chức năng chuyển khoản</li>
+                                <li>Quét QR code hoặc nhập thông tin trên</li>
+                                <li>Nhập đúng nội dung chuyển khoản</li>
+                                <li>Xác nhận giao dịch</li>
+                            </ol>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="button" class="btn btn-success" onclick="verifyDeposit()">
+                                Tôi đã chuyển khoản
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    function verifyDeposit() {
+        if (confirm('Bạn đã thực hiện chuyển khoản thành công?')) {
+            // Gọi API để verify - sửa đường dẫn cho PaymentController
+            fetch('/Payment/VerifyDeposit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    transactionId: '@Model?.DepositData?.TransactionId',
+                    amount: @(Model?.DepositData?.Amount ?? 0)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Nạp tiền thành công!');
+                    location.reload();
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Có lỗi xảy ra khi xác minh giao dịch');
+            });
+        }
+    }
+</script>

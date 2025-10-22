@@ -211,7 +211,7 @@ namespace Mo_Client.Controllers
        
 
         [HttpGet]
-        public async Task<IActionResult> ManagerUser()
+        public async Task<IActionResult> ManagerUser(UserSearchVm? searchModel = null)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
@@ -219,19 +219,107 @@ namespace Mo_Client.Controllers
             try
             {
                 _adminService.SetToken(Request.Cookies["accessToken"]);
-                var users = await _adminService.GetAllUsersAsync();
-                if (users == null)
+                
+                // Truyền search parameters vào ViewBag để giữ lại giá trị trong form
+                if (searchModel != null)
+                {
+                    ViewBag.UserId = searchModel.UserId;
+                    ViewBag.Email = searchModel.Email;
+                    ViewBag.Phone = searchModel.Phone;
+                    ViewBag.Role = searchModel.Role;
+                    ViewBag.IsActive = searchModel.IsActive?.ToString();
+                    ViewBag.IsEKYCVerified = searchModel.IsEKYCVerified?.ToString();
+                }
+                
+                // Lấy tất cả users từ API
+                var allUsers = await _adminService.GetAllUsersAsync();
+                if (allUsers == null)
                 {
                     ViewBag.Error = "Không thể tải danh sách người dùng";
-                    return View(new List<ListAccountVm>());
+                    return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
                 }
-                return View(users);
+                
+                // Nếu không có search parameters, trả về tất cả users
+                if (searchModel == null)
+                {
+                    var result = new UserSearchResultVm
+                    {
+                        Users = allUsers,
+                        TotalCount = allUsers.Count,
+                        PageNumber = 1,
+                        PageSize = 10
+                    };
+                    return View(result);
+                }
+                
+                // Thực hiện search/filter ở phía frontend
+                var filteredUsers = FilterUsers(allUsers, searchModel);
+                
+                var searchResult = new UserSearchResultVm
+                {
+                    Users = filteredUsers,
+                    TotalCount = filteredUsers.Count,
+                    PageNumber = searchModel.PageNumber,
+                    PageSize = searchModel.PageSize
+                };
+                
+                return View(searchResult);
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new List<ListAccountVm>());
+                return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
             }
+        }
+
+        /// <summary>
+        /// Filter users based on search criteria
+        /// </summary>
+        private List<ListAccountVm> FilterUsers(List<ListAccountVm> users, UserSearchVm searchModel)
+        {
+            var filteredUsers = users.AsQueryable();
+
+            // Filter by UserId
+            if (searchModel.UserId.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.UserId == searchModel.UserId.Value);
+            }
+
+            // Filter by Email
+            if (!string.IsNullOrEmpty(searchModel.Email))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Email != null && 
+                    u.Email.Contains(searchModel.Email, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Phone
+            if (!string.IsNullOrEmpty(searchModel.Phone))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Phone != null && 
+                    u.Phone.Contains(searchModel.Phone, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Role
+            if (!string.IsNullOrEmpty(searchModel.Role))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Roles != null && 
+                    u.Roles.Contains(searchModel.Role, StringComparer.OrdinalIgnoreCase));
+            }
+
+
+            // Filter by IsActive
+            if (searchModel.IsActive.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.IsActive == searchModel.IsActive.Value);
+            }
+
+            // Filter by IsEKYCVerified
+            if (searchModel.IsEKYCVerified.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.IsEKYCVerified == searchModel.IsEKYCVerified.Value);
+            }
+
+            return filteredUsers.ToList();
         }
 
         [HttpPost]
