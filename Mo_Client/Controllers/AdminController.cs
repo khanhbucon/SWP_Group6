@@ -4,8 +4,6 @@ using Mo_Client.Models.Admin;
 using Mo_Client.Services;
 using System.Linq;
 using System;
-using AdminShopListItemDto = Mo_Entities.ModelResponse.AdminShopListItem;
-
 
 namespace Mo_Client.Controllers
 {
