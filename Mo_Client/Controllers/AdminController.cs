@@ -178,61 +178,41 @@ namespace Mo_Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Products(string? search = null, int page = 1)
+        public async Task<IActionResult> Products(string? search = null, int page = 1)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
 
             try
             {
-                // TODO: Gọi API để lấy danh sách sản phẩm
-                var productsVm = new ProductManagementVm
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var items = await _adminService.GetProductsAsync(search);
+                if (items == null)
+                {
+                    TempData["Error"] = "Không thể tải danh sách sản phẩm";
+                    return View(new ProductManagementVm());
+                }
+
+                var vm = new ProductManagementVm
                 {
                     SearchTerm = search,
                     PageNumber = page,
-                    TotalCount = 3, // Demo data
-                    Products = new List<ProductVm>
+                    TotalCount = items.Count,
+                    Products = items.Select(p => new ProductVm
                     {
-                        new ProductVm 
-                        { 
-                            Id = 1, 
-                            Name = "Sản phẩm demo 1", 
-                            ShopName = "Cửa hàng demo 1", 
-                            Category = "Điện tử", 
-                            Status = "Active", 
-                            Price = 500000, 
-                            CreatedAt = DateTime.Now.AddDays(-5),
-                            SoldCount = 25,
-                            Description = "Sản phẩm điện tử chất lượng cao"
-                        },
-                        new ProductVm 
-                        { 
-                            Id = 2, 
-                            Name = "Sản phẩm demo 2", 
-                            ShopName = "Cửa hàng demo 2", 
-                            Category = "Thời trang", 
-                            Status = "Pending", 
-                            Price = 300000, 
-                            CreatedAt = DateTime.Now.AddDays(-3),
-                            SoldCount = 0,
-                            Description = "Quần áo thời trang"
-                        },
-                        new ProductVm 
-                        { 
-                            Id = 3, 
-                            Name = "Sản phẩm demo 3", 
-                            ShopName = "Cửa hàng demo 3", 
-                            Category = "Gia dụng", 
-                            Status = "Inactive", 
-                            Price = 200000, 
-                            CreatedAt = DateTime.Now.AddDays(-7),
-                            SoldCount = 8,
-                            Description = "Đồ dùng gia đình"
-                        }
-                    }
+                        Id = p.Id,
+                        Name = p.Name,
+                        ShopName = p.ShopName,
+                        Category = p.Category,
+                        Price = p.Price,
+                        SoldCount = p.SoldCount,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt ?? DateTime.UtcNow,
+                        Description = p.Description
+                    }).ToList()
                 };
 
-                return View(productsVm);
+                return View(vm);
             }
             catch (Exception ex)
             {
@@ -241,7 +221,56 @@ namespace Mo_Client.Controllers
             }
         }
 
-       
+        [HttpPost]
+        public async Task<IActionResult> ApproveProduct(long productId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ApproveProductAsync(productId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Duyệt sản phẩm thành công" : "Không thể duyệt sản phẩm";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Products");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SuspendProduct(long productId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.SuspendProductAsync(productId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Tạm dừng sản phẩm thành công" : "Không thể tạm dừng sản phẩm";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Products");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActivateProduct(long productId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ActivateProductAsync(productId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Kích hoạt sản phẩm thành công" : "Không thể kích hoạt sản phẩm";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Products");
+        }
 
         [HttpGet]
         public async Task<IActionResult> ManagerUser()
@@ -336,16 +365,5 @@ namespace Mo_Client.Controllers
         }
 
         // TODO: Thêm các action khác khi có API
-        // [HttpPost]
-        // public async Task<IActionResult> ApproveShop(long shopId)
-        // {
-        //     // Implement approve shop logic
-        // }
-        
-        // [HttpPost]
-        // public async Task<IActionResult> SuspendShop(long shopId)
-        // {
-        //     // Implement suspend shop logic
-        // }
     }
 }

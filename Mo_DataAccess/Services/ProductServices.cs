@@ -2,6 +2,7 @@
 using Mo_DataAccess.Repo;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
+using Mo_Entities.ModelResponse;
 
 namespace Mo_DataAccess.Services;
 
@@ -70,5 +71,87 @@ public class ProductServices : GenericRepository<Product>, IProductServices
             .ToListAsync();
         if (prices.Count == 0) return (null, null);
         return (prices.Min(), prices.Max());
+    }
+
+    // Admin list with search and moderation methods
+    public async Task<List<AdminProductListItem>> AdminListAsync(string? search)
+    {
+        var q = Context.Products
+            .Include(p => p.Shop)
+            .Include(p => p.SubCategory)
+                .ThenInclude(sc => sc.Category)
+            .AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            q = q.Where(p => p.Name.ToLower().Contains(term) || p.Shop.Name.ToLower().Contains(term));
+        }
+
+        var items = await q.OrderByDescending(p => p.CreatedAt)
+            .Select(p => new AdminProductListItem
+            {
+                Id = p.Id,
+                Name = p.Name,
+                ShopName = p.Shop.Name,
+                Category = p.SubCategory != null && p.SubCategory.Category != null ? p.SubCategory.Category.Name : string.Empty,
+                Price = Context.ProductVariants.Where(v => v.ProductId == p.Id).Select(v => v.Price).FirstOrDefault(),
+                SoldCount = 0, // compute below if necessary
+                Status = p.IsActive == true ? "Active" : (p.IsActive == false ? "Inactive" : "Pending"),
+                CreatedAt = p.CreatedAt,
+                Description = p.Description
+            }).ToListAsync();
+
+        // compute SoldCount
+        if (items.Count > 0)
+        {
+            var productIds = items.Select(i => i.Id).ToList();
+            var variantGroups = await Context.ProductVariants
+                .Where(v => productIds.Contains(v.ProductId))
+                .Select(v => new { v.ProductId, v.Id })
+                .ToListAsync();
+            var variantIds = variantGroups.Select(v => v.Id).ToList();
+            var sold = await Context.OrderProducts
+                .Where(o => variantIds.Contains(o.ProductVariantId) && o.Status == "CONFIRMED")
+                .GroupBy(o => o.ProductVariantId)
+                .Select(g => new { VariantId = g.Key, Qty = g.Sum(x => x.Quantity) })
+                .ToListAsync();
+            var soldByVariant = sold.ToDictionary(x => x.VariantId, x => x.Qty);
+            var soldByProduct = variantGroups
+                .GroupBy(v => v.ProductId)
+                .ToDictionary(g => g.Key, g => g.Sum(v => soldByVariant.TryGetValue(v.Id, out var q2) ? q2 : 0));
+            foreach (var it in items)
+            {
+                if (soldByProduct.TryGetValue(it.Id, out var qty)) it.SoldCount = qty;
+            }
+        }
+
+        return items;
+    }
+
+    public async Task<bool> AdminApproveAsync(long productId)
+    {
+        var p = await Context.Products.FirstOrDefaultAsync(x => x.Id == productId);
+        if (p == null) return false;
+        p.IsActive = true;
+        await Context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AdminActivateAsync(long productId)
+    {
+        var p = await Context.Products.FirstOrDefaultAsync(x => x.Id == productId);
+        if (p == null) return false;
+        p.IsActive = true;
+        await Context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AdminSuspendAsync(long productId)
+    {
+        var p = await Context.Products.FirstOrDefaultAsync(x => x.Id == productId);
+        if (p == null) return false;
+        p.IsActive = false;
+        await Context.SaveChangesAsync();
+        return true;
     }
 }

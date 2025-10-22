@@ -26,18 +26,19 @@
           <tr><td colspan="6" class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x mb-3 d-block"></i>Chưa có sản phẩm nào</td></tr>
         } else {
           var i=1; foreach(var p in Model){
+            var isPending = p.IsActive == null;
             <tr class="border-bottom">
               <td class="px-4 fw-medium text-muted">@i</td>
               <td class="fw-semibold">@p.Name</td>
               <td class="text-muted" style="max-width:300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@p.Description</td>
               <td><span class="badge bg-light text-dark border">@p.ShopName</span></td>
               <td class="text-center">
-                @if(p.IsActive==true){
+                @if(isPending){
+                  <span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-hourglass-half me-1"></i>Chờ duyệt</span>
+                } else if(p.IsActive==true){
                   <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>
-                } else if(p.IsActive==false){
-                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2"><i class="fas fa-times-circle me-1"></i>Ngưng</span>
                 } else {
-                  <span class="badge bg-secondary-subtle text-secondary border px-3 py-2">?</span>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2"><i class="fas fa-times-circle me-1"></i>Ngưng</span>
                 }
               </td>
               <td class="text-end px-4">
@@ -45,10 +46,10 @@
                   <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary" title="Chi tiết">
                     <i class="fas fa-eye me-1"></i>Chi tiết
                   </a>
-                  <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary" title="Sửa">
+                  <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary @(isPending ? "disabled" : string.Empty)" title="Sửa">
                     <i class="fas fa-edit me-1"></i>Sửa
                   </a>
-                                        
+                  
                   <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá sản phẩm này?');">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Xoá">
@@ -56,6 +57,9 @@
                     </button>
                   </form>
                 </div>
+                @if(isPending){
+                  <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>Sản phẩm đang chờ Admin duyệt</small>
+                }
               </td>
             </tr>
             i++; 

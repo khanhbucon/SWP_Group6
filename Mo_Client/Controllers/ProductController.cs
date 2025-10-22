@@ -73,7 +73,8 @@ public class ProductController : Controller
             ShortDescription = product.Description,
             DetailedDescription = product.Details,
             Fee = product.Fee,
-            IsActive = product.IsActive
+            IsActive = product.IsActive,
+            IsPending = product.IsActive == null
         };
         return View(vm);
     }
@@ -84,17 +85,33 @@ public class ProductController : Controller
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         if (!ModelState.IsValid) return View(model);
-        var ok = await _api.UpdateProductAsync(new AuthApiClient.UpdateProductRequest(model.Id, model.Name, model.ShortDescription, model.DetailedDescription, model.Fee, model.IsActive));
+
+        // fetch current product to determine pending state
+        var current = await _api.GetProductAsync(model.Id);
+        if (current == null) return RedirectToAction("List");
+        var isPending = current.IsActive == null;
+
+        // if pending, never send IsActive change
+        var request = new AuthApiClient.UpdateProductRequest(
+            model.Id,
+            model.Name,
+            model.ShortDescription,
+            model.DetailedDescription,
+            model.Fee,
+            isPending ? null : model.IsActive
+        );
+
+        var ok = await _api.UpdateProductAsync(request);
         if (ok)
         {
             TempData["Success"] = "Cập nhật sản phẩm thành công!";
             return RedirectToAction("Details", new { id = model.Id });
         }
-        ModelState.AddModelError("", "Không thể cập nhật sản phẩm");
+        ModelState.AddModelError("", isPending ? "Sản phẩm đang chờ duyệt, không thể thay đổi trạng thái" : "Không thể cập nhật sản phẩm");
         return View(model);
     }
     //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
-    //•	Không cho xóa nếu sản phẩm đã phát sinh đơn (có OrderProducts qua các ProductVariants).
+    //•
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(long id)
@@ -122,5 +139,6 @@ public class ProductController : Controller
         public string? DetailedDescription { get; set; }
         public decimal? Fee { get; set; }
         public bool? IsActive { get; set; }
+        public bool IsPending { get; set; }
     }
 }

@@ -17,10 +17,14 @@
             <h6 class="m-0 font-weight-bold text-primary">Danh sách sản phẩm</h6>
         </div>
         <div class="card-body">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> 
-                <strong>Demo Mode:</strong> Đây là dữ liệu demo. Cần tích hợp API thực tế để hiển thị dữ liệu thật.
-            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success"><i class="fas fa-check-circle"></i> @TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> @TempData["Error"]</div>
+            }
             
             <!-- Search Form -->
             <div class="row mb-3">
@@ -89,26 +93,38 @@
                                 <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-primary" disabled title="Xem chi tiết">
+                                        <a class="btn btn-sm btn-primary disabled" title="Xem chi tiết" href="#">
                                             <i class="fas fa-eye"></i>
-                                        </button>
+                                        </a>
                                         @if (product.Status == "Pending")
                                         {
-                                            <button class="btn btn-sm btn-success" disabled title="Duyệt sản phẩm">
-                                                <i class="fas fa-check"></i>
-                                            </button>
+                                            <form asp-action="ApproveProduct" method="post" class="d-inline">
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-success" title="Duyệt sản phẩm" type="submit">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
                                         }
                                         @if (product.Status == "Active")
                                         {
-                                            <button class="btn btn-sm btn-warning" disabled title="Tạm dừng">
-                                                <i class="fas fa-pause"></i>
-                                            </button>
+                                            <form asp-action="SuspendProduct" method="post" class="d-inline">
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-warning" title="Tạm dừng" type="submit">
+                                                    <i class="fas fa-pause"></i>
+                                                </button>
+                                            </form>
                                         }
                                         else if (product.Status == "Inactive")
                                         {
-                                            <button class="btn btn-sm btn-success" disabled title="Kích hoạt">
-                                                <i class="fas fa-play"></i>
-                                            </button>
+                                            <form asp-action="ActivateProduct" method="post" class="d-inline">
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-success" title="Kích hoạt" type="submit">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            </form>
                                         }
                                     </div>
                                 </td>
