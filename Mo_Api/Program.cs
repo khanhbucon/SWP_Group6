@@ -21,6 +21,8 @@ public class Program
         {
             options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100);
         });
+        // Enable HttpClient factory for services that need HttpClient (e.g., VnpayTransactionServices)
+        builder.Services.AddHttpClient();
         // Register CORS services
         builder.Services.AddCors();
         builder.Services.AddDbContext<SwpGroup6Context>(options =>
