@@ -44,10 +44,10 @@ public class ProductController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(string? search)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var items = await _api.GetMyProductsAsync();
+        var items = await _api.GetMyProductsAsync(search);
         return View(items ?? new List<AuthApiClient.ProductSummary>());
     }
 

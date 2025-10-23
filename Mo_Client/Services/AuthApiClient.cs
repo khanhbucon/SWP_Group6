@@ -86,7 +86,7 @@ public class AuthApiClient
     public record ApiResponse<T>(bool Success, T? Data, string? Message);
 
     public record CreateShopRequest(string Name, string? Description);
-    public record UpdateShopRequest(string Name, string? Description);
+    public record UpdateShopRequest(string Name, string? Description, bool? IsActive = null);
 
     public record ShopResponse(long Id, long AccountId, string Name, string? Description, int? ReportCount, bool? IsActive, DateTime? CreatedAt, DateTime? UpdatedAt, int TotalProducts, List<string>? CategoryNames);
     public record ShopStatisticsResponse(long ShopId, string ShopName, int TotalProducts, int TotalProductsSold, decimal TotalRevenue, int TotalOrders, decimal AverageRating, int TotalFeedbacks);
@@ -242,9 +242,10 @@ public class AuthApiClient
 
     public record UpdateProductRequest(long Id, string? Name, string? ShortDescription, string? DetailedDescription, decimal? Fee, bool? IsActive);
 
-    public async Task<List<ProductSummary>?> GetMyProductsAsync(CancellationToken ct = default)
+    public async Task<List<ProductSummary>?> GetMyProductsAsync(string? search = null, CancellationToken ct = default)
     {
-        var resp = await _httpClient.GetAsync("/api/product/my", ct);
+        var url = "/api/product/my" + (string.IsNullOrWhiteSpace(search) ? string.Empty : $"?search={Uri.EscapeDataString(search)}");
+        var resp = await _httpClient.GetAsync(url, ct);
         if (!resp.IsSuccessStatusCode) return null;
         var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<ProductSummary>>>(cancellationToken: ct);
         return env?.Data;

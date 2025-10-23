@@ -25,11 +25,18 @@ public class ProductController : ControllerBase
 
     [HttpGet("my")]
     [Authorize(Roles = "Seller")]
-    public async Task<IActionResult> GetMyProducts()
+    public async Task<IActionResult> GetMyProducts([FromQuery] string? search)
     {
         var userId = User.GetUserId();
         if (!userId.HasValue) return Unauthorized();
-        var products = await _products.GetBySellerAccountIdAsync(userId.Value);
+        var query = (await _products.GetBySellerAccountIdAsync(userId.Value)).AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
+                                     (p.Description != null && p.Description.ToLower().Contains(term)));
+        }
+        var products = query.ToList();
         var result = products.Select(p => new
         {
             p.Id,
