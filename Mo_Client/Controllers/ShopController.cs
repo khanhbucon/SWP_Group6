@@ -51,7 +51,7 @@ public class ShopController : Controller
         var (success, message) = await _authApiClient.CreateShopAsync(request);
         if (success)
         {
-            TempData["Success"] = "Tạo shop thành công!";
+            TempData["Success"] = "Tạo shop thành công! Shop của bạn đang chờ admin duyệt.";
             return RedirectToAction("Shops", "Seller");
         }
         else

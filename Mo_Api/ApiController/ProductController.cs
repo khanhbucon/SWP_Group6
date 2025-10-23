@@ -25,11 +25,18 @@ public class ProductController : ControllerBase
 
     [HttpGet("my")]
     [Authorize(Roles = "Seller")]
-    public async Task<IActionResult> GetMyProducts()
+    public async Task<IActionResult> GetMyProducts([FromQuery] string? search)
     {
         var userId = User.GetUserId();
         if (!userId.HasValue) return Unauthorized();
-        var products = await _products.GetBySellerAccountIdAsync(userId.Value);
+        var query = (await _products.GetBySellerAccountIdAsync(userId.Value)).AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
+                                     (p.Description != null && p.Description.ToLower().Contains(term)));
+        }
+        var products = query.ToList();
         var result = products.Select(p => new
         {
             p.Id,
@@ -92,7 +99,7 @@ public class ProductController : ControllerBase
         if (shop == null || shop.AccountId != userId.Value)
             return Forbid();
 
-        // Map: short -> description, detailed -> details, optional fee and image
+        // Create product with pending status (IsActive = null)
         var product = new Product
         {
             ShopId = request.ShopId,
@@ -101,7 +108,7 @@ public class ProductController : ControllerBase
             Description = request.ShortDescription,
             Details = request.DetailedDescription,
             Fee = request.Fee,
-            IsActive = true,
+            IsActive = null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -112,7 +119,6 @@ public class ProductController : ControllerBase
             try
             {
                 var base64 = request.ImageUrl;
-                // Strip data URL prefix if present
                 var commaIdx = base64.IndexOf(',');
                 if (base64.StartsWith("data:") && commaIdx > -1)
                 {
@@ -120,13 +126,13 @@ public class ProductController : ControllerBase
                 }
                 product.Image = Convert.FromBase64String(base64);
             }
-            catch
-            {
-                // ignore image parse errors; keep null
-            }
+            catch { }
         }
 
         await _products.CreateAsync(product);
+        // ensure stays Pending in case DB default flips it
+        product.IsActive = null;
+        await _products.UpdateAsync(product);
 
         // default variant (price/stock)
         await _variants.CreateAsync(new ProductVariant
@@ -154,14 +160,21 @@ public class ProductController : ControllerBase
         if (request.ShortDescription != null) product.Description = request.ShortDescription;
         if (request.DetailedDescription != null) product.Details = request.DetailedDescription;
         if (request.Fee.HasValue) product.Fee = request.Fee;
-        if (request.IsActive.HasValue) product.IsActive = request.IsActive;
+
+        // Harden rule: Seller cannot change status while pending (IsActive == null)
+        if (request.IsActive.HasValue)
+        {
+            if (product.IsActive == null)
+            {
+                return BadRequest(new { Success = false, Message = "Sản phẩm đang chờ duyệt, không thể thay đổi trạng thái" });
+            }
+            product.IsActive = request.IsActive;
+        }
+
         product.UpdatedAt = DateTime.UtcNow;
         await _products.UpdateAsync(product);
         return Ok(new { Success = true });
     }
-
-    //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
-    //•	Không cho xóa nếu sản phẩm đã phát sinh đơn (có OrderProducts qua các ProductVariants).
 
     [HttpDelete("{id:long}")]
     [Authorize(Roles = "Seller")]
@@ -170,14 +183,12 @@ public class ProductController : ControllerBase
         var userId = User.GetUserId();
         if (!userId.HasValue) return Unauthorized();
 
-        // Tải sản phẩm để kiểm tra quyền sở hữu    
         var product = await _products.GetByIdAsync(id);
         if (product == null)
             return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại" });
         if (product.ShopId == 0)
             return BadRequest(new { Success = false, Message = "Sản phẩm không hợp lệ" });
 
-        // Đảm bảo cửa hàng thuộc về người bán hiện tại (sử dụng dịch vụ cửa hàng để tránh điều hướng null)
         var shop = await _shops.GetByIdAsync(product.ShopId);
         if (shop == null || shop.AccountId != userId.Value)
             return Forbid();
@@ -186,5 +197,41 @@ public class ProductController : ControllerBase
         if (!ok)
             return BadRequest(new { Success = false, Message = "Không thể xoá sản phẩm (có thể sản phẩm đã phát sinh đơn hàng)" });
         return Ok(new { Success = true });
+    }
+
+    // ADMIN endpoints
+    [HttpGet("admin/list")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminList([FromQuery] string? search)
+    {
+        var list = await _products.AdminListAsync(search);
+        return Ok(new { Success = true, Data = list });
+    }
+
+    [HttpPost("admin/{productId:long}/approve")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminApprove(long productId)
+    {
+        var ok = await _products.AdminApproveAsync(productId);
+        if (!ok) return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại" });
+        return Ok(new { Success = true, Message = "Duyệt sản phẩm thành công" });
+    }
+
+    [HttpPost("admin/{productId:long}/activate")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminActivate(long productId)
+    {
+        var ok = await _products.AdminActivateAsync(productId);
+        if (!ok) return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại" });
+        return Ok(new { Success = true, Message = "Kích hoạt sản phẩm thành công" });
+    }
+
+    [HttpPost("admin/{productId:long}/suspend")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminSuspend(long productId)
+    {
+        var ok = await _products.AdminSuspendAsync(productId);
+        if (!ok) return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại" });
+        return Ok(new { Success = true, Message = "Tạm dừng sản phẩm thành công" });
     }
 }
