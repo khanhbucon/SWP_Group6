@@ -18,7 +18,6 @@ builder.Services.AddHttpClient<AdminService>();
 builder.Services.AddHttpClient<AuthApiClient>();
 
 builder.Services.AddHttpClient<CategoryService>();
-builder.Services.AddHttpClient<PaymentService>();
 
 
 
