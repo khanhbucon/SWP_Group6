@@ -6,6 +6,12 @@
 
 <h2>Tạo Shop Mới</h2>
 
+<div class="mb-3">
+    <a asp-controller="Seller" asp-action="Index" class="btn btn-outline-secondary">
+        &larr; Quay lại Dashboard
+    </a>
+</div>
+
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger">@TempData["Error"]</div>
