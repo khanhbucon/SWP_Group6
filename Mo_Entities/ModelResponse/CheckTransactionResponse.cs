@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mo_Entities.ModelResponse
+{
+    public class CheckTransactionResponse
+    {
+        public bool Success { get; set; }
+        public string? Status { get; set; } // PENDING, SUCCESS, FAILED
+        public string? Message { get; set; }
+        public decimal? Amount { get; set; }
+        public DateTime? CompletedAt { get; set; }
+    }
+}

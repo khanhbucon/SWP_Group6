@@ -201,6 +201,16 @@ public class CategoryController : ControllerBase
                 return NotFound(new { Success = false, Message = "Không tìm thấy danh mục" });
             }
 
+            // Kiểm tra xem category có thể xóa được không
+            var canDelete = await _categoryServices.CanDeleteCategoryAsync(id);
+            if (!canDelete)
+            {
+                return BadRequest(new { 
+                    Success = false, 
+                    Message = "Không thể xóa danh mục này vì đang có danh mục con hoặc sản phẩm liên kết. Vui lòng xóa tất cả danh mục con và sản phẩm trước." 
+                });
+            }
+
             await _categoryServices.DeleteAsync(category);
 
             return Ok(new { Success = true, Message = "Xóa danh mục thành công" });

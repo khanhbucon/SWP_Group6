@@ -1,4 +1,3 @@
-using Microsoft.Identity.Client;
 using Mo_DataAccess.Repo;
 using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
