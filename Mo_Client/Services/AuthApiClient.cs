@@ -242,6 +242,33 @@ public class AuthApiClient
 
     public record UpdateProductRequest(long Id, string? Name, string? ShortDescription, string? DetailedDescription, decimal? Fee, bool? IsActive);
 
+    public record PagedResult<T>(List<T> Items, int Total, int Page, int PageSize, int TotalPages);
+
+    private class PagedEnvelope<T>
+    {
+        public bool Success { get; set; }
+        public List<T>? Data { get; set; }
+        public int Total { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public string? Message { get; set; }
+    }
+
+    public async Task<PagedResult<ProductSummary>?> GetMyProductsPagedAsync(string? search = null, int page = 1, int pageSize = 10, CancellationToken ct = default)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(search)) query.Add($"search={Uri.EscapeDataString(search)}");
+        if (page > 0) query.Add($"page={page}");
+        if (pageSize > 0) query.Add($"pageSize={pageSize}");
+        var url = "/api/product/my" + (query.Count > 0 ? ("?" + string.Join("&", query)) : string.Empty);
+        var resp = await _httpClient.GetAsync(url, ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<PagedEnvelope<ProductSummary>>(cancellationToken: ct);
+        if (env == null) return null;
+        return new PagedResult<ProductSummary>(env.Data ?? new List<ProductSummary>(), env.Total, env.Page, env.PageSize, env.TotalPages);
+    }
+
     public async Task<List<ProductSummary>?> GetMyProductsAsync(string? search = null, CancellationToken ct = default)
     {
         var url = "/api/product/my" + (string.IsNullOrWhiteSpace(search) ? string.Empty : $"?search={Uri.EscapeDataString(search)}");

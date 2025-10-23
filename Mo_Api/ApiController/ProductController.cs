@@ -25,19 +25,31 @@ public class ProductController : ControllerBase
 
     [HttpGet("my")]
     [Authorize(Roles = "Seller")]
-    public async Task<IActionResult> GetMyProducts([FromQuery] string? search)
+    public async Task<IActionResult> GetMyProducts([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var userId = User.GetUserId();
         if (!userId.HasValue) return Unauthorized();
-        var query = (await _products.GetBySellerAccountIdAsync(userId.Value)).AsQueryable();
+
+        if (page < 1) page = 1;
+        if (pageSize <= 0 || pageSize > 100) pageSize = 10;
+
+        var list = await _products.GetBySellerAccountIdAsync(userId.Value);
+        var query = list.AsQueryable();
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToLower();
             query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
                                      (p.Description != null && p.Description.ToLower().Contains(term)));
         }
-        var products = query.ToList();
-        var result = products.Select(p => new
+
+        var total = query.Count();
+        var items = query
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var result = items.Select(p => new
         {
             p.Id,
             p.Name,
@@ -49,7 +61,9 @@ public class ProductController : ControllerBase
             p.UpdatedAt,
             p.IsActive
         }).ToList();
-        return Ok(new { Success = true, Data = result });
+
+        var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        return Ok(new { Success = true, Data = result, Total = total, Page = page, PageSize = pageSize, TotalPages = totalPages });
     }
 
     [HttpGet("{id:long}")]

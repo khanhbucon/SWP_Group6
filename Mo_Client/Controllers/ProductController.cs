@@ -44,11 +44,16 @@ public class ProductController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> List(string? search)
+    public async Task<IActionResult> List(string? search, int page = 1, int pageSize = 10)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var items = await _api.GetMyProductsAsync(search);
-        return View(items ?? new List<AuthApiClient.ProductSummary>());
+        var paged = await _api.GetMyProductsPagedAsync(search, page, pageSize);
+        if (paged == null) return View(new List<AuthApiClient.ProductSummary>());
+        ViewBag.Page = paged.Page;
+        ViewBag.PageSize = paged.PageSize;
+        ViewBag.Total = paged.Total;
+        ViewBag.TotalPages = paged.TotalPages;
+        return View(paged.Items);
     }
 
     [HttpGet]
@@ -127,6 +132,96 @@ public class ProductController : Controller
             TempData["Error"] = result.Message ?? "Không thể xoá sản phẩm (không thuộc quyền sở hữu hoặc đã có đơn hàng)";
         }
         return RedirectToAction("List");
+    }
+
+    // =============== BULK UPLOAD FROM TXT ===============
+    [HttpGet]
+    public async Task<IActionResult> BulkUpload()
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var shops = await _api.GetMyShopsAsync();
+        ViewBag.Shops = shops ?? new List<AuthApiClient.ShopResponse>();
+        return View();
+    }
+
+    public class LineResult
+    {
+        public int Index { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public bool Success { get; set; }
+        public string? Error { get; set; }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkUpload(long shopId, long subCategoryId, decimal price, int stock, string name, decimal? fee, string? variantName, IFormFile file)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var shops = await _api.GetMyShopsAsync();
+        ViewBag.Shops = shops ?? new List<AuthApiClient.ShopResponse>();
+        ViewBag.SelectedShopId = shopId;
+
+        if (file == null || file.Length == 0)
+        {
+            TempData["Error"] = "Vui lòng chọn file .txt";
+            return View();
+        }
+        var results = new List<LineResult>();
+        int total = 0, ok = 0, fail = 0;
+
+        try
+        {
+            using var sr = new StreamReader(file.OpenReadStream());
+            string? line; int idx = 0;
+            while ((line = await sr.ReadLineAsync()) != null)
+            {
+                idx++; total++;
+                var trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+
+                var req = new AuthApiClient.CreateProductRequest(
+                    shopId,
+                    name,
+                    // Save one line to both short and detailed descriptions
+                    trimmed,
+                    trimmed,
+                    subCategoryId,
+                    price,
+                    stock,
+                    null,
+                    fee,
+                    string.IsNullOrWhiteSpace(variantName) ? "Default" : variantName
+                );
+
+                var http = new HttpClient { BaseAddress = _api.GetBaseAddress() };
+                http.DefaultRequestHeaders.Authorization = _api.GetAuthHeader();
+                var resp = await http.PostAsJsonAsync("/api/product", req);
+                if (resp.IsSuccessStatusCode)
+                {
+                    ok++; results.Add(new LineResult { Index = idx, Content = trimmed, Success = true });
+                }
+                else
+                {
+                    fail++; var reason = resp.ReasonPhrase ?? "Bad Request";
+                    try
+                    {
+                        var json = await resp.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrWhiteSpace(json)) reason = json.Length > 120 ? json[..120] + "..." : json;
+                    }
+                    catch { }
+                    results.Add(new LineResult { Index = idx, Content = trimmed, Success = false, Error = reason });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Lỗi khi đọc file: " + ex.Message;
+            return View();
+        }
+
+        ViewBag.Results = results;
+        ViewBag.Summary = $"TOTAL:{total} | SUCCESS:{ok} | ERROR:{fail}";
+        return View();
     }
 
     private record CreateProductEnvelope(bool Success, long Id);
