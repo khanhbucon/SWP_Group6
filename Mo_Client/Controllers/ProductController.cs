@@ -134,7 +134,7 @@ public class ProductController : Controller
         return RedirectToAction("List");
     }
 
-    // =============== BULK UPLOAD FROM TXT ===============
+    // =============== BULK UPLOAD FROM TXT (Create multiple products) ===============
     [HttpGet]
     public async Task<IActionResult> BulkUpload()
     {
@@ -221,6 +221,98 @@ public class ProductController : Controller
 
         ViewBag.Results = results;
         ViewBag.Summary = $"TOTAL:{total} | SUCCESS:{ok} | ERROR:{fail}";
+        return View();
+    }
+
+    // =============== BULK UPLOAD FOR SPECIFIC PRODUCT (e.g., add accounts to one product) ===============
+    [HttpGet]
+    public async Task<IActionResult> BulkUploadForProduct(long productId)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var product = await _api.GetProductAsync(productId);
+        if (product == null)
+        {
+            TempData["Error"] = "Sản phẩm không tồn tại";
+            return RedirectToAction("List");
+        }
+        ViewBag.Product = product;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkUploadForProduct(long productId, IFormFile file)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var product = await _api.GetProductAsync(productId);
+        if (product == null)
+        {
+            TempData["Error"] = "Sản phẩm không tồn tại";
+            return RedirectToAction("List");
+        }
+        ViewBag.Product = product;
+
+        if (file == null || file.Length == 0)
+        {
+            TempData["Error"] = "Vui lòng chọn file .txt";
+            return View();
+        }
+
+        var results = new List<LineResult>();
+        int total = 0, ok = 0, fail = 0;
+
+        try
+        {
+            using var sr = new StreamReader(file.OpenReadStream());
+            string? line; int idx = 0;
+            while ((line = await sr.ReadLineAsync()) != null)
+            {
+                idx++; total++;
+                var trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+
+                // TODO: Implement your logic here
+                // For example: parse line as "username|password", create ProductVariant or update Description
+                // For now, just append to product's detailed description
+                var currentDetails = product.Details ?? "";
+                var newDetails = currentDetails + "\n" + trimmed;
+
+                var updateReq = new AuthApiClient.UpdateProductRequest(
+                    productId,
+                    product.Name,
+                    product.Description,
+                    newDetails,
+                    product.Fee,
+                    product.IsActive
+                );
+
+                var updateOk = await _api.UpdateProductAsync(updateReq);
+                if (updateOk)
+                {
+                    ok++;
+                    results.Add(new LineResult { Index = idx, Content = trimmed, Success = true });
+                    product = new AuthApiClient.ProductDetail(
+                        product.Id, product.Name, product.Description, newDetails, product.Fee,
+                        product.SubCategoryId, product.ShopId, product.CreatedAt, product.UpdatedAt,
+                        product.IsActive, product.TotalStock, product.TotalSold, product.MinPrice, product.MaxPrice
+                    );
+                }
+                else
+                {
+                    fail++;
+                    results.Add(new LineResult { Index = idx, Content = trimmed, Success = false, Error = "Không thể cập nhật" });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Lỗi khi đọc file: " + ex.Message;
+            return View();
+        }
+
+        ViewBag.Results = results;
+        ViewBag.Summary = $"TOTAL:{total} | SUCCESS:{ok} | ERROR:{fail}";
+        TempData["Success"] = $"Đã thêm {ok}/{total} dòng vào sản phẩm";
         return View();
     }
 

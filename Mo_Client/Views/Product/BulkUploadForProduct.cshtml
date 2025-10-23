@@ -1,0 +1,77 @@
+@{
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+    ViewData["Title"] = "T?i lên .txt cho s?n ph?m";
+    var product = (Mo_Client.Services.AuthApiClient.ProductDetail?)ViewBag.Product;
+}
+
+<div class="mb-3">
+    <a asp-action="List" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Quay l?i danh sách
+    </a>
+</div>
+
+<h4 class="mb-3">
+    <i class="fas fa-file-upload me-2 text-primary"></i>T?i lên .txt cho s?n ph?m: <strong>@product?.Name</strong>
+</h4>
+
+@if(TempData["Error"]!=null){<div class="alert alert-danger">@TempData["Error"]</div>}
+@if(TempData["Success"]!=null){<div class="alert alert-success">@TempData["Success"]</div>}
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Thông tin s?n ph?m</h6>
+        <p><strong>ID:</strong> @product?.Id</p>
+        <p><strong>Shop ID:</strong> @product?.ShopId</p>
+        <p><strong>SubCategory ID:</strong> @product?.SubCategoryId</p>
+        <p><strong>Giá (min-max):</strong> @product?.MinPrice?.ToString("N0") - @product?.MaxPrice?.ToString("N0") VNÐ</p>
+        <p><strong>T?n kho:</strong> @product?.TotalStock</p>
+        <p><strong>Ð? bán:</strong> @product?.TotalSold</p>
+    </div>
+</div>
+
+<form asp-action="BulkUploadForProduct" method="post" enctype="multipart/form-data" class="card shadow-sm p-3">
+    <input type="hidden" name="productId" value="@product?.Id" />
+    
+    <div class="mb-3">
+        <label class="form-label">Ch?n file .txt (m?i d?ng s? ðý?c thêm vào mô t? chi ti?t s?n ph?m)</label>
+        <input class="form-control" type="file" name="file" accept=".txt" required />
+        <small class="text-muted">Ví d?: m?i d?ng là 1 tài kho?n game (username|password), ho?c 1 serial key, v.v.</small>
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Lýu ?:</strong> Hi?n t?i, m?i d?ng s? ðý?c n?i thêm vào ph?n "Mô t? chi ti?t" c?a s?n ph?m. 
+        N?u mu?n lýu riêng (ví d?: t?o ProductVariant ho?c b?ng AccountInventory), c?n custom logic trong Controller.
+    </div>
+    
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary"><i class="fas fa-upload me-1"></i>T?i lên</button>
+        <a asp-action="List" class="btn btn-outline-secondary">H?y</a>
+    </div>
+</form>
+
+@if(ViewBag.Summary!=null){
+    <div class="alert alert-info mt-3"><strong>K?t qu?:</strong> @ViewBag.Summary</div>
+}
+
+@if(ViewBag.Results!=null){
+    var list = (IEnumerable<Mo_Client.Controllers.ProductController.LineResult>)ViewBag.Results;
+    <div class="card mt-3">
+        <div class="card-header">Chi ti?t các d?ng</div>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>#</th><th>N?i dung</th><th>Tr?ng thái</th><th>L?i</th></tr></thead>
+                <tbody>
+                @foreach(var r in list){
+                    <tr class="@(r.Success?"table-success":"table-danger")">
+                        <td>@r.Index</td>
+                        <td style="white-space:pre-wrap">@r.Content</td>
+                        <td>@(r.Success?"OK":"FAIL")</td>
+                        <td>@r.Error</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
