@@ -15,6 +15,7 @@ builder.Services.AddHttpClient<AuthService>();
 builder.Services.AddHttpClient<UserService>();
 builder.Services.AddHttpClient<AdminService>();
 builder.Services.AddHttpClient<CategoryService>();
+builder.Services.AddHttpClient<TransactionService>();
 
 
 var app = builder.Build();
@@ -29,7 +30,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
