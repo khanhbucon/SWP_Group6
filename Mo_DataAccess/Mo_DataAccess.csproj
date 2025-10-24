@@ -7,11 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Mo_Client\Mo_Client.csproj" />
       <ProjectReference Include="..\Mo_Entities\Mo_Entities.csproj" />
     </ItemGroup>
      <ItemGroup>
-         <Using Include="Mo_Entities.Models"/>
-         <Using Include="Mo_DataAccess.Repo"/>
-         <Using Include="Mo_DataAccess.Services.Interface"/>
+         <Using Include="Mo_Entities.Models" />
+         <Using Include="Mo_DataAccess.Repo" />
+         <Using Include="Mo_DataAccess.Services.Interface" />
      </ItemGroup>
 </Project>

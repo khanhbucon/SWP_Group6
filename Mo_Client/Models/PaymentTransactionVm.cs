@@ -6,7 +6,7 @@
         public long UserId { get; set; }
         public string Type { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public string PaymentDescription { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public DateTime? CreatedAt { get; set; }
         public string? Status { get; set; }
 
@@ -16,8 +16,9 @@
             "NapTien" => "Nạp tiền",
             "MuaHang" => "Mua hàng",
             "RutTien" => "Rút tiền",
-            "HoanTien" => "Hoàn tiền",
-            "ChuyenKhoan" => "Chuyển khoản",
+            "BanHang" => "Bán hàng",
+            "HoaHong" => "Hoa hồng",
+            "ChiaSe" => "Chia sẻ",
             _ => Type
         };
 
@@ -26,7 +27,8 @@
         public bool IsIncome => Type switch
         {
             "NapTien" => true,
-            "HoanTien" => true,
+            "BanHang" => true,
+            "HoaHong" => true,
             _ => false
         };
         
@@ -34,35 +36,48 @@
         {
             "MuaHang" => true,
             "RutTien" => true,
+            "ChiaSe" => true,
             _ => false
         };
 
         public string StatusDisplay => Status switch
         {
-            "Success" => "Thành công",
-            "Pending" => "Đang xử lý",
-            "Failed" => "Thất bại",
-            "Cancelled" => "Đã hủy",
+            "COMPLETED" => "Thành công",
+            "PENDING" => "Đang xử lý",
+            "FAILED" => "Thất bại",
+            "CANCELLED" => "Đã hủy",
             _ => Status ?? "Không xác định"
         };
 
         public string StatusClass => Status switch
         {
-            "Success" => "success",
-            "Pending" => "warning",
-            "Failed" => "danger",
-            "Cancelled" => "secondary",
+            "COMPLETED" => "success",
+            "PENDING" => "warning",
+            "FAILED" => "danger",
+            "CANCELLED" => "secondary",
             _ => "secondary"
         };
 
         public string TypeClass => Type switch
         {
-            "Deposit" => "success",
-            "Purchase" => "primary",
-            "Withdraw" => "warning",
-            "Refund" => "info",
-            "Transfer" => "secondary",
+            "NapTien" => "success",
+            "MuaHang" => "primary",
+            "RutTien" => "warning",
+            "BanHang" => "info",
+            "HoaHong" => "success",
+            "ChiaSe" => "secondary",
             _ => "secondary"
+        };
+
+        public string TypeIcon => Type switch
+        {
+            "NapTien" => "fas fa-plus-circle",
+            "MuaHang" => "fas fa-shopping-cart",
+            "RutTien" => "fas fa-minus-circle",
+            "BanHang" => "fas fa-store",
+            "HoaHong" => "fas fa-gift",
+            "ChiaSe" => "fas fa-share-alt",
+            _ => "fas fa-circle"
         };
     }
 }

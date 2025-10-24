@@ -18,6 +18,7 @@ builder.Services.AddHttpClient<AdminService>();
 builder.Services.AddHttpClient<AuthApiClient>();
 
 builder.Services.AddHttpClient<CategoryService>();
+builder.Services.AddHttpClient<TransactionService>();
 
 
 
@@ -33,7 +34,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

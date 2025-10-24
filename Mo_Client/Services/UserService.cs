@@ -21,7 +21,6 @@ namespace Mo_Client.Services
 
         // Request/Response Models
         public record UpdateProfileRequest(string Username, string Email, string? Phone, string? IdentificationF, string? IdentificationB);
-        public record ApiResponse<T>(bool Success, T? Data, string? Message);
 
         // User Profile Methods
         public async Task<ProfileResponse?> GetCurrentUserProfileAsync(CancellationToken ct = default)

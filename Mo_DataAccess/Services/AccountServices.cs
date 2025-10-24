@@ -399,24 +399,46 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
     public async Task<ProfileResponse> GetProfileByIdAsync(long userId)
     {
         var account = await _context.Accounts
-            .Include(a => a.Roles)
-            .FirstOrDefaultAsync(a => a.Id == userId);
+         .Include(a => a.Roles)
+         .Include(a => a.Shops)
+         .ThenInclude(s => s.Products)
+         .SingleOrDefaultAsync(a => a.Id == userId);
 
         if (account == null)
             throw new InvalidOperationException("User not found");
+        //  Đếm số đơn hàng đã mua
+        var totalOrders = await _context.Set<OrderProduct>()
+            .CountAsync(o => o.AccountId == account.Id);
 
-        // Tính toán thống kê
-        var totalOrders = await _context.OrderProducts
-            .Where(op => op.AccountId == userId)
-            .CountAsync();
+        //  Đếm số gian hàng
+        var totalShops = account.Shops?.Count ?? 0;
 
-        var totalShops = await _context.Shops
-            .Where(s => s.AccountId == userId)
-            .CountAsync();
+        //  Đếm số sản phẩm đã bán
+        var totalProductsSold = 0;
+        if (account.Shops != null && account.Shops.Any())
+        {
+            var productIds = account.Shops
+                .SelectMany(s => s.Products)
+                .Select(p => p.Id)
+                .ToList();
 
-        var totalProductsSold = await _context.OrderProducts
-            .Where(op => op.AccountId == userId)
-            .SumAsync(op => op.Quantity);
+            totalProductsSold = await _context.Set<OrderProduct>()
+                .Where(o => _context.Set<ProductVariant>()
+                    .Where(pv => productIds.Contains(pv.ProductId))
+                    .Select(pv => pv.Id)
+                    .Contains(o.ProductVariantId))
+                .SumAsync(o => o.Quantity);
+        }
+
+        //  Thêm thông tin chi tiết về Shop (nếu cần)
+        var shopDetails = account.Shops?.Select(s => new
+        {
+            ShopId = s.Id,
+            ShopName = s.Name,
+            ProductCount = s.Products?.Count ?? 0,
+            IsActive = s.IsActive
+        }).ToList();
+
 
         return new Mo_Entities.ModelResponse.ProfileResponse
         {
