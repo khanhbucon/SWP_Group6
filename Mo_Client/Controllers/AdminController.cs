@@ -282,16 +282,25 @@ namespace Mo_Client.Controllers
             {
                 _adminService.SetToken(Request.Cookies["accessToken"]);
                 
-                // Truyền search parameters vào ViewBag để giữ lại giá trị trong form
-                if (searchModel != null)
+                // Set default values
+                if (searchModel == null)
                 {
-                    ViewBag.UserId = searchModel.UserId;
-                    ViewBag.Email = searchModel.Email;
-                    ViewBag.Phone = searchModel.Phone;
-                    ViewBag.Role = searchModel.Role;
-                    ViewBag.IsActive = searchModel.IsActive?.ToString();
-                    ViewBag.IsEKYCVerified = searchModel.IsEKYCVerified?.ToString();
+                    searchModel = new UserSearchVm
+                    {
+                        PageNumber = 1,
+                        PageSize = 10
+                    };
                 }
+                
+                // Truyền search parameters vào ViewBag để giữ lại giá trị trong form
+                ViewBag.UserId = searchModel.UserId;
+                ViewBag.Email = searchModel.Email;
+                ViewBag.Phone = searchModel.Phone;
+                ViewBag.Role = searchModel.Role;
+                ViewBag.IsActive = searchModel.IsActive?.ToString();
+                ViewBag.IsEKYCVerified = searchModel.IsEKYCVerified?.ToString();
+                ViewBag.PageNumber = searchModel.PageNumber;
+                ViewBag.PageSize = searchModel.PageSize;
                 
                 // Lấy tất cả users từ API
                 var allUsers = await _adminService.GetAllUsersAsync();
@@ -301,25 +310,15 @@ namespace Mo_Client.Controllers
                     return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
                 }
                 
-                // Nếu không có search parameters, trả về tất cả users
-                if (searchModel == null)
-                {
-                    var result = new UserSearchResultVm
-                    {
-                        Users = allUsers,
-                        TotalCount = allUsers.Count,
-                        PageNumber = 1,
-                        PageSize = 10
-                    };
-                    return View(result);
-                }
-                
                 // Thực hiện search/filter ở phía frontend
                 var filteredUsers = FilterUsers(allUsers, searchModel);
                 
+                // Thực hiện phân trang
+                var paginatedUsers = PaginateUsers(filteredUsers, searchModel.PageNumber, searchModel.PageSize);
+                
                 var searchResult = new UserSearchResultVm
                 {
-                    Users = filteredUsers,
+                    Users = paginatedUsers,
                     TotalCount = filteredUsers.Count,
                     PageNumber = searchModel.PageNumber,
                     PageSize = searchModel.PageSize
@@ -382,6 +381,18 @@ namespace Mo_Client.Controllers
             }
 
             return filteredUsers.ToList();
+        }
+
+        /// <summary>
+        /// Paginate users based on page number and page size
+        /// </summary>
+        private List<ListAccountVm> PaginateUsers(List<ListAccountVm> users, int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var skip = (pageNumber - 1) * pageSize;
+            return users.Skip(skip).Take(pageSize).ToList();
         }
 
         [HttpPost]
