@@ -3,28 +3,32 @@
   "WorkspaceRootPath": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_client\\views\\product\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\views\\product\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_client\\views\\seller\\shops.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\views\\seller\\shops.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_client\\controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_dataaccess\\services\\interface\\ishopservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|solutionrelative:mo_dataaccess\\services\\interface\\ishopservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_client\\controllers\\shopcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\controllers\\shopcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_client\\services\\authapiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\services\\authapiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_api\\apicontroller\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|solutionrelative:mo_api\\apicontroller\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_dataaccess\\services\\shopservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{CF4E0238-419E-4B3B-A9BD-11721B1F4C99}|Mo_DataAccess\\Mo_DataAccess.csproj|solutionrelative:mo_dataaccess\\services\\shopservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_api\\apicontroller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|solutionrelative:mo_api\\apicontroller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_api\\apicontroller\\shopcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DF8887BB-889A-4E30-83E8-8311FD648BB9}|Mo_Api\\Mo_Api.csproj|solutionrelative:mo_api\\apicontroller\\shopcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|d:\\swp391\\1.13\\1.13\\1.1\\1.1\\swp_group6-master\\mo_client\\views\\shop\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{D5B4D9D4-5CEB-4CDC-8AFD-405CF3FB504F}|Mo_Client\\Mo_Client.csproj|solutionrelative:mo_client\\views\\shop\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,33 +38,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 128,
-          "SelectedChildIndex": 11,
+          "SelectedChildIndex": 16,
           "Children": [
             {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "CategoryController.cs",
-              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Api\\ApiController\\CategoryController.cs",
-              "RelativeDocumentMoniker": "Mo_Api\\ApiController\\CategoryController.cs",
-              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Api\\ApiController\\CategoryController.cs",
-              "RelativeToolTip": "Mo_Api\\ApiController\\CategoryController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T08:54:18.778Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ShopServices.cs",
-              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\ShopServices.cs",
-              "RelativeDocumentMoniker": "Mo_DataAccess\\Services\\ShopServices.cs",
-              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\ShopServices.cs",
-              "RelativeToolTip": "Mo_DataAccess\\Services\\ShopServices.cs",
-              "ViewState": "AgIAAB4AAAAAAAAAAAAawBEAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-11T22:31:01.655Z",
-              "IsPinned": true
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
             },
             {
               "$type": "Bookmark",
@@ -96,58 +78,91 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Create.cshtml",
-              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Views\\Product\\Create.cshtml",
-              "RelativeDocumentMoniker": "Mo_Client\\Views\\Product\\Create.cshtml",
-              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Views\\Product\\Create.cshtml",
-              "RelativeToolTip": "Mo_Client\\Views\\Product\\Create.cshtml",
-              "ViewState": "AgIAADoAAAAAAAAAAAAAAE4AAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-26T08:46:38.314Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ProductController.cs",
-              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Controllers\\ProductController.cs",
-              "RelativeDocumentMoniker": "Mo_Client\\Controllers\\ProductController.cs",
-              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Controllers\\ProductController.cs",
-              "RelativeToolTip": "Mo_Client\\Controllers\\ProductController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T08:46:16.342Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ProductController.cs",
-              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Api\\ApiController\\ProductController.cs",
-              "RelativeDocumentMoniker": "Mo_Api\\ApiController\\ProductController.cs",
-              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Api\\ApiController\\ProductController.cs",
-              "RelativeToolTip": "Mo_Api\\ApiController\\ProductController.cs",
-              "ViewState": "AgIAAHMBAAAAAAAAAAAAAHMBAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-25T04:00:56.475Z",
-              "EditorCaption": ""
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "ShopController.cs",
+              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Controllers\\ShopController.cs",
+              "RelativeDocumentMoniker": "Mo_Client\\Controllers\\ShopController.cs",
+              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Controllers\\ShopController.cs",
+              "RelativeToolTip": "Mo_Client\\Controllers\\ShopController.cs",
+              "ViewState": "AgIAAE8AAAAAAAAAAAAcwJsAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-26T10:05:31.839Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Edit.cshtml",
+              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Views\\Shop\\Edit.cshtml",
+              "RelativeDocumentMoniker": "Mo_Client\\Views\\Shop\\Edit.cshtml",
+              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Views\\Shop\\Edit.cshtml",
+              "RelativeToolTip": "Mo_Client\\Views\\Shop\\Edit.cshtml",
+              "ViewState": "AgIAADcAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-10-26T10:04:46.919Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "AuthApiClient.cs",
               "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Services\\AuthApiClient.cs",
               "RelativeDocumentMoniker": "Mo_Client\\Services\\AuthApiClient.cs",
               "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Services\\AuthApiClient.cs",
               "RelativeToolTip": "Mo_Client\\Services\\AuthApiClient.cs",
-              "ViewState": "AgIAAEMBAAAAAAAAAAD4vwAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAG4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-25T18:57:00.146Z",
+              "WhenOpened": "2025-10-26T10:04:18.806Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ShopController.cs",
+              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Api\\ApiController\\ShopController.cs",
+              "RelativeDocumentMoniker": "Mo_Api\\ApiController\\ShopController.cs",
+              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Api\\ApiController\\ShopController.cs",
+              "RelativeToolTip": "Mo_Api\\ApiController\\ShopController.cs",
+              "ViewState": "AgIAABUBAAAAAAAAAEBVwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-26T10:02:03.855Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ShopServices.cs",
+              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\ShopServices.cs",
+              "RelativeDocumentMoniker": "Mo_DataAccess\\Services\\ShopServices.cs",
+              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\ShopServices.cs",
+              "RelativeToolTip": "Mo_DataAccess\\Services\\ShopServices.cs",
+              "ViewState": "AgIAAKEBAAAAAAAAAAAnwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-26T10:00:17.817Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IShopServices.cs",
+              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\Interface\\IShopServices.cs",
+              "RelativeDocumentMoniker": "Mo_DataAccess\\Services\\Interface\\IShopServices.cs",
+              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_DataAccess\\Services\\Interface\\IShopServices.cs",
+              "RelativeToolTip": "Mo_DataAccess\\Services\\Interface\\IShopServices.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-26T09:58:28.646Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Shops.cshtml",
+              "DocumentMoniker": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Views\\Seller\\Shops.cshtml",
+              "RelativeDocumentMoniker": "Mo_Client\\Views\\Seller\\Shops.cshtml",
+              "ToolTip": "D:\\SWP391\\1.13\\1.13\\1.1\\1.1\\SWP_Group6-master\\Mo_Client\\Views\\Seller\\Shops.cshtml",
+              "RelativeToolTip": "Mo_Client\\Views\\Seller\\Shops.cshtml",
+              "ViewState": "AgIAAAABAAAAAAAAAAAmwBcBAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-10-26T09:49:32.281Z",
               "EditorCaption": ""
             }
           ]

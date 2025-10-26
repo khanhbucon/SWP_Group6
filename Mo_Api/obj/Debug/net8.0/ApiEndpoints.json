@@ -791,6 +791,27 @@
   },
   {
     "ContainingType": "Mo_Api.ApiController.ShopController",
+    "Method": "ToggleActive",
+    "RelativePath": "api/Shop/toggle/{shopId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "shopId",
+        "Type": "System.Int64",
+        "IsRequired": true
+      },
+      {
+        "Name": "active",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.ShopController",
     "Method": "UpdateShop",
     "RelativePath": "api/Shop/update/{shopId}",
     "HttpMethod": "PUT",
