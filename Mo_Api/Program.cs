@@ -65,6 +65,7 @@ public class Program
         });
         builder.Services.AddScoped<IAccountServices, AccountServices>();
         builder.Services.AddScoped<ICategoryServices, CategoryServices>();
+        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<IFeedbackServices, FeedbackServices>();
         builder.Services.AddScoped<IImageMessageServices, ImageMessageServices>();
         builder.Services.AddScoped<IMessageServices, MessageServices>();
@@ -77,12 +78,13 @@ public class Program
         builder.Services.AddScoped<IReplyServices, ReplyServices>();
         builder.Services.AddScoped<IRoleServices, RoleServices>();
         builder.Services.AddScoped<IShopServices, ShopServices>();
-        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<ISupportTicketServices, SupportTicketServices>();
         builder.Services.AddScoped<ISystemsConfigServices, SystemsConfigServices>();
         builder.Services.AddScoped<ITextMessageServices, TextMessageServices>();
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
+        builder.Services.AddHttpClient<VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
@@ -92,12 +94,12 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.UseCors(options =>
+        {
+            options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        });
         app.UseAuthentication();
         app.UseAuthorization();
-         app.UseCors(options =>
-         {
-              options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-         })  ;
 
         app.MapControllers();
 

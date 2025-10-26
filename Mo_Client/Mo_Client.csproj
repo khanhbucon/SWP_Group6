@@ -4,4 +4,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="Models\ListAccountVm.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mo_Entities\Mo_Entities.csproj" />
+  </ItemGroup>
 </Project>

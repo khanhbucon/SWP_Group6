@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 using Mo_Client.Models;
+using Mo_Client.Models.Admin;
 
 namespace Mo_Client.Services
 {
@@ -20,12 +21,13 @@ namespace Mo_Client.Services
         }
 
         // User Management Methods
-        public async Task<List<ListAccountResponse>?> GetAllUsersAsync(CancellationToken ct = default)
+        public async Task<List<ListAccountVm>?> GetAllUsersAsync(CancellationToken ct = default)
         {
             var resp = await _httpClient.GetAsync("/api/account/Admin/GetAllAccount", ct);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<List<ListAccountResponse>>(cancellationToken: ct);
+            return await resp.Content.ReadFromJsonAsync<List<ListAccountVm>>(cancellationToken: ct);
         }
+
 
         public async Task<bool> BanUserAsync(long userId, CancellationToken ct = default)
         {
@@ -37,6 +39,23 @@ namespace Mo_Client.Services
         {
             var resp = await _httpClient.PostAsync($"/api/account/admin/{userId}/grant-seller", null, ct);
             return resp.IsSuccessStatusCode;
+        }
+
+        // Dashboard Stats
+        public async Task<DashboardVm?> GetDashboardStatsAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                var resp = await _httpClient.GetAsync("/api/Admin/dashboard-stats", ct);
+                if (!resp.IsSuccessStatusCode) return null;
+                
+                var result = await resp.Content.ReadFromJsonAsync<ApiResponse<DashboardVm>>(cancellationToken: ct);
+                return result?.Data;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         // TODO: Thêm các method khác cho admin khi có API

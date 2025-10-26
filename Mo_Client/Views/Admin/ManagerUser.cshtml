@@ -1,4 +1,4 @@
-@model List<Mo_Client.Models.ListAccountResponse>
+@model Mo_Client.Models.Admin.UserSearchResultVm
 
 @{
     ViewData["Title"] = "Quản lý người dùng";
@@ -13,9 +13,98 @@
     </div>
 </div>
 
+<!-- Search Form -->
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-search"></i> Tìm kiếm người dùng
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" action="@Url.Action("ManagerUser", "Admin")" id="searchForm" class="search-form">
+            <!-- Row 1: Basic Search Fields -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="userId" class="form-label">
+                        <i class="fas fa-id-card"></i> ID người dùng
+                    </label>
+                    <input type="number" class="form-control" id="userId" name="UserId" 
+                           value="@ViewBag.UserId" placeholder="Nhập ID người dùng">
+                </div>
+                <div class="col-md-3">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" class="form-control" id="email" name="Email" 
+                           value="@ViewBag.Email" placeholder="Nhập email">
+                </div>
+                <div class="col-md-3">
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Số điện thoại
+                    </label>
+                    <input type="tel" class="form-control" id="phone" name="Phone" 
+                           value="@ViewBag.Phone" placeholder="Nhập số điện thoại">
+                </div>
+                <div class="col-md-3">
+                    <label for="role" class="form-label">
+                        <i class="fas fa-user-tag"></i> Vai trò
+                    </label>
+                    <select class="form-control" id="role" name="Role">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
+                        <option value="Seller" selected="@(ViewBag.Role == "Seller")">Seller</option>
+                        <option value="Buyer" selected="@(ViewBag.Role == "Buyer")">Buyer</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Status Filters -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="isActive" class="form-label">
+                        <i class="fas fa-toggle-on"></i> Trạng thái tài khoản
+                    </label>
+                    <select class="form-control" id="isActive" name="IsActive">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="true" selected="@(ViewBag.IsActive == "true")">Hoạt động</option>
+                        <option value="false" selected="@(ViewBag.IsActive == "false")">Bị khóa</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="isEKYCVerified" class="form-label">
+                        <i class="fas fa-shield-alt"></i> Xác thực eKYC
+                    </label>
+                    <select class="form-control" id="isEKYCVerified" name="IsEKYCVerified">
+                        <option value="">Tất cả</option>
+                        <option value="true" selected="@(ViewBag.IsEKYCVerified == "true")">Đã xác thực</option>
+                        <option value="false" selected="@(ViewBag.IsEKYCVerified == "false")">Chưa xác thực</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                        <a href="@Url.Action("ManagerUser", "Admin")" class="btn btn-secondary">
+                            <i class="fas fa-refresh"></i> Làm mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card shadow">
     <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Danh sách người dùng</h6>
+        <h6 class="m-0 font-weight-bold text-primary">
+            Danh sách người dùng
+            @if (Model != null && Model.TotalCount > 0)
+            {
+                <span class="search-results-badge ml-2">@Model.TotalCount kết quả</span>
+            }
+        </h6>
     </div>
     <div class="card-body">
         @if (TempData["Success"] != null)
@@ -44,7 +133,7 @@
         }
 
         <div class="table-responsive">
-            <table class="table table-bordered table-striped admin-table" id="usersTable">
+            <table class="table table-bordered table-striped admin-table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -63,9 +152,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model != null && Model.Any())
+                    @if (Model != null && Model.Users != null && Model.Users.Any())
                     {
-                        @foreach (var user in Model)
+                        @foreach (var user in Model.Users)
                         {
                             <tr>
                                 <td>@user.UserId</td>
@@ -176,10 +265,11 @@
                     }
                     else
                     {
-                        <tr>
+                        <!-- No data row - this will prevent DataTables initialization -->
+                        <tr class="no-data-row">
                             <td colspan="13" class="text-center">
                                 <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> Không có người dùng nào trong hệ thống
+                                    <i class="fas fa-info-circle"></i> Không tìm thấy người dùng nào phù hợp với tiêu chí tìm kiếm
                                 </div>
                             </td>
                         </tr>
@@ -190,39 +280,114 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .search-form .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        
+        .search-form .form-control {
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .search-form .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .search-form .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+        }
+        
+        .search-form .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .search-form .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        
+        .search-form .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .search-form .btn-secondary:hover {
+            background-color: #545b62;
+            border-color: #4e555b;
+        }
+        
+        .search-results-badge {
+            background-color: #17a2b8;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        /* No data row styling */
+        .no-data-row td {
+            padding: 2rem;
+        }
+        
+        /* Regular table styling */
+        .admin-table {
+            margin-bottom: 0;
+        }
+        
+        .admin-table th {
+            background-color: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+        }
+        
+        .admin-table td {
+            vertical-align: middle;
+        }
+        
+        .form-label i {
+            margin-right: 0.5rem;
+            color: #6c757d;
+        }
+        
+        .search-form .row {
+            margin-bottom: 1rem;
+        }
+        
+        .search-form .row:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Kiểm tra xem DataTable đã được khởi tạo chưa
-            if (!$.fn.DataTable.isDataTable('#usersTable')) {
-                $('#usersTable').DataTable({
-                    "responsive": true,
-                    "lengthChange": true,
-                    "autoWidth": true,
-                    "scrollX": true,
-                    "pageLength": 25,
-                    "order": [[0, "asc"]],
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
-                    },
-                    "columnDefs": [
-                        { "orderable": false, "targets": 12 }, // Cột thao tác không sắp xếp được
-                        { "width": "80px", "targets": 0 },    // ID column
-                        { "width": "120px", "targets": 1 },   // Username
-                        { "width": "150px", "targets": 2 },   // Email
-                        { "width": "100px", "targets": 3 },   // Phone
-                        { "width": "100px", "targets": 4 },   // Balance
-                        { "width": "80px", "targets": 5 },    // Status
-                        { "width": "100px", "targets": 6 },   // Roles
-                        { "width": "120px", "targets": 7 },   // Created Date
-                        { "width": "80px", "targets": 8 },    // Orders
-                        { "width": "80px", "targets": 9 },    // Shops
-                        { "width": "100px", "targets": 10 },  // Products
-                        { "width": "100px", "targets": 11 },  // eKYC
-                        { "width": "150px", "targets": 12 }   // Actions
-                    ]
+            // No DataTables - just regular table
+            console.log('Using regular table display');
+        });
+
+        // Add loading state to search button
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('searchForm');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tìm kiếm...';
+                        submitBtn.disabled = true;
+                    }
                 });
             }
         });
+
     </script>
 }

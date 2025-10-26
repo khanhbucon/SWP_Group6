@@ -1,0 +1,184 @@
+/* Transaction History Styles */
+.transaction-card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.transaction-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    border: none;
+}
+
+.transaction-card .card-header h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.summary-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+}
+
+.summary-card .card-body {
+    padding: 1.5rem;
+}
+
+.summary-card h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.summary-card p {
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+
+.transaction-table {
+    margin-top: 1rem;
+}
+
+.transaction-table th {
+    background-color: #f8f9fa;
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.transaction-table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.transaction-table .badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.transaction-table .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Transaction Details Styles */
+.detail-card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.detail-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    border: none;
+}
+
+.detail-info {
+    padding: 1rem 0;
+}
+
+.detail-info .row {
+    margin-bottom: 0.5rem;
+}
+
+.detail-info strong {
+    color: #495057;
+    font-weight: 600;
+}
+
+.detail-summary {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.detail-summary i {
+    margin-bottom: 1rem;
+}
+
+.detail-summary h4 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.detail-summary p {
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .summary-card .card-body {
+        padding: 1rem;
+    }
+
+    .summary-card h4 {
+        font-size: 1.25rem;
+    }
+
+    .transaction-table {
+        font-size: 0.875rem;
+    }
+
+    .transaction-table td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+/* Loading states */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 0.25rem solid #f3f3f3;
+    border-top: 0.25rem solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
