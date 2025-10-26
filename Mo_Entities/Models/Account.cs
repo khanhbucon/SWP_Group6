@@ -35,6 +35,8 @@ public partial class Account
 
     public virtual ICollection<Message> MessageSenders { get; set; } = new List<Message>();
 
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
     public virtual ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
 
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();

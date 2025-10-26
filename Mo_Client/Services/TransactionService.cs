@@ -30,7 +30,7 @@ namespace Mo_Client.Services
                 _httpClient.DefaultRequestHeaders.Authorization = 
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/account/transaction-history";
+                var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/Transaction/my-history";
                 var response = await _httpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
