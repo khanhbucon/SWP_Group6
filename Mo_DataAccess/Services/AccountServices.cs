@@ -132,15 +132,24 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             throw new InvalidOperationException("Missing Jwt:Key configuration");
         }
 
+        var issuer = _configuration["Jwt:Issuer"];
+        var audience = _configuration["Jwt:Audience"];
+        
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(15);
+        var expires = DateTime.UtcNow.AddMinutes(60);
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
             new Claim("purpose", "reset")
         };
-        var token = new JwtSecurityToken(claims: claims, expires: expires, signingCredentials: creds);
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: expires,
+            signingCredentials: creds
+        );
         var resetToken = new JwtSecurityTokenHandler().WriteToken(token);
 
         var resetBaseUrl = _configuration["App:ResetPasswordUrl"] ?? string.Empty;
@@ -181,12 +190,14 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
         var tokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidIssuer = _configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = _configuration["Jwt:Audience"],
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(30)
+            ClockSkew = TimeSpan.FromMinutes(5)
         };
 
         var handler = new JwtSecurityTokenHandler();
@@ -401,24 +412,47 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
     public async Task<ProfileResponse> GetProfileByIdAsync(long userId)
     {
         var account = await _context.Accounts
-            .Include(a => a.Roles)
-            .FirstOrDefaultAsync(a => a.Id == userId);
+         .Include(a => a.Roles)
+         .Include(a => a.Shops)
+         .ThenInclude(s => s.Products)
+         .SingleOrDefaultAsync(a => a.Id == userId);
 
         if (account == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException($"Account với ID {userId} không tồn tại");
 
-        // Tính toán thống kê
-        var totalOrders = await _context.OrderProducts
-            .Where(op => op.AccountId == userId)
-            .CountAsync();
+        //  Đếm số đơn hàng đã mua
+        var totalOrders = await _context.Set<OrderProduct>()
+            .CountAsync(o => o.AccountId == account.Id);
 
-        var totalShops = await _context.Shops
-            .Where(s => s.AccountId == userId)
-            .CountAsync();
+        //  Đếm số gian hàng
+        var totalShops = account.Shops?.Count ?? 0;
 
-        var totalProductsSold = await _context.OrderProducts
-            .Where(op => op.AccountId == userId)
-            .SumAsync(op => op.Quantity);
+        //  Đếm số sản phẩm đã bán
+        var totalProductsSold = 0;
+        if (account.Shops != null && account.Shops.Any())
+        {
+            var productIds = account.Shops
+                .SelectMany(s => s.Products)
+                .Select(p => p.Id)
+                .ToList();
+
+            totalProductsSold = await _context.Set<OrderProduct>()
+                .Where(o => _context.Set<ProductVariant>()
+                    .Where(pv => productIds.Contains(pv.ProductId))
+                    .Select(pv => pv.Id)
+                    .Contains(o.ProductVariantId))
+                .SumAsync(o => o.Quantity);
+        }
+
+        //  Thêm thông tin chi tiết về Shop (nếu cần)
+        var shopDetails = account.Shops?.Select(s => new
+        {
+            ShopId = s.Id,
+            ShopName = s.Name,
+            ProductCount = s.Products?.Count ?? 0,
+            IsActive = s.IsActive
+        }).ToList();
+
 
         return new Mo_Entities.ModelResponse.ProfileResponse
         {

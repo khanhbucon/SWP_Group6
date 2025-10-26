@@ -141,8 +141,11 @@
 
                         <div class="form-group">
                             <label asp-for="Username" class="font-weight-bold" >Tên đăng nhập *</label>
-                            <input asp-for="Username" class="form-control" />
+                            <input asp-for="Username" class="form-control" readonly style="background-color: #e9ecef; cursor: not-allowed;" />
                             <span asp-validation-for="Username" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Tên đăng nhập không thể thay đổi
+                            </small>
                         </div>
 
                         <div class="form-group">
