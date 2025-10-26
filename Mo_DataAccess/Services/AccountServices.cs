@@ -146,8 +146,9 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
             new Claim("purpose", "reset_password"),
-            new Claim("email", account.Email)
+            new Claim(JwtRegisteredClaimNames.Email, account.Email)
         };
 
         var token = new JwtSecurityToken(
@@ -221,7 +222,16 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
         };
 
         var handler = new JwtSecurityTokenHandler();
-        var principal = handler.ValidateToken(token, tokenValidationParameters, out _);
+        ClaimsPrincipal principal;
+        
+        try
+        {
+            principal = handler.ValidateToken(token, tokenValidationParameters, out _);
+        }
+        catch (Exception ex)
+        {
+            throw new SecurityTokenException($"Token validation failed: {ex.Message}");
+        }
 
         var purpose = principal.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
         if (purpose != "reset_password")
@@ -229,8 +239,19 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             throw new SecurityTokenException("Invalid token purpose");
         }
 
+        // Tìm account ID từ các claim types khác nhau
         var sub = principal.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-        if (!long.TryParse(sub, out var accountId))
+        var nameIdentifier = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        
+        // Sử dụng nameIdentifier nếu sub không có
+        var accountIdString = sub ?? nameIdentifier;
+        
+        if (string.IsNullOrEmpty(accountIdString))
+        {
+            throw new SecurityTokenException("Token sub and nameIdentifier are null or empty");
+        }
+        
+        if (!long.TryParse(accountIdString, out var accountId))
         {
             throw new SecurityTokenException("Invalid account ID in token");
         }
