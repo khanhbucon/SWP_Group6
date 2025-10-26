@@ -1,6 +1,56 @@
 @Mo_Api_HostAddress = http://localhost:5056
+@BearerToken = YOUR_JWT_TOKEN_HERE
 
 GET {{Mo_Api_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+## ========================================
+## ORDER HISTORY API - Đơn Hàng Đã Mua
+## Chú ý: Cần đăng nhập trước để lấy JWT token
+## ========================================
+
+### 1. Lấy tất cả đơn hàng của user đang đăng nhập
+GET {{Mo_Api_HostAddress}}/api/Order/my-orders
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### 2. Lấy đơn hàng đã hoàn thành
+GET {{Mo_Api_HostAddress}}/api/Order/my-orders?status=COMPLETED
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### 3. Lấy đơn hàng đang xử lý
+GET {{Mo_Api_HostAddress}}/api/Order/my-orders?status=PENDING
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### 4. Lấy đơn hàng đã hủy
+GET {{Mo_Api_HostAddress}}/api/Order/my-orders?status=CANCELLED
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### 5. Lấy chi tiết một đơn hàng cụ thể (orderId = 1)
+GET {{Mo_Api_HostAddress}}/api/Order/1
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### 6. Lấy thống kê đơn hàng của user
+GET {{Mo_Api_HostAddress}}/api/Order/stats
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
 
 ###
