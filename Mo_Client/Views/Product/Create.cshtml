@@ -45,11 +45,28 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-floating">
-                        <input asp-for="SubCategoryId" class="form-control" placeholder="Nhập ID danh mục" />
-                        <label asp-for="SubCategoryId"><i class="fas fa-list me-2"></i>Danh mục (ID)</label>
-                        <div class="form-text"><i class="fas fa-info-circle me-1"></i>Tạm thời nhập ID SubCategory - sẽ cải thiện thành dropdown</div>
-                        <span asp-validation-for="SubCategoryId" class="text-danger small"></span>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select id="categorySelect" class="form-select" aria-label="Chọn danh mục">
+                                    <option value="">-- Chọn danh mục --</option>
+                                    @foreach (var c in (IEnumerable<Mo_Client.Services.AuthApiClient.IdName>)(ViewBag.Categories ?? new List<Mo_Client.Services.AuthApiClient.IdName>()))
+                                    {
+                                        <option value="@c.Id">@c.Name</option>
+                                    }
+                                </select>
+                                <label for="categorySelect"><i class="fas fa-sitemap me-2"></i>Danh mục</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select asp-for="SubCategoryId" id="subCategorySelect" class="form-select" required>
+                                    <option value="">-- Chọn loại sản phẩm --</option>
+                                </select>
+                                <label for="subCategorySelect"><i class="fas fa-list me-2"></i>Loại sản phẩm</label>
+                                <span asp-validation-for="SubCategoryId" class="text-danger small"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -60,17 +77,12 @@
                         <span asp-validation-for="Price" class="text-danger small"></span>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-floating">
-                        <input asp-for="Stock" class="form-control" placeholder="0" />
-                        <label asp-for="Stock"><i class="fas fa-warehouse me-2"></i>Số lượng tồn kho</label>
-                        <span asp-validation-for="Stock" class="text-danger small"></span>
-                    </div>
+             
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input asp-for="Fee" class="form-control" placeholder="0" step="0.01" />
-                        <label asp-for="Fee"><i class="fas fa-percentage me-2"></i>Phí sàn (%, tuỳ chọn)</label>
+                        <label asp-for="Fee"><i class="fas fa-percentage me-2"></i>Phí sàn theo catelory </label>
                         <div class="form-text">Nếu để trống sẽ dùng mặc định hệ thống.</div>
                         <span asp-validation-for="Fee" class="text-danger small"></span>
                     </div>
@@ -214,6 +226,35 @@
     .editor-toolbar { padding: 6px; gap: 4px; }
 }
 </style>
+
+<script>
+// Cascading Category -> SubCategory
+document.addEventListener('DOMContentLoaded', function () {
+    const categorySelect = document.getElementById('categorySelect');
+    const subCategorySelect = document.getElementById('subCategorySelect');
+
+    async function loadSubCategories(categoryId) {
+        subCategorySelect.innerHTML = '<option value="">-- Chọn loại sản phẩm --</option>';
+        if (!categoryId) return;
+        try {
+            const resp = await fetch(`@Url.Action("SubCategories", "Product")?categoryId=${categoryId}`);
+            const json = await resp.json();
+            if (json && json.success) {
+                for (const sc of json.data) {
+                    const opt = document.createElement('option');
+                    opt.value = sc.id;
+                    opt.textContent = sc.name;
+                    subCategorySelect.appendChild(opt);
+                }
+            }
+        } catch { }
+    }
+
+    categorySelect.addEventListener('change', function () {
+        loadSubCategories(this.value);
+    });
+});
+</script>
 
 <script>
 // Rich Text Editor functionality

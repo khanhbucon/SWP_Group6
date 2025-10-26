@@ -15,12 +15,16 @@ public class ProductController : ControllerBase
     private readonly IProductServices _products;
     private readonly IProductVariantServices _variants;
     private readonly IShopServices _shops;
+    private readonly IProductStoreServices _stores;
+    private readonly SwpGroup6Context _db;
 
-    public ProductController(IProductServices products, IProductVariantServices variants, IShopServices shops)
+    public ProductController(IProductServices products, IProductVariantServices variants, IShopServices shops, IProductStoreServices stores, SwpGroup6Context db)
     {
         _products = products;
         _variants = variants;
         _shops = shops;
+        _stores = stores;
+        _db = db;
     }
 
     [HttpGet("my")]
@@ -97,6 +101,142 @@ public class ProductController : ControllerBase
                 MaxPrice = maxPrice
             }
         });
+    }
+
+    [HttpGet("{productId:long}/variants")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> GetVariants(long productId)
+    {
+        // Verify ownership
+        var userId = User.GetUserId();
+        if (!userId.HasValue) return Unauthorized();
+        var product = await _products.GetByIdAsync(productId);
+        if (product == null) return NotFound(new { Success = false, Message = "Product not found" });
+        var shop = await _shops.GetByIdAsync(product.ShopId);
+        if (shop == null || shop.AccountId != userId.Value) return Forbid();
+
+        var variants = await _db.ProductVariants.Where(v => v.ProductId == productId)
+            .OrderBy(v => v.Price)
+            .Select(v => new { v.Id, v.Name, v.Price, v.Stock })
+            .ToListAsync();
+        return Ok(new { Success = true, Data = variants });
+    }
+
+    public class BulkImportRequest
+    {
+        public List<string> Lines { get; set; } = new();
+        public bool IgnoreDuplicates { get; set; } = true;
+    }
+
+    public class LineResult
+    {
+        public int Index { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public bool Success { get; set; }
+        public string? Error { get; set; }
+    }
+
+    [HttpPost("{productId:long}/import/{variantId:long}")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> ImportToVariant(long productId, long variantId, [FromBody] BulkImportRequest request)
+    {
+        Console.WriteLine($"API ImportToVariant called: ProductId={productId}, VariantId={variantId}, Lines={request?.Lines?.Count ?? 0}");
+        
+        if (request?.Lines == null || request.Lines.Count == 0)
+            return BadRequest(new { Success = false, Message = "No data provided" });
+
+        var userId = User.GetUserId();
+        if (!userId.HasValue) return Unauthorized();
+        
+        Console.WriteLine($"User ID: {userId.Value}");
+
+        // Validate product ownership and variant relation
+        var product = await _products.GetByIdAsync(productId);
+        if (product == null) return NotFound(new { Success = false, Message = "Product not found" });
+        var shop = await _shops.GetByIdAsync(product.ShopId);
+        if (shop == null || shop.AccountId != userId.Value) return Forbid();
+
+        var variant = await _db.ProductVariants.FirstOrDefaultAsync(v => v.Id == variantId && v.ProductId == productId);
+        if (variant == null) return NotFound(new { Success = false, Message = "Variant not found for product" });
+
+        var results = new List<LineResult>();
+        int ok = 0, fail = 0, idx = 0;
+
+        using var tx = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            // Set timeout for large operations
+            _db.Database.SetCommandTimeout(300); // 5 minutes
+            
+            foreach (var raw in request.Lines)
+            {
+                idx++;
+                var line = raw?.Trim();
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    fail++; results.Add(new LineResult { Index = idx, Content = raw ?? string.Empty, Success = false, Error = "Empty line" });
+                    continue;
+                }
+
+                // duplicate check by value within same variant
+                var exists = await _db.ProductStores.AnyAsync(s => s.ProductVariantId == variantId && s.Value == line);
+                if (exists && !request.IgnoreDuplicates)
+                {
+                    fail++; results.Add(new LineResult { Index = idx, Content = line, Success = false, Error = "Duplicate" });
+                    continue;
+                }
+                if (!exists)
+                {
+                    var store = new ProductStore
+                    {
+                        ProductVariantId = variantId,
+                        Content = $"{product.Name} {variant.Name}",
+                        Value = line,
+                        Status = "AVAILABLE",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _db.ProductStores.Add(store);
+                    ok++; results.Add(new LineResult { Index = idx, Content = line, Success = true });
+                }
+                else
+                {
+                    // ignored duplicate silently counted as fail
+                    fail++; results.Add(new LineResult { Index = idx, Content = line, Success = false, Error = "Duplicate (ignored)" });
+                }
+            }
+
+            // Update stock by number of newly inserted rows
+            if (ok > 0)
+            {
+                variant.Stock = (variant.Stock ?? 0) + ok;
+                _db.ProductVariants.Update(variant);
+            }
+
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await tx.RollbackAsync();
+            }
+            catch (Exception rollbackEx)
+            {
+                // Log rollback exception but don't throw
+                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+            }
+            
+            // Log the original exception
+            Console.WriteLine($"Import failed: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            
+            return StatusCode(500, new { Success = false, Message = $"Import failed: {ex.Message}" });
+        }
+
+        var total = ok + fail;
+        return Ok(new { Success = true, Summary = $"TOTAL:{total} | SUCCESS:{ok} | ERROR:{fail}", Results = results });
     }
 
     [HttpPost]
