@@ -1,17 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 
-
-public class ResetPasswordRequest
+namespace Mo_Entities.ModelRequest
 {
-    [Required]
-    public string Token { get; set; } = string.Empty;
+    public class ResetPasswordRequest
+    {
+        [Required(ErrorMessage = "Token is required")]
+        public string Token { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
-    [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
-    public string NewPassword { get; set; } = string.Empty;
+        [Required(ErrorMessage = "New password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 100 characters")]
+        public string NewPassword { get; set; } = string.Empty;
 
-    [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
-    public string ConfirmNewPassword { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Confirm password is required")]
+        [Compare("NewPassword", ErrorMessage = "Password and confirm password do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 }
-
-

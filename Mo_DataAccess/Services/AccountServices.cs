@@ -79,8 +79,8 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        // RememberMe affects access token duration
-        var expires = rememberMe ? DateTime.UtcNow.AddMinutes(5) : DateTime.UtcNow.AddMinutes(1);
+      // RememberMe affects access token duration
+      var expires = rememberMe ? DateTime.UtcNow.AddMinutes(durationInMinutes) : DateTime.UtcNow.AddMinutes(durationInMinutes / 2);
 
         var claims = new List<Claim>
         {
@@ -120,12 +120,15 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
     public async Task SendResetPasswordEmailAsync(string email)
     {
+        // Tìm account theo email
         var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Email == email);
         if (account == null)
         {
+            // Không throw exception để tránh leak thông tin về email có tồn tại hay không
             return;
         }
 
+        // Lấy cấu hình JWT
         var jwtKey = _configuration["Jwt:Key"] ?? string.Empty;
         if (string.IsNullOrWhiteSpace(jwtKey))
         {
@@ -134,15 +137,19 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
         var issuer = _configuration["Jwt:Issuer"];
         var audience = _configuration["Jwt:Audience"];
-        
+
+        // Tạo reset password token
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(60);
+        var expires = DateTime.UtcNow.AddMinutes(30); // Reset password token - 30 phút
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
-            new Claim("purpose", "reset")
+            new Claim("purpose", "reset_password"),
+            new Claim("email", account.Email)
         };
+
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,
@@ -150,32 +157,45 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             expires: expires,
             signingCredentials: creds
         );
+
         var resetToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-        var resetBaseUrl = _configuration["App:ResetPasswordUrl"] ?? string.Empty;
-        var resetLink = string.IsNullOrWhiteSpace(resetBaseUrl)
-            ? $"https://example.com/reset?token={WebUtility.UrlEncode(resetToken)}"
-            : $"{resetBaseUrl}{WebUtility.UrlEncode(resetToken)}";
-
-        // Read sender config from SystemsConfig in DB
-        var sysCfg = await _context.Set<SystemsConfig>().AsNoTracking().FirstOrDefaultAsync();
-        if (sysCfg == null || string.IsNullOrWhiteSpace(sysCfg.Email) || string.IsNullOrWhiteSpace(sysCfg.GoogleAppPassword))
+        // Lấy cấu hình email từ SystemsConfig
+        var sysConfig = await _context.Set<SystemsConfig>().AsNoTracking().FirstOrDefaultAsync();
+        if (sysConfig == null || string.IsNullOrWhiteSpace(sysConfig.Email) || string.IsNullOrWhiteSpace(sysConfig.GoogleAppPassword))
         {
             throw new InvalidOperationException("Thiếu cấu hình email trong SystemsConfig");
         }
 
+        // Tạo reset link
+        var resetBaseUrl = _configuration["App:ResetPasswordUrl"] ?? "https://localhost:7164/Account/ResetPassword?token=";
+        var resetLink = $"{resetBaseUrl}{WebUtility.UrlEncode(resetToken)}";
+
+        // Gửi email
         using var smtp = new SmtpClient("smtp.gmail.com", 587)
         {
             EnableSsl = true,
-            Credentials = new NetworkCredential(sysCfg.Email, sysCfg.GoogleAppPassword)
+            Credentials = new NetworkCredential(sysConfig.Email, sysConfig.GoogleAppPassword)
         };
+
         var mail = new MailMessage
         {
-            From = new MailAddress(sysCfg.Email),
-            Subject = "Đặt lại mật khẩu",
-            Body = $"Nhấn vào liên kết để đặt lại mật khẩu: {resetLink}",
-            IsBodyHtml = false
+            From = new MailAddress(sysConfig.Email),
+            Subject = "Đặt lại mật khẩu - SWP Group6",
+            Body = $@"
+                <h2>Đặt lại mật khẩu</h2>
+                <p>Xin chào {account.Username},</p>
+                <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
+                <p>Nhấn vào liên kết bên dưới để đặt lại mật khẩu:</p>
+                <p><a href=""{resetLink}"" style=""background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;"">Đặt lại mật khẩu</a></p>
+                <p>Liên kết này sẽ hết hạn sau 30 phút.</p>
+                <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                <br>
+                <p>Trân trọng,<br>Đội ngũ SWP Group6</p>
+            ",
+            IsBodyHtml = true
         };
+
         mail.To.Add(account.Email);
         await smtp.SendMailAsync(mail);
     }
@@ -197,24 +217,38 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromMinutes(5)
+            ClockSkew = TimeSpan.FromMinutes(30)
         };
 
         var handler = new JwtSecurityTokenHandler();
         var principal = handler.ValidateToken(token, tokenValidationParameters, out _);
+
         var purpose = principal.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
-        if (purpose != "reset") throw new SecurityTokenException("Invalid purpose");
+        if (purpose != "reset_password")
+        {
+            throw new SecurityTokenException("Invalid token purpose");
+        }
 
         var sub = principal.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-        if (!long.TryParse(sub, out var accountId)) throw new SecurityTokenException("Invalid subject");
+        if (!long.TryParse(sub, out var accountId))
+        {
+            throw new SecurityTokenException("Invalid account ID in token");
+        }
 
         var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Id == accountId);
-        if (account == null) return;
+        if (account == null)
+        {
+            throw new InvalidOperationException("Account not found");
+        }
 
         account.Password = ComputeSha256(newPassword);
+        account.UpdatedAt = DateTime.UtcNow;
+
         _context.Update(account);
         await _context.SaveChangesAsync();
     }
+
+
 
     private static string ComputeSha256(string raw)
     {

@@ -92,6 +92,7 @@ public class AccountController : Controller
         }
     }
 
+
     [HttpGet]
     public IActionResult ForgotPassword()
     {
@@ -105,17 +106,17 @@ public class AccountController : Controller
 
         try
         {
-            var success = await _authApiClient.ForgotPasswordAsync(
+            var (success, message) = await _authApiClient.ForgotPasswordAsync(
                 new AuthService.ForgotPasswordRequest(vm.Email), ct);
 
             if (success)
             {
-                vm.Success = "Chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư.";
+                vm.Success = message ?? "Chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư.";
                 vm.Email = string.Empty; // Clear email for security
             }
             else
             {
-                vm.Error = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.";
+                vm.Error = message ?? "Có lỗi xảy ra khi gửi email đặt lại mật khẩu.";
             }
         }
         catch (Exception ex)
@@ -134,6 +135,16 @@ public class AccountController : Controller
             return RedirectToAction("ForgotPassword");
         }
 
+        try
+        {
+            var decodedToken = System.Web.HttpUtility.UrlDecode(token);
+            token = decodedToken;
+        }
+        catch (Exception)
+        {
+            // Ignore decode errors
+        }
+
         return View(new ResetPasswordVm { Token = token });
     }
 
@@ -144,17 +155,17 @@ public class AccountController : Controller
 
         try
         {
-            var success = await _authApiClient.ResetPasswordAsync(
-                new AuthService.ResetPasswordRequest(vm.Token, vm.NewPassword), ct);
+            var (success, message) = await _authApiClient.ResetPasswordAsync(
+                new AuthService.ResetPasswordRequest(vm.Token, vm.NewPassword, vm.ConfirmPassword), ct);
 
             if (success)
             {
-                vm.Success = "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.";
-                return RedirectToAction("Login", new { success = "Đặt lại mật khẩu thành công!" });
+                vm.Success = message ?? "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.";
+                return RedirectToAction("Login", new { success = vm.Success });
             }
             else
             {
-                vm.Error = "Token không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
+                vm.Error = message ?? "Token không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
             }
         }
         catch (Exception ex)

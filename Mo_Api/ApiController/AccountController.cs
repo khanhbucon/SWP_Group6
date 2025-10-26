@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.ModelRequest;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
+
 using Mo_Api.Extensions;
 using Mo_Entities.ModelResponse;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Mo_Api.ApiController;
 
@@ -20,6 +20,7 @@ public class AccountController : ControllerBase
         _accountServices = accountServices;
     }
 
+
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
@@ -27,8 +28,46 @@ public class AccountController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-        await _accountServices.SendResetPasswordEmailAsync(request.Email);
-        return Ok();
+
+        try
+        {
+            await _accountServices.SendResetPasswordEmailAsync(request.Email);
+            return Ok(new ForgotPasswordResponse 
+            { 
+                Success = true, 
+                Message = "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn." 
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ForgotPasswordResponse 
+            { 
+                Success = false, 
+                Message = ex.Message 
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ForgotPasswordResponse 
+            { 
+                Success = false, 
+                Message = "Có lỗi xảy ra khi gửi email đặt lại mật khẩu." 
+            });
+        }
+    }
+
+    [HttpGet("test-generate-reset-token/{email}")]
+    public async Task<IActionResult> TestGenerateResetToken(string email)
+    {
+        try
+        {
+            await _accountServices.SendResetPasswordEmailAsync(email);
+            return Ok(new { message = "Test token generated and sent to email" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPost("reset-password")]
@@ -38,8 +77,40 @@ public class AccountController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-        await _accountServices.ResetPasswordAsync(request.Token, request.NewPassword);
-        return Ok();
+
+        try
+        {
+            await _accountServices.ResetPasswordAsync(request.Token, request.NewPassword);
+            return Ok(new ResetPasswordResponse 
+            { 
+                Success = true, 
+                Message = "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới." 
+            });
+        }
+        catch (SecurityTokenException)
+        {
+            return BadRequest(new ResetPasswordResponse 
+            { 
+                Success = false, 
+                Message = "Token không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu đặt lại mật khẩu mới." 
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ResetPasswordResponse 
+            { 
+                Success = false, 
+                Message = ex.Message 
+            });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResetPasswordResponse 
+            { 
+                Success = false, 
+                Message = "Có lỗi xảy ra khi đặt lại mật khẩu." 
+            });
+        }
     }
 
     [HttpGet("Admin/GetAllAccount")]
