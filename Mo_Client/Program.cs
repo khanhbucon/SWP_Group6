@@ -16,6 +16,7 @@ builder.Services.AddHttpClient<UserService>();
 builder.Services.AddHttpClient<AdminService>();
 builder.Services.AddHttpClient<CategoryService>();
 builder.Services.AddHttpClient<TransactionService>();
+builder.Services.AddHttpClient<OrderService>();
 
 
 var app = builder.Build();

@@ -1,0 +1,172 @@
+@model Mo_Entities.ModelResponse.OrderHistoryResponse
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/order-detail.css" />
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <div class="mb-3">
+                <a asp-action="MyOrders" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách đơn hàng
+                </a>
+            </div>
+
+            <!-- Order Header -->
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shopping-bag"></i> 
+                        Đơn hàng #@Model.OrderId
+                        <span class="badge bg-light text-dark float-right">
+                            @Model.StatusDisplay
+                        </span>
+                    </h4>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Left Column: Product Info -->
+                <div class="col-md-8">
+                    <!-- Product Info Card -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-box"></i> Thông tin sản phẩm</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    @if (!string.IsNullOrEmpty(Model.ProductImageBase64))
+                                    {
+                                        <img src="data:image/jpeg;base64,@Model.ProductImageBase64" 
+                                             alt="@Model.ProductName" 
+                                             class="img-fluid product-detail-image" />
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image-large">
+                                            <i class="fas fa-image fa-5x"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-8">
+                                    <h4>@Model.ProductName</h4>
+                                    @if (!string.IsNullOrEmpty(Model.ProductDescription))
+                                    {
+                                        <p class="text-muted">@Model.ProductDescription</p>
+                                    }
+                                    <hr>
+                                    <p><strong>Variant:</strong> @Model.VariantName</p>
+                                    <p><strong>Giá:</strong> @Model.VariantPriceDisplay</p>
+                                    <p><strong>Số lượng:</strong> @Model.Quantity</p>
+                                    <p><strong>Tổng tiền:</strong> 
+                                        <span class="text-success h5">@Model.TotalAmountDisplay</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Codes Card -->
+                    @if (Model.ProductCodes != null && Model.ProductCodes.Any())
+                    {
+                        <div class="card mb-3">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-key"></i> Mã sản phẩm
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var code in Model.ProductCodes)
+                                {
+                                    <div class="code-item mb-3 p-3 border rounded">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <strong>@code.Content:</strong>
+                                            </div>
+                                            <div class="col-md-7">
+                                                <div class="input-group">
+                                                    <input type="text" 
+                                                           class="form-control code-value" 
+                                                           value="@code.Value" 
+                                                           readonly>
+                                                    <button class="btn btn-outline-primary" 
+                                                            type="button"
+                                                            onclick="copyToClipboard('@code.Value')">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 text-right">
+                                                <span class="badge bg-@(code.Status == "AVAILABLE" ? "success" : "secondary")">
+                                                    @code.StatusDisplay
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Right Column: Order & Shop Info -->
+                <div class="col-md-4">
+                    <!-- Order Info Card -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Mã đơn:</strong> #@Model.OrderId</p>
+                            <p><strong>Trạng thái:</strong> 
+                                <span class="badge bg-@Model.StatusClass">@Model.StatusDisplay</span>
+                            </p>
+                            <p><strong>Ngày đặt:</strong> @Model.CreatedAtDisplay</p>
+                            <p><strong>Thành tiền:</strong> @Model.TotalAmountDisplay</p>
+                        </div>
+                    </div>
+
+                    <!-- Shop Info Card -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-store"></i> Thông tin cửa hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6>@Model.ShopName</h6>
+                            @if (!string.IsNullOrEmpty(Model.ShopDescription))
+                            {
+                                <p class="text-muted small">@Model.ShopDescription</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ShopEmail))
+                            {
+                                <p><i class="fas fa-envelope"></i> @Model.ShopEmail</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ShopPhone))
+                            {
+                                <p><i class="fas fa-phone"></i> @Model.ShopPhone</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show toast notification
+                alert('Đã copy: ' + text);
+            });
+        }
+    </script>
+}
+
