@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Services;
-using ClosedXML.Excel; // Added for Excel parsing/template
 
 namespace Mo_Client.Controllers;
 
@@ -166,7 +165,7 @@ public class ProductController : Controller
         return RedirectToAction("Details", new { id = productId });
     }
 
-    // =============== BULK UPLOAD FROM TXT/EXCEL (Create multiple products) ===============
+    // =============== BULK UPLOAD FROM TXT (Create multiple products) ===============
     [HttpGet]
     public async Task<IActionResult> BulkUpload()
     {
@@ -195,7 +194,7 @@ public class ProductController : Controller
 
         if (file == null || file.Length == 0)
         {
-            TempData["Error"] = "Vui lòng chọn file .txt hoặc .xlsx";
+            TempData["Error"] = "Vui lòng chọn file .txt";
             return View();
         }
         var results = new List<LineResult>();
@@ -203,20 +202,14 @@ public class ProductController : Controller
 
         try
         {
-            IEnumerable<string> linesEnumerable;
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (ext == ".xlsx")
+            using var sr = new StreamReader(file.OpenReadStream());
+            string? line; int idx = 0;
+            while ((line = await sr.ReadLineAsync()) != null)
             {
-                linesEnumerable = ReadLinesFromExcel(file);
-            }
-            else
-            {
-                linesEnumerable = await ReadLinesFromTxtAsync(file);
-            }
+                idx++; total++;
+                var trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
 
-            foreach (var trimmed in linesEnumerable)
-            {
-                total++;
                 var req = new AuthApiClient.CreateProductRequest(
                     shopId,
                     name,
@@ -236,7 +229,7 @@ public class ProductController : Controller
                 var resp = await http.PostAsJsonAsync("/api/product", req);
                 if (resp.IsSuccessStatusCode)
                 {
-                    ok++; results.Add(new LineResult { Index = total, Content = trimmed, Success = true });
+                    ok++; results.Add(new LineResult { Index = idx, Content = trimmed, Success = true });
                 }
                 else
                 {
@@ -247,7 +240,7 @@ public class ProductController : Controller
                         if (!string.IsNullOrWhiteSpace(json)) reason = json.Length > 120 ? json[..120] + "..." : json;
                     }
                     catch { }
-                    results.Add(new LineResult { Index = total, Content = trimmed, Success = false, Error = reason });
+                    results.Add(new LineResult { Index = idx, Content = trimmed, Success = false, Error = reason });
                 }
             }
         }
@@ -260,41 +253,6 @@ public class ProductController : Controller
         ViewBag.Results = results;
         ViewBag.Summary = $"TOTAL:{total} | SUCCESS:{ok} | ERROR:{fail}";
         return View();
-    }
-
-    private static async Task<List<string>> ReadLinesFromTxtAsync(IFormFile file)
-    {
-        var lines = new List<string>();
-        using var sr = new StreamReader(file.OpenReadStream());
-        while (!sr.EndOfStream)
-        {
-            var l = (await sr.ReadLineAsync())?.Trim();
-            if (!string.IsNullOrWhiteSpace(l)) lines.Add(l!);
-        }
-        return lines;
-    }
-
-    private static List<string> ReadLinesFromExcel(IFormFile file)
-    {
-        var lines = new List<string>();
-        using var wb = new XLWorkbook(file.OpenReadStream());
-        var ws = wb.Worksheets.First();
-        var firstRow = ws.FirstRowUsed()?.RowNumber() ?? 1;
-        var lastRow = ws.LastRowUsed()?.RowNumber() ?? ws.LastRowUsed()?.RowNumber() ?? 0;
-        if (lastRow == 0) return lines;
-
-        // Identify header in column A if present
-        var headerVal = ws.Cell(firstRow, 1).GetString().Trim();
-        bool hasHeader = string.Equals(headerVal, "value", StringComparison.OrdinalIgnoreCase)
-                       || string.Equals(headerVal, "serial", StringComparison.OrdinalIgnoreCase)
-                       || string.Equals(headerVal, "account", StringComparison.OrdinalIgnoreCase);
-        var start = hasHeader ? firstRow + 1 : firstRow;
-        for (int r = start; r <= lastRow; r++)
-        {
-            var v = ws.Cell(r, 1).GetString()?.Trim();
-            if (!string.IsNullOrWhiteSpace(v)) lines.Add(v);
-        }
-        return lines;
     }
 
     // =============== BULK UPLOAD FOR SPECIFIC PRODUCT (e.g., add accounts to one product) ===============
@@ -312,23 +270,6 @@ public class ProductController : Controller
         var variants = await _api.GetVariantsAsync(productId) ?? new List<AuthApiClient.VariantDto>();
         ViewBag.Variants = variants;
         return View();
-    }
-
-    [HttpGet]
-    public IActionResult DownloadSerialTemplate()
-    {
-        // Provide an Excel template with header "Value" and a few sample rows
-        using var wb = new XLWorkbook();
-        var ws = wb.AddWorksheet("Serials");
-        ws.Cell(1, 1).Value = "Value";
-        ws.Cell(2, 1).Value = "username|password";
-        ws.Cell(3, 1).Value = "serial-key-1";
-        ws.Cell(4, 1).Value = "serial-key-2";
-        ws.Columns().AdjustToContents();
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        ms.Position = 0;
-        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "add_product_template.xlsx");
     }
 
     [HttpPost]
@@ -353,7 +294,7 @@ public class ProductController : Controller
         }
         if (file == null || file.Length == 0)
         {
-            TempData["Error"] = "Vui lòng chọn file .xlsx (hoặc .txt)";
+            TempData["Error"] = "Vui lòng chọn file .txt";
             return View();
         }
 
@@ -367,14 +308,13 @@ public class ProductController : Controller
         var lines = new List<string>();
         try
         {
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (ext == ".xlsx")
+            using (var sr = new StreamReader(file.OpenReadStream()))
             {
-                lines = ReadLinesFromExcel(file);
-            }
-            else
-            {
-                lines = await ReadLinesFromTxtAsync(file);
+                while (!sr.EndOfStream)
+                {
+                    var l = (await sr.ReadLineAsync())?.Trim();
+                    if (!string.IsNullOrWhiteSpace(l)) lines.Add(l!);
+                }
             }
 
             // Validate number of lines (max 10000)

@@ -52,14 +52,7 @@
             <a asp-action="DownloadSerialTemplate" class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-1"></i>Tải Template</a>
             <button type="button" id="btnClearFile" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Xóa File</button>
         </div>
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Lưu ý:</strong>
-            <p>Excel theo template: Cột A1 tiêu đề "Value" giữ nguyên</p>
-            <p>Từ dòng 2 trở đi: Điền từng value (serial key, account, v.v.) vào mỗi ô của cột A.</p>
-            <p>Không cần điền các cột khác: Chỉ dùng cột A. Các cột B, C, D... có thể bỏ trống hoặc xóa nếu muốn.</p>
-            <p>Hỗ trợ cả .txt (mỗi dòng là một value).</p>
-        </div>
+        <small class="text-muted">Excel theo template: cột A tiêu đề "Value". Vẫn hỗ trợ .txt (mỗi dòng là một value).</small>
 
         <div id="fileInfo" class="alert alert-success mt-3 d-none">
             <div class="fw-semibold mb-1"><i class="fas fa-check-circle me-1"></i>File đã sẵn sàng!</div>
@@ -73,11 +66,14 @@
         </div>
     </div>
 
-    <div class="form-check mb-5">
+    <div class="form-check mb-3">
         <input class="form-check-input" type="checkbox" name="ignoreDuplicates" id="ignoreDuplicates" checked />
-        <label class="form-check-label fs-5 fw-bold" for="ignoreDuplicates">
-            Bỏ qua thông tin trùng (theo Value trong ProductStores)
-        </label>
+        <label class="form-check-label" for="ignoreDuplicates">Bỏ qua dòng trùng (theo Value trong ProductStores)</label>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Lưu ý:</strong> File sẽ được import vào bảng ProductStores với trạng thái AVAILABLE, cột value là nguyên dòng đọc được. Đồng thời tự động tăng stock của biến thể đã chọn theo số dòng thêm mới.
     </div>
 
     <div class="d-flex gap-2">

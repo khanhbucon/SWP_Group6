@@ -1,9 +1,9 @@
 ﻿@{
     Layout = "~/Views/Seller/_SellerLayout.cshtml";
-    ViewData["Title"] = "Tải lên dữ liệu sản phẩm (Excel)";
+    ViewData["Title"] = "Tải lên sản phẩm từ file .txt";
 }
 
-<h4 class="mb-3"><i class="fas fa-file-upload me-2 text-primary"></i>Tải lên sản phẩm từ file Excel (.xlsx)</h4>
+<h4 class="mb-3"><i class="fas fa-file-upload me-2 text-primary"></i>Tải lên sản phẩm từ file .txt</h4>
 
 @if(TempData["Error"]!=null){<div class="alert alert-danger">@TempData["Error"]</div>}
 @if(TempData["Success"]!=null){<div class="alert alert-success">@TempData["Success"]</div>}
@@ -43,26 +43,10 @@
             <label class="form-label">Tên biến thể</label>
             <input class="form-control" name="variantName" placeholder="Default" />
         </div>
-
-        <div class="col-12">
-            <label class="form-label">File Excel chứa Serial/Value</label>
-            <div class="d-flex gap-2 align-items-center">
-                <input id="fileInput" class="form-control" type="file" name="file" accept=".xlsx,.txt" required />
-                <a asp-action="DownloadSerialTemplate" class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-1"></i>Tải Template</a>
-                <button type="button" id="btnClearFile" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Xóa File</button>
-            </div>
-            <small class="text-muted">Ưu tiên file Excel theo template. Vẫn hỗ trợ .txt (mỗi dòng là một giá trị).</small>
-
-            <div id="fileInfo" class="alert alert-success mt-3 d-none">
-                <div class="fw-semibold mb-1"><i class="fas fa-check-circle me-1"></i>File Excel đã sẵn sàng!</div>
-                <div><i class="far fa-file-alt me-1"></i><strong>Tên file:</strong> <span data-field="name"></span></div>
-                <div><i class="far fa-hdd me-1"></i><strong>Kích thước:</strong> <span data-field="size"></span></div>
-                <div><i class="far fa-clock me-1"></i><strong>Ngày tạo:</strong> <span data-field="date"></span></div>
-                <small class="text-muted d-block mt-2">Đang xử lý và hiển thị danh sách values sẽ được thêm vào...</small>
-            </div>
-            <div id="fileTodo" class="alert alert-warning mt-2 d-none">
-                <i class="fas fa-list me-1"></i>Danh sách values sẽ được thêm vào
-            </div>
+        <div class="col-md-12">
+            <label class="form-label">Chọn file .txt (mỗi dòng 1 sản phẩm)</label>
+            <input class="form-control" type="file" name="file" accept=".txt" required />
+            <small class="text-muted">Mỗi dòng sẽ được lưu vào mô tả cho sản phẩm/tài khoản.</small>
         </div>
     </div>
     <div class="mt-3 d-flex gap-2">
@@ -96,29 +80,3 @@
         </div>
     </div>
 }
-
-<script>
-(function(){
-  const input = document.getElementById('fileInput');
-  const info = document.getElementById('fileInfo');
-  const todo = document.getElementById('fileTodo');
-  const btnClear = document.getElementById('btnClearFile');
-  function prettySize(bytes){
-    if(bytes < 1024) return bytes + ' B';
-    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
-    return (bytes/1024/1024).toFixed(2) + ' MB';
-  }
-  function update(){
-    if(!input.files || input.files.length===0){ info.classList.add('d-none'); todo.classList.add('d-none'); return; }
-    const f = input.files[0];
-    info.querySelector('[data-field=name]').textContent = f.name;
-    info.querySelector('[data-field=size]').textContent = prettySize(f.size);
-    const d = new Date(f.lastModified || Date.now());
-    info.querySelector('[data-field=date]').textContent = d.toLocaleString();
-    info.classList.remove('d-none');
-    todo.classList.remove('d-none');
-  }
-  input.addEventListener('change', update);
-  btnClear.addEventListener('click', function(){ input.value=''; update(); });
-})();
-</script>
