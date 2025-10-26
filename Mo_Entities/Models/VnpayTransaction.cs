@@ -21,5 +21,7 @@ public partial class VnpayTransaction
 
     public decimal Value { get; set; }
 
+    public string TransactionId { get; set; } = null!;
+
     public virtual PaymentTransaction PaymentTransaction { get; set; } = null!;
 }

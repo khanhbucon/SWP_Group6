@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mo_Api.Extensions;
 using Mo_DataAccess.Services.Interface;
+using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
 
 namespace Mo_Api.ApiController
@@ -121,6 +122,31 @@ namespace Mo_Api.ApiController
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi khi lấy thống kê", error = ex.Message });
+            }
+        }
+        [HttpPost("purchase")]
+        public async Task<ActionResult<PurchaseResponse>> Purchase([FromBody] PurchaseRequest request)
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Không tìm thấy thông tin user" });
+                }
+
+                var result = await _orderService.PurchaseProductAsync(userId.Value, request);
+
+                if (!result.Success)
+                {
+                    return BadRequest(new { message = result.Message });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi mua hàng", error = ex.Message });
             }
         }
     }

@@ -9,7 +9,8 @@ public class AccountController : Controller
 {
     private readonly AuthService _authApiClient;
     private readonly UserService _userService;
-    public AccountController(AuthService authApiClient, UserService userService )
+    
+    public AccountController(AuthService authApiClient, UserService userService)
     {
         _authApiClient = authApiClient;
         _userService = userService;
@@ -33,9 +34,6 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        // Debug logging
-        Console.WriteLine($"Login attempt - Identifier: {vm.Identifier}, RememberMe: {vm.RememberMe}");
-
         var res = await _authApiClient.LoginAsync(new AuthService.LoginRequest(vm.Identifier, vm.Password, vm.RememberMe), ct);
         if (res == null)
         {
@@ -52,9 +50,6 @@ public class AccountController : Controller
         {
             Expires = res.ExpiresAt
         });
-
-        // Debug logging
-        Console.WriteLine($"Login successful - RememberMe: {vm.RememberMe}, ExpiresAt: {res.ExpiresAt}");
 
         if (!string.IsNullOrWhiteSpace(vm.ReturnUrl)) return Redirect(vm.ReturnUrl);
         return RedirectToAction("Index", "Home");
@@ -405,7 +400,6 @@ public class AccountController : Controller
             return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
     }
-
 }
 
 

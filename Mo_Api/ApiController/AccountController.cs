@@ -14,12 +14,10 @@ namespace Mo_Api.ApiController;
 public class AccountController : ControllerBase
 {
     private readonly IAccountServices _accountServices;
-    private readonly IPaymentTransactionServices _paymentTransactionServices;
     
-    public AccountController(IAccountServices accountServices, IPaymentTransactionServices paymentTransactionServices)
+    public AccountController(IAccountServices accountServices)
     {
         _accountServices = accountServices;
-        _paymentTransactionServices = paymentTransactionServices;
     }
 
     [HttpPost("forgot-password")]
@@ -187,24 +185,6 @@ public class AccountController : ControllerBase
         }
     }
 
-    [HttpGet("debug-claims")]
-    [Authorize]
-    public IActionResult DebugClaims()
-    {
-        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
-        var userId = User.GetUserId();
-        var username = User.GetUsername();
-        var email = User.GetEmail();
-        var roles = User.GetRoles();
-        
-        return Ok(new { 
-            Claims = claims,
-            ExtractedUserId = userId,
-            ExtractedUsername = username,
-            ExtractedEmail = email,
-            ExtractedRoles = roles
-        });
-    }
 
     [HttpPut("update-profile")]
     [Authorize]
@@ -365,75 +345,4 @@ public class AccountController : ControllerBase
         }
     }
 
-    [HttpGet("transaction-history/{id}")]
-    [Authorize]
-    public async Task<IActionResult> GetTransactionById(long id)
-    {
-        try
-        {
-            var userId = User.GetUserId();
-            if (!userId.HasValue)
-            {
-                return Unauthorized(new { Success = false, Message = "Invalid token - User ID not found" });
-            }
-
-            var transaction = await _paymentTransactionServices.GetByIdAsync(id);
-            if (transaction == null || transaction.UserId != userId.Value)
-            {
-                return NotFound(new { Success = false, Message = "Giao dịch không tồn tại" });
-            }
-
-            return Ok(new { 
-                Success = true, 
-                Data = new {
-                    Id = transaction.Id,
-                    Type = transaction.Type,
-                    Amount = transaction.Amount,
-                    Description = transaction.PaymentDescription,
-                    Status = transaction.Status,
-                    CreatedAt = transaction.CreatedAt
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { 
-                Success = false, 
-                Message = "Có lỗi xảy ra khi lấy thông tin giao dịch" 
-            });
-        }
-    }
-
-    [HttpGet("transaction-history")]
-    [Authorize]
-    public async Task<IActionResult> GetTransactionHistory()
-    {
-        try
-        {
-            var userId = User.GetUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { message = "Không tìm thấy thông tin người dùng." });
-            }
-            
-            var transactionHistory = await _paymentTransactionServices.GetUserTransactionHistoryAsync(userId.Value);
-            
-            if (transactionHistory == null)
-            {
-                return NotFound(new { message = "Không tìm thấy lịch sử giao dịch." });
-            }
-
-            return Ok(new { 
-                Success = true, 
-                Data = transactionHistory 
-            });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { 
-                Success = false, 
-                Message = "Có lỗi xảy ra khi lấy lịch sử giao dịch." 
-            });
-        }
-    }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
 
 namespace Mo_DataAccess.Services;
@@ -253,5 +254,192 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
                          (order.Status?.ToUpper() ?? "PENDING") == "CONFIRMED" ||
                          (order.Status?.ToUpper() ?? "PENDING") == "CONFIRM"
         };
+    }
+
+    public async Task<PurchaseResponse> PurchaseProductAsync(long userId, PurchaseRequest request)
+    {
+      
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // 1. Kiểm tra ProductVariant tồn tại
+            Console.WriteLine($" Validating ProductVariant: {request.ProductVariantId}");
+            var productVariant = await _context.ProductVariants
+                .Include(pv => pv.Product)
+                .FirstOrDefaultAsync(pv => pv.Id == request.ProductVariantId);
+
+            if (productVariant == null)
+            {
+                Console.WriteLine($" ProductVariant not found: {request.ProductVariantId}");
+                return new PurchaseResponse
+                {
+                    Success = false,
+                    Message = "Sản phẩm không tồn tại"
+                };
+            }
+            
+            Console.WriteLine($" ProductVariant found: {productVariant.Product.Name}, Price: {productVariant.Price}");
+
+            // 2. Check available ProductStore codes với PESSIMISTIC LOCKING để tránh race condition
+            Console.WriteLine($"🔒 Locking and checking available ProductStore codes...");
+            
+            // Sử dụng raw SQL với UPDLOCK để lock rows khi đọc
+            var sql = @"
+                SELECT * FROM ProductStore WITH (UPDLOCK, ROWLOCK)
+                WHERE ProductVariantId = @p0 AND Status = 'AVAILABLE'
+                ORDER BY Id
+                OFFSET 0 ROWS FETCH NEXT @p1 ROWS ONLY
+            ";
+            
+            var availableCodes = await _context.ProductStores
+                .FromSqlRaw(sql, request.ProductVariantId, request.Quantity)
+                .ToListAsync();
+
+            Console.WriteLine($"📦 Available codes found (locked): {availableCodes.Count}/{request.Quantity}");
+
+            if (availableCodes.Count < request.Quantity)
+            {
+                Console.WriteLine($"❌ Not enough codes available");
+                await transaction.RollbackAsync();
+                return new PurchaseResponse
+                {
+                    Success = false,
+                    Message = $"Không đủ mã sản phẩm. Chỉ còn {availableCodes.Count} mã"
+                };
+            }
+            
+            Console.WriteLine($"🔒 Codes locked successfully, proceeding with purchase...");
+
+            // 3. tinh  total amount
+            var totalAmount = request.Quantity * productVariant.Price;
+            Console.WriteLine($" Total amount calculated: {totalAmount}");
+
+            // 4. kiem tra  user balance
+            Console.WriteLine($" Checking user balance for UserId: {userId}");
+            var user = await _context.Accounts.FindAsync(userId);
+            
+            if (user == null)
+            {
+                Console.WriteLine($" User not found: {userId}");
+                return new PurchaseResponse
+                {
+                    Success = false,
+                    Message = "Người dùng không tồn tại"
+                };
+            }
+            
+            Console.WriteLine($" User balance: {user.Balance}, Required: {totalAmount}");
+            
+            if (user.Balance < totalAmount)
+            {
+                Console.WriteLine($" Insufficient balance");
+                return new PurchaseResponse
+                {
+                    Success = false,
+                    Message = "Số dư không đủ để mua hàng"
+                };
+            }
+
+            // 5. Tao OrderProduct Voi PENDING status
+            Console.WriteLine($" Creating OrderProduct...");
+          var orderProduct = new OrderProduct
+          {
+              AccountId = userId,
+              ProductVariantId = request.ProductVariantId,
+              Quantity = request.Quantity,
+              TotalAmount = totalAmount,
+              Status = "PENDING" // dua product vao trang thai pending truoc 
+          };
+
+            _context.OrderProducts.Add(orderProduct);
+            await _context.SaveChangesAsync();
+            Console.WriteLine($" OrderProduct created with ID: {orderProduct.Id}");
+
+            // 6. Tao  PaymentTransaction
+            Console.WriteLine($" Creating PaymentTransaction...");
+           var paymentTransaction = new PaymentTransaction
+
+           {
+               UserId = userId,
+               Type = "MuaHang",
+               Amount = totalAmount,
+               PaymentDescription = $"Mua sản phẩm {productVariant.Product.Name}",
+               Status = "PENDING",  // luc nay van dang la dang xu ly transaction
+               CreatedAt = DateTime.Now
+           };
+            _context.PaymentTransactions.Add(paymentTransaction);
+            Console.WriteLine($" PaymentTransaction created");
+
+            // 7. Assign ProductStore codes
+            Console.WriteLine($" Assigning {availableCodes.Count} codes...");
+            foreach (var code in availableCodes)
+            {
+                Console.WriteLine($"   Assigning code: {code.Id} = {code.Value}");
+                
+                var orderProductStore = new OrderProductProductStore
+                {
+                    OrderProductId = orderProduct.Id,
+                    ProductStoreId = code.Id
+                };
+                _context.OrderProductProductStores.Add(orderProductStore);
+
+                // Update ProductStore status
+                code.Status = "SOLD";
+                code.UpdatedAt = DateTime.Now;
+            }
+            Console.WriteLine($" All codes assigned");
+
+            // 8. Update user balance
+            Console.WriteLine($" Updating user balance: {user.Balance} -> {user.Balance - totalAmount}");
+            user.Balance -= totalAmount;
+            Console.WriteLine($" User balance updated");
+
+            // 9. Update OrderProduct status to CONFIRMED (mã đã được gán)
+            Console.WriteLine($" Updating OrderProduct status to CONFIRMED...");
+            orderProduct.Status = "CONFIRMED";
+            paymentTransaction.Status = "COMPLETED";
+            Console.WriteLine($" Status updated to CONFIRMED");
+
+            Console.WriteLine($" Saving all changes to database...");
+            await _context.SaveChangesAsync();
+            Console.WriteLine($" All changes saved successfully");
+
+            await transaction.CommitAsync();
+            Console.WriteLine($" Transaction committed");
+
+            // 10. Return success response
+            Console.WriteLine($" PURCHASE SUCCESS! OrderId: {orderProduct.Id}");
+            Console.WriteLine($"=== PURCHASE END ===");
+            
+            return new PurchaseResponse
+            {
+                Success = true,
+                OrderId = orderProduct.Id,
+                Status = "CONFIRMED",
+                TotalAmount = totalAmount,
+                TotalAmountDisplay = $"{totalAmount:N0} VNĐ",
+                ProductCodes = availableCodes.Select(code => new ProductCodeInfo
+                {
+                    Content = productVariant.Product.Name,
+                    Value = code.Value,
+                    Status = "SOLD",
+                    StatusDisplay = "Đã sử dụng"
+                }).ToList(),
+                Message = "Mua hàng thành công!"
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($" ERROR in PurchaseProductAsync: {ex.Message}");
+            Console.WriteLine($" Inner Exception: {ex.InnerException?.Message}");
+            Console.WriteLine($" Inner Exception Details: {ex.InnerException?.ToString()}");
+            Console.WriteLine($" Stack Trace: {ex.StackTrace}");
+            
+            await transaction.RollbackAsync();
+            Console.WriteLine($" Transaction rolled back");
+            
+            // Return more detailed error
+            throw new Exception($"Lỗi khi mua hàng: {ex.Message}. Inner: {ex.InnerException?.Message}");
+        }
     }
 }

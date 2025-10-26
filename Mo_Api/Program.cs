@@ -83,6 +83,7 @@ public class Program
         builder.Services.AddScoped<ITextMessageServices, TextMessageServices>();
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
         builder.Services.AddHttpClient<VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
         var app = builder.Build();
@@ -93,12 +94,12 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.UseCors(options =>
+        {
+            options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        });
         app.UseAuthentication();
         app.UseAuthorization();
-         app.UseCors(options =>
-         {
-              options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-         })  ;
 
         app.MapControllers();
 

@@ -283,8 +283,6 @@ public class CategoryService
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/Category";
-            System.Diagnostics.Debug.WriteLine($"API URL: {apiUrl}");
-            System.Diagnostics.Debug.WriteLine($"Request JSON: {json}");
             
             HttpResponseMessage response;
             try
@@ -294,15 +292,11 @@ public class CategoryService
             catch (HttpRequestException ex)
             {
                 // Thử URL khác nếu API server không chạy
-                System.Diagnostics.Debug.WriteLine($"Primary API failed: {ex.Message}");
                 var fallbackUrl = "https://localhost:7234/api/Category";
-                System.Diagnostics.Debug.WriteLine($"Trying fallback URL: {fallbackUrl}");
                 response = await _httpClient.PostAsync(fallbackUrl, content);
             }
             
-            System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
             var responseContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"Response Content: {responseContent}");
 
             if (response.IsSuccessStatusCode)
             {
