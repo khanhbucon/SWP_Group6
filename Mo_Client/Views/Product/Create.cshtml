@@ -72,16 +72,16 @@
 
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input asp-for="Price" class="form-control" placeholder="0" step="0.01" />
+                        <input asp-for="Price" class="form-control" placeholder="0" step="1000" />
                         <label asp-for="Price"><i class="fas fa-dollar-sign me-2"></i>Giá bán (VNĐ)</label>
                         <span asp-validation-for="Price" class="text-danger small"></span>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input asp-for="Fee" class="form-control" placeholder="0" step="0.01" />
+                        <input asp-for="Fee" class="form-control" placeholder="5" step="1" />
                         <label asp-for="Fee"><i class="fas fa-percentage me-2"></i>Phí sàn theo catelory </label>
-                        <div class="form-text">Tự động cố định 5% khi chọn danh mục. Nếu để trống sẽ dùng mặc định hệ thống.</div>
+                        <div class="form-text">Phí sàn theo danh mục sản phẩm.</div>
                         <span asp-validation-for="Fee" class="text-danger small"></span>
                     </div>
                 </div>

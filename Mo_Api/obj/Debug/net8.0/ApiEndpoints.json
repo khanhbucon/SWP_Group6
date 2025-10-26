@@ -549,6 +549,27 @@
   },
   {
     "ContainingType": "Mo_Api.ApiController.ProductController",
+    "Method": "CreateVariant",
+    "RelativePath": "api/Product/{productId}/variants",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int64",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "Mo_Api.ApiController.ProductController\u002BCreateVariantRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Mo_Api.ApiController.ProductController",
     "Method": "AdminActivate",
     "RelativePath": "api/Product/admin/{productId}/activate",
     "HttpMethod": "POST",

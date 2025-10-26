@@ -75,6 +75,8 @@ public class ProductController : Controller
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         var product = await _api.GetProductAsync(id);
         if (product == null) return RedirectToAction("List");
+        var variants = await _api.GetVariantsAsync(id) ?? new List<AuthApiClient.VariantDto>();
+        ViewBag.Variants = variants;
         return View(product);
     }
 
@@ -145,6 +147,22 @@ public class ProductController : Controller
             TempData["Error"] = result.Message ?? "Không thể xoá sản phẩm (không thuộc quyền sở hữu hoặc đã có đơn hàng)";
         }
         return RedirectToAction("List");
+    }
+
+    // Add a variant to existing product (same productId, different name)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddVariant(long productId, string name, decimal price, int stock)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        if (productId <= 0 || string.IsNullOrWhiteSpace(name) || price < 0 || stock < 0)
+        {
+            TempData["Error"] = "Dữ liệu biến thể không hợp lệ";
+            return RedirectToAction("Details", new { id = productId });
+        }
+        var (success, message) = await _api.CreateVariantAsync(productId, name.Trim(), price, stock);
+        TempData[success ? "Success" : "Error"] = success ? "Đã thêm biến thể" : (message ?? "Không thể thêm biến thể");
+        return RedirectToAction("Details", new { id = productId });
     }
 
     // =============== BULK UPLOAD FROM TXT (Create multiple products) ===============

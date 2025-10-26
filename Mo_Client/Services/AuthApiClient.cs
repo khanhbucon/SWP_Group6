@@ -361,6 +361,21 @@ public class AuthApiClient
         var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<IdName>>>(cancellationToken: ct);
         return env?.Data;
     }
+
+    // Create variant for existing product
+    public async Task<(bool Success, string? Message)> CreateVariantAsync(long productId, string name, decimal price, int stock, CancellationToken ct = default)
+    {
+        var body = new { Name = name, Price = price, Stock = stock };
+        var resp = await _httpClient.PostAsJsonAsync($"/api/product/{productId}/variants", body, ct);
+        if (resp.IsSuccessStatusCode) return (true, null);
+        try
+        {
+            var env = await resp.Content.ReadFromJsonAsync<ApiResponse<object>>(cancellationToken: ct);
+            if (env != null && !string.IsNullOrWhiteSpace(env.Message)) return (false, env.Message);
+        }
+        catch { }
+        return (false, resp.ReasonPhrase);
+    }
 }
 
 
