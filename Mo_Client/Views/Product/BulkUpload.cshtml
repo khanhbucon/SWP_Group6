@@ -1,0 +1,124 @@
+﻿@{
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+    ViewData["Title"] = "Tải lên dữ liệu sản phẩm (Excel)";
+}
+
+<h4 class="mb-3"><i class="fas fa-file-upload me-2 text-primary"></i>Tải lên sản phẩm từ file Excel (.xlsx)</h4>
+
+@if(TempData["Error"]!=null){<div class="alert alert-danger">@TempData["Error"]</div>}
+@if(TempData["Success"]!=null){<div class="alert alert-success">@TempData["Success"]</div>}
+
+<form asp-action="BulkUpload" method="post" enctype="multipart/form-data" class="card shadow-sm p-3">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Chọn gian hàng</label>
+            <select name="shopId" class="form-select" required>
+                <option value="">-- Chọn --</option>
+                @foreach (var s in (IEnumerable<Mo_Client.Services.AuthApiClient.ShopResponse>)(ViewBag.Shops ?? new List<Mo_Client.Services.AuthApiClient.ShopResponse>())){
+                    <option value="@s.Id" selected="@(Equals(ViewBag.SelectedShopId, s.Id) ? "selected" : null)">@s.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">SubCategory Id</label>
+            <input class="form-control" type="number" name="subCategoryId" required />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Tên mặt hàng</label>
+            <input class="form-control" name="name" placeholder="VD: Clone 50 - 500bb > 8 Tháng" required />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Giá</label>
+            <input class="form-control" type="number" step="0.01" name="price" required />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Tồn kho mặc định</label>
+            <input class="form-control" type="number" name="stock" value="1" required />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Phí sàn (%)</label>
+            <input class="form-control" type="number" step="0.01" name="fee" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Tên biến thể</label>
+            <input class="form-control" name="variantName" placeholder="Default" />
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">File Excel chứa Serial/Value</label>
+            <div class="d-flex gap-2 align-items-center">
+                <input id="fileInput" class="form-control" type="file" name="file" accept=".xlsx,.txt" required />
+                <a asp-action="DownloadSerialTemplate" class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-1"></i>Tải Template</a>
+                <button type="button" id="btnClearFile" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Xóa File</button>
+            </div>
+            <small class="text-muted">Ưu tiên file Excel theo template. Vẫn hỗ trợ .txt (mỗi dòng là một giá trị).</small>
+
+            <div id="fileInfo" class="alert alert-success mt-3 d-none">
+                <div class="fw-semibold mb-1"><i class="fas fa-check-circle me-1"></i>File Excel đã sẵn sàng!</div>
+                <div><i class="far fa-file-alt me-1"></i><strong>Tên file:</strong> <span data-field="name"></span></div>
+                <div><i class="far fa-hdd me-1"></i><strong>Kích thước:</strong> <span data-field="size"></span></div>
+                <div><i class="far fa-clock me-1"></i><strong>Ngày tạo:</strong> <span data-field="date"></span></div>
+                <small class="text-muted d-block mt-2">Đang xử lý và hiển thị danh sách values sẽ được thêm vào...</small>
+            </div>
+            <div id="fileTodo" class="alert alert-warning mt-2 d-none">
+                <i class="fas fa-list me-1"></i>Danh sách values sẽ được thêm vào
+            </div>
+        </div>
+    </div>
+    <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-primary"><i class="fas fa-upload me-1"></i>Tải lên</button>
+        <a asp-action="List" class="btn btn-outline-secondary">Quay lại danh sách</a>
+    </div>
+</form>
+
+@if(ViewBag.Summary!=null){
+    <div class="alert alert-info mt-3"><strong>Kết quả:</strong> @ViewBag.Summary</div>
+}
+
+@if(ViewBag.Results!=null){
+    var list = (IEnumerable<Mo_Client.Controllers.ProductController.LineResult>)ViewBag.Results;
+    <div class="card mt-3">
+        <div class="card-header">Chi tiết các dòng</div>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>#</th><th>Nội dung</th><th>Trạng thái</th><th>Lỗi</th></tr></thead>
+                <tbody>
+                @foreach(var r in list){
+                    <tr class="@(r.Success?"table-success":"table-danger")">
+                        <td>@r.Index</td>
+                        <td style="white-space:pre-wrap">@r.Content</td>
+                        <td>@(r.Success?"OK":"FAIL")</td>
+                        <td>@r.Error</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<script>
+(function(){
+  const input = document.getElementById('fileInput');
+  const info = document.getElementById('fileInfo');
+  const todo = document.getElementById('fileTodo');
+  const btnClear = document.getElementById('btnClearFile');
+  function prettySize(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1024/1024).toFixed(2) + ' MB';
+  }
+  function update(){
+    if(!input.files || input.files.length===0){ info.classList.add('d-none'); todo.classList.add('d-none'); return; }
+    const f = input.files[0];
+    info.querySelector('[data-field=name]').textContent = f.name;
+    info.querySelector('[data-field=size]').textContent = prettySize(f.size);
+    const d = new Date(f.lastModified || Date.now());
+    info.querySelector('[data-field=date]').textContent = d.toLocaleString();
+    info.classList.remove('d-none');
+    todo.classList.remove('d-none');
+  }
+  input.addEventListener('change', update);
+  btnClear.addEventListener('click', function(){ input.value=''; update(); });
+})();
+</script>

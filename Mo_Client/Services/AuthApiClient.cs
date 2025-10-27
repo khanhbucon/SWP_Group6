@@ -86,7 +86,7 @@ public class AuthApiClient
     public record ApiResponse<T>(bool Success, T? Data, string? Message);
 
     public record CreateShopRequest(string Name, string? Description);
-    public record UpdateShopRequest(string Name, string? Description);
+    public record UpdateShopRequest(string Name, string? Description, bool? IsActive = null);
 
     public record ShopResponse(long Id, long AccountId, string Name, string? Description, int? ReportCount, bool? IsActive, DateTime? CreatedAt, DateTime? UpdatedAt, int TotalProducts, List<string>? CategoryNames);
     public record ShopStatisticsResponse(long ShopId, string ShopName, int TotalProducts, int TotalProductsSold, decimal TotalRevenue, int TotalOrders, decimal AverageRating, int TotalFeedbacks);
@@ -171,6 +171,21 @@ public class AuthApiClient
         return resp.IsSuccessStatusCode;
     }
 
+    // New: seller toggles active/inactive
+    public async Task<(bool Success, string? Message)> ToggleShopActiveAsync(long shopId, bool active, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.PostAsync($"/api/shop/toggle/{shopId}?active={(active ? "true" : "false")}", null, ct);
+        if (resp.IsSuccessStatusCode) return (true, null);
+        try
+        {
+            var env = await resp.Content.ReadFromJsonAsync<ApiResponse<object>>(cancellationToken: ct);
+            if (env != null && !string.IsNullOrWhiteSpace(env.Message))
+                return (false, env.Message);
+        }
+        catch { }
+        return (false, resp.ReasonPhrase);
+    }
+
     public async Task<ShopStatisticsResponse?> GetShopStatisticsAsync(CancellationToken ct = default)
     {
         var resp = await _httpClient.GetAsync("/api/shop/statistics", ct);
@@ -187,6 +202,7 @@ public class AuthApiClient
         var result = await resp.Content.ReadFromJsonAsync<ApiResponse<ShopStatisticsResponse>>(cancellationToken: ct);
         return result?.Data;
     }
+
     // xóa shop nếu shop thuộc về tài khoản và chưa có sản phẩm nào
     public async Task<(bool Success, string? Message)> DeleteShopAsync(long shopId, CancellationToken ct = default)
     {
@@ -242,9 +258,37 @@ public class AuthApiClient
 
     public record UpdateProductRequest(long Id, string? Name, string? ShortDescription, string? DetailedDescription, decimal? Fee, bool? IsActive);
 
-    public async Task<List<ProductSummary>?> GetMyProductsAsync(CancellationToken ct = default)
+    public record PagedResult<T>(List<T> Items, int Total, int Page, int PageSize, int TotalPages);
+
+    private class PagedEnvelope<T>
     {
-        var resp = await _httpClient.GetAsync("/api/product/my", ct);
+        public bool Success { get; set; }
+        public List<T>? Data { get; set; }
+        public int Total { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public string? Message { get; set; }
+    }
+
+    public async Task<PagedResult<ProductSummary>?> GetMyProductsPagedAsync(string? search = null, int page = 1, int pageSize = 10, CancellationToken ct = default)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(search)) query.Add($"search={Uri.EscapeDataString(search)}");
+        if (page > 0) query.Add($"page={page}");
+        if (pageSize > 0) query.Add($"pageSize={pageSize}");
+        var url = "/api/product/my" + (query.Count > 0 ? ("?" + string.Join("&", query)) : string.Empty);
+        var resp = await _httpClient.GetAsync(url, ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<PagedEnvelope<ProductSummary>>(cancellationToken: ct);
+        if (env == null) return null;
+        return new PagedResult<ProductSummary>(env.Data ?? new List<ProductSummary>(), env.Total, env.Page, env.PageSize, env.TotalPages);
+    }
+
+    public async Task<List<ProductSummary>?> GetMyProductsAsync(string? search = null, CancellationToken ct = default)
+    {
+        var url = "/api/product/my" + (string.IsNullOrWhiteSpace(search) ? string.Empty : $"?search={Uri.EscapeDataString(search)}");
+        var resp = await _httpClient.GetAsync(url, ct);
         if (!resp.IsSuccessStatusCode) return null;
         var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<ProductSummary>>>(cancellationToken: ct);
         return env?.Data;
@@ -263,8 +307,7 @@ public class AuthApiClient
         var resp = await _httpClient.PutAsJsonAsync("/api/product", req, ct);
         return resp.IsSuccessStatusCode;
     }
-    //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
-	//Không cho xóa nếu sản phẩm đã phát sinh đơn(có OrderProducts qua các ProductVariants).
+
     public async Task<(bool Success, string? Message)> DeleteProductAsync(long id, CancellationToken ct = default)
     {
         var resp = await _httpClient.DeleteAsync($"/api/product/{id}", ct);
@@ -274,6 +317,61 @@ public class AuthApiClient
             var env = await resp.Content.ReadFromJsonAsync<ApiResponse<object>>(cancellationToken: ct);
             if (env != null && !string.IsNullOrWhiteSpace(env.Message))
                 return (false, env.Message);
+        }
+        catch { }
+        return (false, resp.ReasonPhrase);
+    }
+
+    // New: Variants and bulk import
+    public record VariantDto(long Id, string Name, decimal Price, int? Stock);
+    public record ImportLineResult(int Index, string Content, bool Success, string? Error);
+    public record ImportResponse(bool Success, string Summary, List<ImportLineResult> Results);
+
+    public async Task<List<VariantDto>?> GetVariantsAsync(long productId, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync($"/api/product/{productId}/variants", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<VariantDto>>>(cancellationToken: ct);
+        return env?.Data;
+    }
+
+    public async Task<ImportResponse?> ImportToVariantAsync(long productId, long variantId, IEnumerable<string> lines, bool ignoreDuplicates = true, CancellationToken ct = default)
+    {
+        var body = new { Lines = lines, IgnoreDuplicates = ignoreDuplicates };
+        var resp = await _httpClient.PostAsJsonAsync($"/api/product/{productId}/import/{variantId}", body, ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        return await resp.Content.ReadFromJsonAsync<ImportResponse>(cancellationToken: ct);
+    }
+
+    // New: public category APIs for cascading dropdowns
+    public record IdName(long Id, string Name);
+
+    public async Task<List<IdName>?> GetCategoriesAsync(CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync("/api/category/public", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<IdName>>>(cancellationToken: ct);
+        return env?.Data;
+    }
+
+    public async Task<List<IdName>?> GetSubCategoriesAsync(long categoryId, CancellationToken ct = default)
+    {
+        var resp = await _httpClient.GetAsync($"/api/category/{categoryId}/subcategories/public", ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        var env = await resp.Content.ReadFromJsonAsync<ApiResponse<List<IdName>>>(cancellationToken: ct);
+        return env?.Data;
+    }
+
+    // Create variant for existing product
+    public async Task<(bool Success, string? Message)> CreateVariantAsync(long productId, string name, decimal price, int stock, CancellationToken ct = default)
+    {
+        var body = new { Name = name, Price = price, Stock = stock };
+        var resp = await _httpClient.PostAsJsonAsync($"/api/product/{productId}/variants", body, ct);
+        if (resp.IsSuccessStatusCode) return (true, null);
+        try
+        {
+            var env = await resp.Content.ReadFromJsonAsync<ApiResponse<object>>(cancellationToken: ct);
+            if (env != null && !string.IsNullOrWhiteSpace(env.Message)) return (false, env.Message);
         }
         catch { }
         return (false, resp.ReasonPhrase);

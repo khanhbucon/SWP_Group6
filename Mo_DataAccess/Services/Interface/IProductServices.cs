@@ -1,4 +1,5 @@
 ﻿using Mo_Entities.Models;
+using Mo_Entities.ModelResponse;
 
 namespace Mo_DataAccess.Services.Interface;
 
@@ -25,4 +26,10 @@ public interface IProductServices : IGenericRepository<Product>
     /// Get min and max price across all variants of a product.
     /// </summary>
     Task<(decimal? minPrice, decimal? maxPrice)> GetPriceRangeAsync(long productId);
+
+    // Admin operations
+    Task<List<AdminProductListItem>> AdminListAsync(string? search);
+    Task<bool> AdminApproveAsync(long productId);
+    Task<bool> AdminActivateAsync(long productId);
+    Task<bool> AdminSuspendAsync(long productId);
 }

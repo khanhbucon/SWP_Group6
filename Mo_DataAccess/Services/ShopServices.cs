@@ -52,6 +52,15 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
 
         _context.Set<Shop>().Add(shop);
         await _context.SaveChangesAsync();
+
+        // Harden: some DB defaults may coerce null -> false. Force back to Pending.
+        if (shop.IsActive != null)
+        {
+            shop.IsActive = null;
+            _context.Set<Shop>().Update(shop);
+            await _context.SaveChangesAsync();
+        }
+
         return shop;
     }
 // xoa shop
@@ -403,6 +412,18 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId);
         if (shop == null) return false;
         shop.IsActive = false;
+        shop.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    // Seller operations on status (only when not pending)
+    public async Task<bool> SellerSetActiveAsync(long shopId, long accountId, bool isActive)
+    {
+        var shop = await _context.Set<Shop>().FirstOrDefaultAsync(s => s.Id == shopId && s.AccountId == accountId);
+        if (shop == null) return false;
+        if (shop.IsActive == null) return false; // cannot change while pending
+        shop.IsActive = isActive;
         shop.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;

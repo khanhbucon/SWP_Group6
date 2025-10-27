@@ -25,6 +25,8 @@ public partial class SwpGroup6Context : DbContext
 
     public virtual DbSet<Message> Messages { get; set; }
 
+    public virtual DbSet<Notification> Notifications { get; set; }
+
     public virtual DbSet<OrderProduct> OrderProducts { get; set; }
 
     public virtual DbSet<OrderProductProductStore> OrderProductProductStores { get; set; }
@@ -55,7 +57,7 @@ public partial class SwpGroup6Context : DbContext
 
     public virtual DbSet<VnpayTransaction> VnpayTransactions { get; set; }
 
-   
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -212,6 +214,42 @@ public partial class SwpGroup6Context : DbContext
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Messages_Sender");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Notifica__3213E83F77965F74");
+
+            entity.HasIndex(e => e.CreatedAt, "IX_Notifications_CreatedAt").IsDescending();
+
+            entity.HasIndex(e => e.IsRead, "IX_Notifications_IsRead");
+
+            entity.HasIndex(e => e.Type, "IX_Notifications_Type");
+
+            entity.HasIndex(e => e.UserId, "IX_Notifications_UserId");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.IsRead).HasColumnName("isRead");
+            entity.Property(e => e.ReadAt).HasColumnName("readAt");
+            entity.Property(e => e.RelatedEntityId).HasColumnName("relatedEntityId");
+            entity.Property(e => e.RelatedEntityType)
+                .HasMaxLength(50)
+                .HasColumnName("relatedEntityType");
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .HasColumnName("title");
+            entity.Property(e => e.Type)
+                .HasMaxLength(50)
+                .HasColumnName("type");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Notifications_Account");
         });
 
         modelBuilder.Entity<OrderProduct>(entity =>
@@ -598,6 +636,8 @@ public partial class SwpGroup6Context : DbContext
 
             entity.ToTable("VnpayTransaction");
 
+            entity.HasIndex(e => e.TransactionId, "UQ_VnpayTransaction_TransactionId").IsUnique();
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.BankName)
                 .HasMaxLength(50)
@@ -619,6 +659,10 @@ public partial class SwpGroup6Context : DbContext
                 .IsUnicode(false)
                 .HasColumnName("paymentNumber");
             entity.Property(e => e.PaymentTransactionId).HasColumnName("paymentTransactionId");
+            entity.Property(e => e.TransactionId)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("transactionId");
             entity.Property(e => e.Value)
                 .HasColumnType("decimal(15, 2)")
                 .HasColumnName("value");

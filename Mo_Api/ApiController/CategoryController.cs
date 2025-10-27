@@ -66,6 +66,43 @@ public class CategoryController : ControllerBase
         }
     }
 
+    [HttpGet("public")]
+    [Authorize(Roles = "Seller,Admin")]
+    public async Task<IActionResult> GetCategoriesPublic()
+    {
+        try
+        {
+            var cats = await _context.Categories
+                .OrderBy(c => c.Name)
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync();
+            return Ok(new { Success = true, Data = cats });
+        }
+        catch
+        {
+            return StatusCode(500, new { Success = false, Message = "Không lấy được danh sách danh mục" });
+        }
+    }
+
+    [HttpGet("{categoryId:long}/subcategories/public")]
+    [Authorize(Roles = "Seller,Admin")]
+    public async Task<IActionResult> GetSubcategoriesByCategoryPublic(long categoryId)
+    {
+        try
+        {
+            var subs = await _context.SubCategories
+                .Where(sc => sc.CategoryId == categoryId)
+                .OrderBy(sc => sc.Name)
+                .Select(sc => new { sc.Id, sc.Name, sc.CategoryId })
+                .ToListAsync();
+            return Ok(new { Success = true, Data = subs });
+        }
+        catch
+        {
+            return StatusCode(500, new { Success = false, Message = "Không lấy được danh sách loại sản phẩm" });
+        }
+    }
+
     [HttpGet("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetCategoryById(long id)

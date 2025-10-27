@@ -22,6 +22,10 @@
     </div>
     <div class="card-body">
         <form method="get" action="@Url.Action("ManagerUser", "Admin")" id="searchForm" class="search-form">
+            <!-- Hidden fields for pagination -->
+            <input type="hidden" name="PageNumber" id="pageNumber" value="@ViewBag.PageNumber" />
+            <input type="hidden" name="PageSize" id="pageSize" value="@ViewBag.PageSize" />
+            
             <!-- Row 1: Basic Search Fields -->
             <div class="row mb-3">
                 <div class="col-md-3">
@@ -51,9 +55,30 @@
                     </label>
                     <select class="form-control" id="role" name="Role">
                         <option value="">Tất cả vai trò</option>
-                        <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
-                        <option value="Seller" selected="@(ViewBag.Role == "Seller")">Seller</option>
-                        <option value="Buyer" selected="@(ViewBag.Role == "Buyer")">Buyer</option>
+                        @if (ViewBag.Role == "Admin")
+                        {
+                            <option value="Admin" selected>Admin</option>
+                        }
+                        else
+                        {
+                            <option value="Admin">Admin</option>
+                        }
+                        @if (ViewBag.Role == "Seller")
+                        {
+                            <option value="Seller" selected>Seller</option>
+                        }
+                        else
+                        {
+                            <option value="Seller">Seller</option>
+                        }
+                        @if (ViewBag.Role == "Buyer")
+                        {
+                            <option value="Buyer" selected>Buyer</option>
+                        }
+                        else
+                        {
+                            <option value="Buyer">Buyer</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -66,8 +91,22 @@
                     </label>
                     <select class="form-control" id="isActive" name="IsActive">
                         <option value="">Tất cả trạng thái</option>
-                        <option value="true" selected="@(ViewBag.IsActive == "true")">Hoạt động</option>
-                        <option value="false" selected="@(ViewBag.IsActive == "false")">Bị khóa</option>
+                        @if (ViewBag.IsActive == "true")
+                        {
+                            <option value="true" selected>Hoạt động</option>
+                        }
+                        else
+                        {
+                            <option value="true">Hoạt động</option>
+                        }
+                        @if (ViewBag.IsActive == "false")
+                        {
+                            <option value="false" selected>Bị khóa</option>
+                        }
+                        else
+                        {
+                            <option value="false">Bị khóa</option>
+                        }
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -76,8 +115,22 @@
                     </label>
                     <select class="form-control" id="isEKYCVerified" name="IsEKYCVerified">
                         <option value="">Tất cả</option>
-                        <option value="true" selected="@(ViewBag.IsEKYCVerified == "true")">Đã xác thực</option>
-                        <option value="false" selected="@(ViewBag.IsEKYCVerified == "false")">Chưa xác thực</option>
+                        @if (ViewBag.IsEKYCVerified == "true")
+                        {
+                            <option value="true" selected>Đã xác thực</option>
+                        }
+                        else
+                        {
+                            <option value="true">Đã xác thực</option>
+                        }
+                        @if (ViewBag.IsEKYCVerified == "false")
+                        {
+                            <option value="false" selected>Chưa xác thực</option>
+                        }
+                        else
+                        {
+                            <option value="false">Chưa xác thực</option>
+                        }
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -98,13 +151,25 @@
 
 <div class="card shadow">
     <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">
-            Danh sách người dùng
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Danh sách người dùng
+                @if (Model != null && Model.TotalCount > 0)
+                {
+                    <span class="search-results-badge ml-2">@Model.TotalCount kết quả</span>
+                }
+            </h6>
+            
             @if (Model != null && Model.TotalCount > 0)
             {
-                <span class="search-results-badge ml-2">@Model.TotalCount kết quả</span>
+                <div class="pagination-info">
+                    <span class="text-muted">
+                        Hiển thị @((Model.PageNumber - 1) * Model.PageSize + 1) - @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)) 
+                        trong tổng số @Model.TotalCount người dùng
+                    </span>
+                </div>
             }
-        </h6>
+        </div>
     </div>
     <div class="card-body">
         @if (TempData["Success"] != null)
@@ -277,6 +342,132 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination Controls -->
+        @if (Model != null && Model.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <!-- Page Size Selector -->
+                <div class="page-size-selector">
+                    <label for="pageSizeSelect" class="form-label me-2">Hiển thị:</label>
+                    <select class="form-select form-select-sm d-inline-block w-auto" id="pageSizeSelect">
+                        @if (Model.PageSize == 5)
+                        {
+                            <option value="5" selected>5</option>
+                        }
+                        else
+                        {
+                            <option value="5">5</option>
+                        }
+                        @if (Model.PageSize == 10)
+                        {
+                            <option value="10" selected>10</option>
+                        }
+                        else
+                        {
+                            <option value="10">10</option>
+                        }
+                        @if (Model.PageSize == 20)
+                        {
+                            <option value="20" selected>20</option>
+                        }
+                        else
+                        {
+                            <option value="20">20</option>
+                        }
+                        @if (Model.PageSize == 50)
+                        {
+                            <option value="50" selected>50</option>
+                        }
+                        else
+                        {
+                            <option value="50">50</option>
+                        }
+                    </select>
+                    <span class="ms-2 text-muted">mục/trang</span>
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Previous Button -->
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" data-page="@(Model.PageNumber - 1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            </li>
+                        }
+                        
+                        <!-- Page Numbers -->
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+                        
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" data-page="1">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+                        
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" data-page="@i">@i</a>
+                            </li>
+                        }
+                        
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" data-page="@Model.TotalPages">@Model.TotalPages</a>
+                            </li>
+                        }
+                        
+                        <!-- Next Button -->
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" data-page="@(Model.PageNumber + 1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
     </div>
 </div>
 
@@ -365,21 +556,72 @@
         .search-form .row:last-child {
             margin-bottom: 0;
         }
+        
+        /* Pagination Styles */
+        .pagination-info {
+            font-size: 0.875rem;
+        }
+        
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-size-selector .form-label {
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+        
+        .pagination .page-link {
+            color: #007bff;
+            border-color: #dee2e6;
+        }
+        
+        .pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
     </style>
 }
 
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // No DataTables - just regular table
-            console.log('Using regular table display');
-        }
-
-        // Add loading state to search button
-        document.addEventListener('DOMContentLoaded', function() {
+            // Handle pagination clicks
+            $(document).off('click', '.pagination .page-link').on('click', '.pagination .page-link', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const page = $(this).data('page');
+                if (page) {
+                    $('#pageNumber').val(page);
+                    $('#searchForm').submit();
+                }
+                return false;
+            });
+            
+            // Handle page size change
+            $(document).off('change', '#pageSizeSelect').on('change', '#pageSizeSelect', function() {
+                $('#pageSize').val($(this).val());
+                $('#pageNumber').val(1); // Reset to first page
+                $('#searchForm').submit();
+            });
+            
+            // Add loading state to search button
             const searchForm = document.getElementById('searchForm');
             if (searchForm) {
-                searchForm.addEventListener('submit', function() {
+                $(searchForm).off('submit').on('submit', function() {
                     const submitBtn = this.querySelector('button[type="submit"]');
                     if (submitBtn) {
                         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tìm kiếm...';
@@ -387,7 +629,15 @@
                     }
                 });
             }
+            
+            // Reset page number when search form is submitted manually
+            $('#searchForm').off('submit').on('submit', function(e) {
+                // Only reset if it's not a pagination click
+                const pageNumber = $('#pageNumber').val();
+                if (!pageNumber) {
+                    $('#pageNumber').val(1);
+                }
+            });
         });
-
     </script>
 }

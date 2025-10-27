@@ -87,6 +87,34 @@ namespace Mo_Client.Services
             return resp.IsSuccessStatusCode;
         }
 
+        // Admin Product management methods wired to API
+        public async Task<List<AdminProductListItem>?> GetProductsAsync(string? search = null, CancellationToken ct = default)
+        {
+            var url = "/api/product/admin/list" + (string.IsNullOrWhiteSpace(search) ? string.Empty : $"?search={Uri.EscapeDataString(search)}");
+            var resp = await _httpClient.GetAsync(url, ct);
+            if (!resp.IsSuccessStatusCode) return null;
+            var env = await resp.Content.ReadFromJsonAsync<ApiEnvelope<List<AdminProductListItem>>>(cancellationToken: ct);
+            return env?.Data;
+        }
+
+        public async Task<bool> ApproveProductAsync(long productId, CancellationToken ct = default)
+        {
+            var resp = await _httpClient.PostAsync($"/api/product/admin/{productId}/approve", null, ct);
+            return resp.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> ActivateProductAsync(long productId, CancellationToken ct = default)
+        {
+            var resp = await _httpClient.PostAsync($"/api/product/admin/{productId}/activate", null, ct);
+            return resp.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> SuspendProductAsync(long productId, CancellationToken ct = default)
+        {
+            var resp = await _httpClient.PostAsync($"/api/product/admin/{productId}/suspend", null, ct);
+            return resp.IsSuccessStatusCode;
+        }
+
         private record ApiEnvelope<T>(bool Success, T? Data, string? Message);
         public record ApiResponse<T>(bool Success, T? Data, string? Message);
     }

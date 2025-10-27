@@ -4,41 +4,110 @@
     ViewData["Title"] = "Thông tin cá nhân";
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-user"></i> Thông tin cá nhân
-                    </h3>
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css" />
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Profile -->
+        <div class="col-md-3">
+            <div class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h4>@Model.Username</h4>
+                        <p class="text-muted">@Model.Email</p>
+                        <div class="profile-status">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle"></i> Hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-danger">
+                                    <i class="fas fa-times-circle"></i> Bị khóa
+                                </span>
+                            }
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <!-- Alerts -->
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle"></i> @TempData["Success"]
-                            <button type="button" class="close" data-dismiss="alert">
-                                <span>&times;</span>
-                            </button>
+                
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet text-success"></i>
                         </div>
-                    }
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
-                            <button type="button" class="close" data-dismiss="alert">
-                                <span>&times;</span>
-                            </button>
+                        <div class="stat-content">
+                            <h5>@Model.Balance.ToString("N0") VNĐ</h5>
+                            <p>Số dư</p>
                         </div>
-                    }
-                    @if (ViewBag.Error != null)
-                    {
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> @ViewBag.Error
+                    </div>
+                                <div class="stat-item clickable" onclick="window.location.href='@Url.Action("MyOrders", "Order")'">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart text-primary"></i>
                         </div>
-                    }
+                        <div class="stat-content">
+                            <h5>@Model.TotalOrders</h5>
+                            <p>Đơn hàng <i class="fas fa-external-link-alt fa-xs"></i></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="quick-links mt-3">
+                    <a asp-controller="Transaction" asp-action="History" class="btn btn-outline-info btn-block mb-2">
+                        <i class="fas fa-history"></i> Lịch sử giao dịch
+                    </a>
+                <a asp-controller="Order" asp-action="MyOrders" class="btn btn-outline-primary btn-block mb-2">
+                    <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
+                </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="profile-main">
+
+                <!-- Main Content -->
+                <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-user-edit"></i> Thông tin cá nhân
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Alerts -->
+                                @if (TempData["Success"] != null)
+                                {
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle"></i> @TempData["Success"]
+                                        <button type="button" class="close" data-dismiss="alert">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                }
+                                @if (TempData["Error"] != null)
+                                {
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                                        <button type="button" class="close" data-dismiss="alert">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                }
+                                @if (ViewBag.Error != null)
+                                {
+                                    <div class="alert alert-danger">
+                                        <i class="fas fa-exclamation-circle"></i> @ViewBag.Error
+                                    </div>
+                                }
 
                     <!-- Thông tin cơ bản -->
                     <form method="post" asp-action="UpdateProfile">
@@ -71,9 +140,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label asp-for="Username" class="font-weight-bold">Tên đăng nhập *</label>
-                            <input asp-for="Username" class="form-control" />
+                            <label asp-for="Username" class="font-weight-bold" >Tên đăng nhập *</label>
+                            <input asp-for="Username" class="form-control" readonly style="background-color: #e9ecef; cursor: not-allowed;" />
                             <span asp-validation-for="Username" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Tên đăng nhập không thể thay đổi
+                            </small>
                         </div>
 
                         <div class="form-group">
@@ -240,64 +312,72 @@
                                     <button type="submit" class="btn btn-primary btn-lg">
                                         <i class="fas fa-save"></i> Cập nhật thông tin
                                     </button>
-                                    <a asp-action="ChangePassword" class="btn btn-warning btn-lg ml-2">
-                                        <i class="fas fa-key"></i> Đổi mật khẩu
+                                    <a asp-controller="Transaction" asp-action="History" class="btn btn-info btn-lg ml-2">
+                                        <i class="fas fa-history"></i> Lịch sử giao dịch
                                     </a>
-                                    <!-- Thêm nút Nạp tiền -->
-                                    <a asp-controller="Payment" asp-action="Deposit" class="btn btn-success btn-lg ml-2">
-                                        <i class="fas fa-plus-circle"></i> Nạp tiền
-                                    </a>
+                        <a asp-controller="Order" asp-action="MyOrders" class="btn btn-success btn-lg ml-2">
+                            <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
+                        </a>
                                     <a href="/" class="btn btn-secondary btn-lg ml-2">
                                         <i class="fas fa-arrow-left"></i> Quay lại
                                     </a>
                                 </div>
-                                <div>
-                                    <button type="button" class="btn btn-info btn-lg" id="kycButton" onclick="showEKYCModal()" style="@(Model.IsEKYCVerified ? "display: none;" : "")">
-                                        <i class="fas fa-id-card"></i> Xác minh KYC
-                                    </button>
+                            </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Bảo mật Section -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-shield-alt"></i> Bảo mật tài khoản
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <div class="security-icon">
+                                            <i class="fas fa-key text-warning"></i>
+                                        </div>
+                                        <div class="security-content">
+                                            <h6>Đổi mật khẩu</h6>
+                                            <p class="text-muted">Cập nhật mật khẩu để bảo vệ tài khoản</p>
+                                            <a asp-action="ChangePassword" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit"></i> Đổi mật khẩu
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <div class="security-icon">
+                                            <i class="fas fa-id-card text-info"></i>
+                                        </div>
+                                        <div class="security-content">
+                                            <h6>Xác minh danh tính (KYC)</h6>
+                                            <p class="text-muted">
+                                                @if (Model.IsEKYCVerified)
+                                                {
+                                                    <span class="text-success">Đã xác minh</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-warning">Chưa xác minh</span>
+                                                }
+                                            </p>
+                                            @if (!Model.IsEKYCVerified)
+                                            {
+                                                <button type="button" class="btn btn-info btn-sm" onclick="showEKYCModal()">
+                                                    <i class="fas fa-upload"></i> Xác minh ngay
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Card -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-credit-card"></i> Quản lý thanh toán
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <a asp-controller="Payment" asp-action="Deposit" class="btn btn-success btn-block">
-                                <i class="fas fa-plus-circle"></i><br>
-                                <small>Nạp tiền</small>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Payment" asp-action="Balance" class="btn btn-info btn-block">
-                                <i class="fas fa-wallet"></i><br>
-                                <small>Số dư</small>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Payment" asp-action="History" class="btn btn-warning btn-block">
-                                <i class="fas fa-history"></i><br>
-                                <small>Lịch sử</small>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Payment" asp-action="Transactions" class="btn btn-secondary btn-block">
-                                <i class="fas fa-list"></i><br>
-                                <small>Giao dịch</small>
-                            </a>
                         </div>
                     </div>
                 </div>

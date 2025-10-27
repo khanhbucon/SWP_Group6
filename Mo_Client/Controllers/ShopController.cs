@@ -51,7 +51,7 @@ public class ShopController : Controller
         var (success, message) = await _authApiClient.CreateShopAsync(request);
         if (success)
         {
-            TempData["Success"] = "Tạo shop thành công!";
+            TempData["Success"] = "Tạo shop thành công! Shop của bạn đang chờ admin duyệt.";
             return RedirectToAction("Shops", "Seller");
         }
         else
@@ -124,6 +124,24 @@ public class ShopController : Controller
             ViewBag.ShopId = shopId;
             return View(request);
         }
+    }
+
+    // POST: /Shop/ToggleActive
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleActive(long shopId, bool active)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var (success, message) = await _authApiClient.ToggleShopActiveAsync(shopId, active);
+        if (success)
+        {
+            TempData["Success"] = active ? "Đã bật hoạt động" : "Đã tạm dừng hoạt động";
+        }
+        else
+        {
+            TempData["Error"] = message ?? "Không thể thay đổi trạng thái (có thể shop đang chờ duyệt).";
+        }
+        return RedirectToAction("Edit", new { shopId });
     }
 
     // GET: /Shop/Statistics
