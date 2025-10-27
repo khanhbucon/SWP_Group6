@@ -16,10 +16,10 @@
     <textarea asp-for="DetailedDescription" class="form-control" rows="6"></textarea>
   </div>
   <div class="row g-3">
-    <div class="col-md-4">
-      <label class="form-label">Phí sàn (%)</label>
-      <input asp-for="Fee" class="form-control" />
-    </div>
+        <div class="col-md-4">
+            <label class="form-label">Phí sàn (5%)</label>
+            <input asp-for="Fee" class="form-control" readonly />
+        </div>
     <div class="col-md-4">
       <label class="form-label">Kích hoạt</label>
       @if (Model.IsPending)
@@ -29,13 +29,13 @@
             <option value="true">Hoạt động</option>
             <option value="false">Ngưng</option>
           </select>
-          <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>Sản phẩm đang chờ Admin duyệt, không thể thay đổi trạng thái</small>
+          <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>Sản phẩm đang chờ Admin duyệt, không thể thay đổi trạng thái !</small>
       }
       else
       {
           <select asp-for="IsActive" class="form-select">
             <option value="">-- Giữ nguyên --</option>
-            <option value="true">Hoạt động</option>
+            <option value="true">Hoạt Động</option>
             <option value="false">Ngưng</option>
           </select>
       }
@@ -43,6 +43,7 @@
   </div>
   <div class="mt-4 d-flex gap-2">
     <button class="btn btn-primary"><i class="fas fa-save me-1"></i>Lưu</button>
-    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Hủy</a>
+        <a asp-action="List" class="btn btn-outline-secondary">Quay Lại </a>
+       
   </div>
 </form>

@@ -126,6 +126,24 @@ public class ShopController : Controller
         }
     }
 
+    // POST: /Shop/ToggleActive
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleActive(long shopId, bool active)
+    {
+        if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+        var (success, message) = await _authApiClient.ToggleShopActiveAsync(shopId, active);
+        if (success)
+        {
+            TempData["Success"] = active ? "Đã bật hoạt động" : "Đã tạm dừng hoạt động";
+        }
+        else
+        {
+            TempData["Error"] = message ?? "Không thể thay đổi trạng thái (có thể shop đang chờ duyệt).";
+        }
+        return RedirectToAction("Edit", new { shopId });
+    }
+
     // GET: /Shop/Statistics
     public async Task<IActionResult> Statistics(long? shopId)
     {

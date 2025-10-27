@@ -10,9 +10,14 @@
 {
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
 
 <form asp-action="Edit" method="post">
     <input type="hidden" name="shopId" value="@ViewBag.ShopId" />
+    @Html.AntiForgeryToken()
     <div class="form-group">
         <label asp-for="Name"></label>
         <input asp-for="Name" class="form-control" />
@@ -26,6 +31,26 @@
     <button type="submit" class="btn btn-primary">Cập Nhật</button>
     <a asp-controller="Seller" asp-action="Shops" class="btn btn-secondary">Hủy</a>
 </form>
+
+<hr />
+<div>
+    <h5>Trạng thái hoạt động</h5>
+    <div class="d-flex gap-2">
+        <form asp-controller="Shop" asp-action="ToggleActive" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="shopId" value="@ViewBag.ShopId" />
+            <input type="hidden" name="active" value="true" />
+            <button type="submit" class="btn btn-success">Bật hoạt động</button>
+        </form>
+        <form asp-controller="Shop" asp-action="ToggleActive" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="shopId" value="@ViewBag.ShopId" />
+            <input type="hidden" name="active" value="false" />
+            <button type="submit" class="btn btn-outline-warning">Tạm dừng</button>
+        </form>
+    </div>
+    <small class="text-muted d-block mt-2">Nút này chỉ có tác dụng khi shop đã được Admin duyệt (không áp dụng trạng thái Chờ duyệt).</small>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

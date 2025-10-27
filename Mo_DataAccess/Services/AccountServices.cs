@@ -79,8 +79,8 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-      // RememberMe affects access token duration
-      var expires = rememberMe ? DateTime.UtcNow.AddMinutes(durationInMinutes) : DateTime.UtcNow.AddMinutes(durationInMinutes / 2);
+        // Token lifetime: use config for normal login, longer if RememberMe
+        var expires = rememberMe ? DateTime.UtcNow.AddDays(7) : DateTime.UtcNow.AddMinutes(durationInMinutes);
 
         var claims = new List<Claim>
         {
@@ -460,7 +460,7 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
             TotalOrders = totalOrders,
             TotalShops = totalShops,
             TotalProductsSold = totalProductsSold,
-            IsEKYCVerified = !string.IsNullOrEmpty(account.IdentificationF) && !string.IsNullOrEmpty(account.IdentificationB)
+            IsEKYCVerified = !string.IsNullOrEmpty(account.IdentificationF) && !string.IsNullOrWhiteSpace(account.IdentificationB)
         };
     }
 
