@@ -1,31 +1,33 @@
 ﻿@{
-    ViewData["Title"] = "Quản lý SubCategory (Seller)";
+    ViewData["Title"] = "Quản lý danh mục con (Seller)";
 }
 
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center"
              style="background-color: #007bff; color: white;">
-            <h5 class="mb-0">Quản lý SubCategory (Seller)</h5>
+            <h5 class="mb-0">Quản lý danh mục con (Seller)</h5>
             <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalAdd">
                 + Thêm mới
             </button>
         </div>
 
         <div class="card-body">
+            <!-- Ô tìm kiếm -->
             <div class="input-group mb-3">
-                <input id="searchInput" type="text" class="form-control" placeholder="Tìm kiếm SubCategory...">
+                <input id="searchInput" type="text" class="form-control" placeholder="Tìm kiếm danh mục con...">
                 <button class="btn btn-outline-secondary" type="button" id="btnSearch">Tìm</button>
             </div>
 
-            <table class="table table-striped align-middle text-center">
+            <!-- Bảng danh sách -->
+            <table class="table table-bordered table-hover text-center align-middle">
                 <thead style="background-color: #cfe2ff;">
                     <tr>
-                        <th>ID</th>
-                        <th>Tên SubCategory</th>
-                        <th>Category ID</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
+                        <th scope="col">Mã danh mục con</th>
+                        <th scope="col">Tên danh mục con</th>
+                        <th scope="col">Danh mục chính</th>
+                        <th scope="col">Trạng thái hoạt động</th>
+                        <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="subTableBody">
@@ -43,26 +45,50 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalAddLabel">Thêm / Sửa SubCategory</h5>
+                <h5 class="modal-title" id="modalAddLabel">Thêm / Sửa danh mục con</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="formSubCategory">
                     <input type="hidden" id="subId" />
+
                     <div class="mb-3">
-                        <label class="form-label">Tên SubCategory</label>
+                        <label class="form-label">Tên danh mục con</label>
                         <input id="subName" class="form-control" required />
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Category ID</label>
-                        <input id="categoryId" class="form-control" type="number" required />
+                        <label class="form-label">Danh mục chính</label>
+                        <select id="categoryId" class="form-select" required>
+                            <option value="">-- Chọn danh mục chính --</option>
+                        </select>
                     </div>
+
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="isActive" checked />
-                        <label class="form-check-label">Hoạt động</label>
+                        <label class="form-check-label">Đang hoạt động</label>
                     </div>
+
                     <button type="submit" class="btn btn-primary w-100">Lưu</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem chi tiết -->
+<div class="modal fade" id="modalView" tabindex="-1" aria-labelledby="modalViewLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalViewLabel">Chi tiết danh mục con</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Mã danh mục con:</strong> <span id="viewId"></span></p>
+                <p><strong>Tên danh mục con:</strong> <span id="viewName"></span></p>
+                <p><strong>Danh mục chính:</strong> <span id="viewCategory"></span></p>
+                <p><strong>Trạng thái hoạt động:</strong> <span id="viewStatus" class="badge"></span></p>
             </div>
         </div>
     </div>
@@ -73,13 +99,27 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const apiBase = "https://localhost:7234/api/SubCategory"; // ✅ Đúng cổng API thật
+    const apiBase = "https://localhost:7234/api/SubCategory";
+    const apiCategory = "https://localhost:7234/api/Category";
 
     const tbody = document.getElementById("subTableBody");
     const modal = new bootstrap.Modal(document.getElementById("modalAdd"));
     const form = document.getElementById("formSubCategory");
 
-    // 🟢 Lấy danh sách
+    // 🟢 Load danh mục chính
+    async function loadCategories() {
+        try {
+            const res = await fetch(apiCategory);
+            const data = await res.json();
+            const select = document.getElementById("categoryId");
+            select.innerHTML = `<option value="">-- Chọn danh mục chính --</option>` +
+                data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        } catch (err) {
+            console.error("Lỗi khi tải danh mục chính:", err);
+        }
+    }
+
+    // 🟢 Load danh mục con
     async function loadSubCategories() {
         tbody.innerHTML = `<tr><td colspan="5" class="text-muted">Đang tải...</td></tr>`;
         const res = await fetch(apiBase);
@@ -96,12 +136,14 @@
                 <tr>
                     <td>${sub.id}</td>
                     <td>${sub.name}</td>
-                    <td>${sub.categoryId}</td>
+                    <td>${sub.categoryName ?? "—"}</td>
                     <td>
-                        ${sub.isActive ? '<span class="badge bg-success">Hoạt động</span>'
-                                       : '<span class="badge bg-secondary">Tạm ẩn</span>'}
+                        ${sub.isActive
+                            ? '<span class="badge bg-success">Đang hoạt động</span>'
+                            : '<span class="badge bg-secondary">Tạm ngừng</span>'}
                     </td>
                     <td>
+                        <button class="btn btn-info btn-sm me-1" onclick="viewSub(${sub.id})">Xem</button>
                         <button class="btn btn-warning btn-sm me-1" onclick="editSub(${sub.id})">Sửa</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteSub(${sub.id})">Xóa</button>
                     </td>
@@ -110,7 +152,53 @@
         });
     }
 
-    // 🟡 Thêm / Cập nhật
+    // 👁️ Xem chi tiết danh mục con
+    async function viewSub(id) {
+        try {
+            const res = await fetch(`${apiBase}/${id}`);
+            const sub = await res.json();
+
+            document.getElementById("viewId").textContent = sub.id;
+            document.getElementById("viewName").textContent = sub.name;
+            document.getElementById("viewCategory").textContent = sub.categoryName ?? "Không xác định";
+
+            const statusEl = document.getElementById("viewStatus");
+            if (sub.isActive) {
+                statusEl.textContent = "Đang hoạt động";
+                statusEl.className = "badge bg-success";
+            } else {
+                statusEl.textContent = "Tạm ngừng";
+                statusEl.className = "badge bg-secondary";
+            }
+
+            const modalView = new bootstrap.Modal(document.getElementById("modalView"));
+            modalView.show();
+        } catch (err) {
+            console.error("Lỗi khi xem chi tiết:", err);
+            alert("Không thể tải chi tiết danh mục con!");
+        }
+    }
+
+    // ✏️ Sửa danh mục con
+    async function editSub(id) {
+        const res = await fetch(`${apiBase}/${id}`);
+        const sub = await res.json();
+        document.getElementById("subId").value = sub.id;
+        document.getElementById("subName").value = sub.name;
+        document.getElementById("categoryId").value = sub.categoryId;
+        document.getElementById("isActive").checked = sub.isActive;
+        modal.show();
+    }
+
+    // ❌ Xóa danh mục con
+    async function deleteSub(id) {
+        if (confirm("Bạn có chắc muốn xóa danh mục con này?")) {
+            await fetch(`${apiBase}/${id}`, { method: "DELETE" });
+            loadSubCategories();
+        }
+    }
+
+    // 🟡 Thêm / Cập nhật danh mục con
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const id = document.getElementById("subId").value;
@@ -123,48 +211,22 @@
         const method = id ? "PUT" : "POST";
         const url = id ? `${apiBase}/${id}` : apiBase;
 
-          const res = await fetch(url, {
-        method,
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-    });
+        const res = await fetch(url, {
+            method,
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
 
-    if (res.ok) {
-        alert(id ? "Cập nhật thành công!" : "Thêm mới thành công!");
-        modal.hide();
-        loadSubCategories();
-    } else {
-        const err = await res.text();
-        console.error("Lỗi thêm/cập nhật:", err);
-        alert("Lỗi khi lưu SubCategory!");
-    }
-
-
-        modal.hide();
-        loadSubCategories();
-    });
-
-    // ✏️ Sửa
-    async function editSub(id) {
-        const res = await fetch(`${apiBase}/${id}`);
-        const sub = await res.json();
-        document.getElementById("subId").value = sub.id;
-        document.getElementById("subName").value = sub.name;
-        document.getElementById("categoryId").value = sub.categoryId;
-        document.getElementById("isActive").checked = sub.isActive;
-        modal.show();
-    }
-
-    // ❌ Xóa
-    async function deleteSub(id) {
-        if (confirm("Bạn có chắc muốn xóa SubCategory này?")) {
-            await fetch(`${apiBase}/${id}`, { method: "DELETE" });
+        if (res.ok) {
+            alert(id ? "Cập nhật danh mục con thành công!" : "Thêm mới danh mục con thành công!");
+            modal.hide();
             loadSubCategories();
+        } else {
+            const err = await res.text();
+            console.error("Lỗi thêm/cập nhật:", err);
+            alert("Lưu danh mục con thất bại!");
         }
-    }
+    });
 
     // 🔍 Tìm kiếm
     document.getElementById("btnSearch").addEventListener("click", () => {
@@ -175,5 +237,7 @@
         });
     });
 
+    // 🚀 Khi load trang
+    loadCategories();
     loadSubCategories();
 </script>
