@@ -67,6 +67,7 @@ public class ProductController : Controller
         ViewBag.PageSize = paged.PageSize;
         ViewBag.Total = paged.Total;
         ViewBag.TotalPages = paged.TotalPages;
+        ViewBag.ApiBase = _api.GetBaseAddress()?.ToString()?.TrimEnd('/');
         return View(paged.Items);
     }
 
@@ -95,7 +96,8 @@ public class ProductController : Controller
             DetailedDescription = product.Details,
             Fee = product.Fee,
             IsActive = product.IsActive,
-            IsPending = product.IsActive == null
+            IsPending = false,
+            CurrentImageUrl = _api.GetBaseAddress()?.ToString()?.TrimEnd('/') + $"/api/product/{product.Id}/image"
         };
         return View(vm);
     }
@@ -107,28 +109,37 @@ public class ProductController : Controller
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         if (!ModelState.IsValid) return View(model);
 
-        // fetch current product to determine pending state
-        var current = await _api.GetProductAsync(model.Id);
-        if (current == null) return RedirectToAction("List");
-        var isPending = current.IsActive == null;
-
-        // if pending, never send IsActive change
         var request = new AuthApiClient.UpdateProductRequest(
             model.Id,
             model.Name,
             model.ShortDescription,
             model.DetailedDescription,
             model.Fee,
-            isPending ? null : model.IsActive
+            model.IsActive
         );
 
-        var ok = await _api.UpdateProductAsync(request);
-        if (ok)
+        // attach image fields via dynamic to include properties not in the record
+        var body = new
+        {
+            request.Id,
+            request.Name,
+            ShortDescription = request.ShortDescription,
+            DetailedDescription = request.DetailedDescription,
+            request.Fee,
+            request.IsActive,
+            ImageUrl = model.NewImageBase64,
+            RemoveImage = model.RemoveImage
+        };
+
+        var http = new HttpClient { BaseAddress = _api.GetBaseAddress() };
+        http.DefaultRequestHeaders.Authorization = _api.GetAuthHeader();
+        var resp = await http.PutAsJsonAsync("/api/product", body);
+        if (resp.IsSuccessStatusCode)
         {
             TempData["Success"] = "Cập nhật sản phẩm thành công!";
             return RedirectToAction("Details", new { id = model.Id });
         }
-        ModelState.AddModelError("", isPending ? "Sản phẩm đang chờ duyệt, không thể thay đổi trạng thái" : "Không thể cập nhật sản phẩm");
+        ModelState.AddModelError("", "Không thể cập nhật sản phẩm");
         return View(model);
     }
     //xóa sản phẩm nếu sản phẩm thuộc về tài khoản và chưa có đơn hàng nào
@@ -443,5 +454,9 @@ public class ProductController : Controller
         public decimal? Fee { get; set; }
         public bool? IsActive { get; set; }
         public bool IsPending { get; set; }
+        // image fields
+        public string? CurrentImageUrl { get; set; }
+        public string? NewImageBase64 { get; set; }
+        public bool? RemoveImage { get; set; }
     }
 }

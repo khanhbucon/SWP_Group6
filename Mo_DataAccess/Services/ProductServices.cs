@@ -30,7 +30,7 @@ public class ProductServices : GenericRepository<Product>, IProductServices
         if (product == null) return false;
         if (product.Shop.AccountId != accountId) return false; // forbid
 
-        // Guard: if any orders exist for variants of this product, disallow delete
+        // Bảo vệ: nếu có bất kỳ đơn đặt hàng nào cho các biến thể của sản phẩm này, không cho phép xóa
         var hasOrders = await Context.OrderProducts
             .AnyAsync(o => Context.ProductVariants
                 .Where(v => v.ProductId == productId)
@@ -73,7 +73,7 @@ public class ProductServices : GenericRepository<Product>, IProductServices
         return (prices.Min(), prices.Max());
     }
 
-    // Admin list with search and moderation methods
+    //Danh sách quản trị với các phương pháp tìm kiếm và kiểm duyệt
     public async Task<List<AdminProductListItem>> AdminListAsync(string? search)
     {
         var q = Context.Products
