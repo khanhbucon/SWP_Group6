@@ -20,7 +20,7 @@ public class AccountController : Controller
     public IActionResult Login(string? returnUrl = null, string? success = null)
     {
         ViewBag.ReturnUrl = returnUrl;
-        var vm = new LoginVm { ReturnUrl = returnUrl };
+        var vm = new LoginVm   { ReturnUrl = returnUrl };
         if (!string.IsNullOrEmpty(success))
         {
             vm.Success = success;

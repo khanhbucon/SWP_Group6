@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Mo_DataAccess.Services;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
+using Mo_Api.Services;
 
 namespace Mo_Api;
 
@@ -74,7 +75,6 @@ public class Program
         builder.Services.AddScoped<IFeedbackServices, FeedbackServices>();
         builder.Services.AddScoped<IImageMessageServices, ImageMessageServices>();
         builder.Services.AddScoped<IMessageServices, MessageServices>();
-        builder.Services.AddScoped<IOrderProductProductStoreServices, OrderProductProductStoreServices>();
         builder.Services.AddScoped<IOrderProductServices, OrderProductServices>();
         builder.Services.AddScoped<IPaymentTransactionServices, PaymentTransactionServices>();
         builder.Services.AddScoped<IProductServices, ProductServices>();
@@ -91,6 +91,7 @@ public class Program
         builder.Services.AddScoped<INotificationService, NotificationService>();
         builder.Services.AddHttpClient<VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
+        builder.Services.AddHostedService<SellerPayoutBackgroundService>();
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
         {

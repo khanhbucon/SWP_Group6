@@ -29,8 +29,6 @@ public partial class SwpGroup6Context : DbContext
 
     public virtual DbSet<OrderProduct> OrderProducts { get; set; }
 
-    public virtual DbSet<OrderProductProductStore> OrderProductProductStores { get; set; }
-
     public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
@@ -56,7 +54,6 @@ public partial class SwpGroup6Context : DbContext
     public virtual DbSet<Token> Tokens { get; set; }
 
     public virtual DbSet<VnpayTransaction> VnpayTransactions { get; set; }
-
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -278,26 +275,25 @@ public partial class SwpGroup6Context : DbContext
                 .HasForeignKey(d => d.ProductVariantId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OrderProducts_Variant");
-        });
 
-        modelBuilder.Entity<OrderProductProductStore>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("OrderProduct_ProductStore");
-
-            entity.Property(e => e.OrderProductId).HasColumnName("orderProductId");
-            entity.Property(e => e.ProductStoreId).HasColumnName("productStoreId");
-
-            entity.HasOne(d => d.OrderProduct).WithMany()
-                .HasForeignKey(d => d.OrderProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OPS_OrderProduct");
-
-            entity.HasOne(d => d.ProductStore).WithMany()
-                .HasForeignKey(d => d.ProductStoreId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OPS_ProductStore");
+            entity.HasMany(d => d.ProductStores).WithMany(p => p.OrderProducts)
+                .UsingEntity<Dictionary<string, object>>(
+                    "OrderProductProductStore",
+                    r => r.HasOne<ProductStore>().WithMany()
+                        .HasForeignKey("ProductStoreId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_OPS_ProductStore"),
+                    l => l.HasOne<OrderProduct>().WithMany()
+                        .HasForeignKey("OrderProductId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_OPS_OrderProduct"),
+                    j =>
+                    {
+                        j.HasKey("OrderProductId", "ProductStoreId");
+                        j.ToTable("OrderProduct_ProductStore");
+                        j.IndexerProperty<long>("OrderProductId").HasColumnName("orderProductId");
+                        j.IndexerProperty<long>("ProductStoreId").HasColumnName("productStoreId");
+                    });
         });
 
         modelBuilder.Entity<PaymentTransaction>(entity =>

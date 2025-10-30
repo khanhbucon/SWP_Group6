@@ -20,4 +20,6 @@ public partial class OrderProduct
     public virtual Account Account { get; set; } = null!;
 
     public virtual ProductVariant ProductVariant { get; set; } = null!;
+
+    public virtual ICollection<ProductStore> ProductStores { get; set; } = new List<ProductStore>();
 }

@@ -9,4 +9,6 @@ public interface IOrderProductServices :IGenericRepository<OrderProduct>
     Task<OrderHistoryResponse?> GetOrderDetailAsync(long orderId, long userId);
 
     Task<PurchaseResponse> PurchaseProductAsync(long userId, PurchaseRequest request);
+
+    Task<bool> ReleaseSellerPayoutAsync(long orderId);
 }
