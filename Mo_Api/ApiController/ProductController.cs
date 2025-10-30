@@ -103,6 +103,24 @@ public class ProductController : ControllerBase
         });
     }
 
+    [HttpGet("{id:long}/image")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetImage(long id)
+    {
+        var product = await _products.GetByIdAsync(id);
+        if (product == null) return NotFound();
+
+        if (product.Image == null || product.Image.Length == 0)
+            return NotFound();
+
+        // Best-effort mime type detection (PNG header) else default jpeg
+        string contentType = (product.Image.Length > 8 &&
+                              product.Image[0] == 0x89 && product.Image[1] == 0x50 && product.Image[2] == 0x4E && product.Image[3] == 0x47)
+            ? "image/png"
+            : "image/jpeg";
+        return File(product.Image, contentType);
+    }
+
     [HttpGet("{productId:long}/variants")]
     [Authorize(Roles = "Seller")]
     public async Task<IActionResult> GetVariants(long productId)
@@ -262,7 +280,7 @@ public class ProductController : ControllerBase
             Description = request.ShortDescription,
             Details = request.DetailedDescription,
             Fee = request.Fee ?? 5m, // default 5% if not provided
-            IsActive = null,
+            IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -284,10 +302,7 @@ public class ProductController : ControllerBase
         }
 
         await _products.CreateAsync(product);
-        // ensure stays Pending in case DB default flips it
-        product.IsActive = null;
-        await _products.UpdateAsync(product);
-
+        
         // default variant (price/stock)
         await _variants.CreateAsync(new ProductVariant
         {
@@ -315,14 +330,32 @@ public class ProductController : ControllerBase
         if (request.DetailedDescription != null) product.Details = request.DetailedDescription;
         if (request.Fee.HasValue) product.Fee = request.Fee;
 
-        // Harden rule: Seller cannot change status while pending (IsActive == null)
         if (request.IsActive.HasValue)
         {
-            if (product.IsActive == null)
-            {
-                return BadRequest(new { Success = false, Message = "Sản phẩm đang chờ duyệt, không thể thay đổi trạng thái" });
-            }
             product.IsActive = request.IsActive;
+        }
+
+        // Image update
+        if (request.RemoveImage == true)
+        {
+            product.Image = null;
+        }
+        else if (!string.IsNullOrWhiteSpace(request.ImageUrl))
+        {
+            try
+            {
+                var base64 = request.ImageUrl;
+                var commaIdx = base64.IndexOf(',');
+                if (base64.StartsWith("data:") && commaIdx > -1)
+                {
+                    base64 = base64[(commaIdx + 1)..];
+                }
+                product.Image = Convert.FromBase64String(base64);
+            }
+            catch
+            {
+                return BadRequest(new { Success = false, Message = "Ảnh không hợp lệ (không phải base64)" });
+            }
         }
 
         product.UpdatedAt = DateTime.UtcNow;
