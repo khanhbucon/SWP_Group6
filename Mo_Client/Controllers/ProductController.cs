@@ -538,6 +538,9 @@ public class ProductController : Controller
         public decimal? Fee { get; set; }
         public bool? IsActive { get; set; }
         public bool IsPending { get; set; }
+        public string? CurrentImageUrl { get; set; }
+        public string? NewImageBase64 { get; set; }
+        public bool RemoveImage { get; set; }
     }
 
     // Action công khai cho khách xem sản phẩm 
