@@ -1,0 +1,230 @@
+﻿@model List<Mo_Client.Controllers.ShopController.ShopListItem>
+@{
+    ViewData["Title"] = "Danh sách cửa hàng";
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var pageSize = ViewBag.PageSize ?? 12;
+    var startPage = Math.Max(1, currentPage - 2);
+    var endPage = Math.Min(totalPages, currentPage + 2);
+}
+
+<div class="container mt-5 pt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold text-center mb-2">
+                <i class="fas fa-store text-primary"></i> Danh sách cửa hàng
+            </h1>
+            <p class="text-center text-muted">Khám phá các cửa hàng uy tín trên nền tảng</p>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Chưa có cửa hàng nào
+        </div>
+    }
+    else
+    {
+        <!-- Shops Grid -->
+        <div class="row g-4 mb-5">
+            @foreach (var shop in Model)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 shop-card shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <!-- Shop Header -->
+                            <div class="shop-header mb-3">
+                                <div class="shop-avatar">
+                                    <i class="fas fa-store fa-2x text-primary"></i>
+                                </div>
+                                <h5 class="card-title mb-1">@shop.Name</h5>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-user"></i> @shop.OwnerName
+                                </p>
+                            </div>
+
+                            <!-- Shop Description -->
+                            @if (!string.IsNullOrEmpty(shop.Description))
+                            {
+                                <p class="card-text text-muted small mb-3" style="min-height: 60px; overflow: hidden;">
+                                    @shop.Description
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="card-text text-muted small mb-3" style="min-height: 60px;">
+                                    <em>Chưa có mô tả</em>
+                                </p>
+                            }
+
+                            <!-- Shop Stats -->
+                            <div class="shop-stats mb-3">
+                                <div class="stat-item">
+                                    <i class="fas fa-box text-primary"></i>
+                                    <span class="stat-value">@shop.ProductCount</span>
+                                    <span class="stat-label">Sản phẩm</span>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fas fa-calendar text-success"></i>
+                                    <span class="stat-value">@shop.CreatedAt?.ToString("dd/MM/yyyy")</span>
+                                    <span class="stat-label">Tham gia</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Button -->
+                            <div class="mt-auto">
+                                <a href="#" class="btn btn-primary w-100">
+                                    <i class="fas fa-arrow-right"></i> Xem cửa hàng
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Shop pagination">
+                <ul class="pagination justify-content-center">
+                    <!-- Previous -->
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(currentPage - 1)&pageSize=@pageSize">
+                            <i class="fas fa-chevron-left"></i> Trước
+                        </a>
+                    </li>
+
+                    <!-- Page Numbers -->
+
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&pageSize=@pageSize">1</a>
+                        </li>
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (var i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&pageSize=@pageSize">@i</a>
+                        </li>
+                    }
+
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@totalPages&pageSize=@pageSize">@totalPages</a>
+                        </li>
+                    }
+
+                    <!-- Next -->
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(currentPage + 1)&pageSize=@pageSize">
+                            Sau <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+</div>
+
+<style>
+    .shop-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .shop-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .shop-header {
+        text-align: center;
+        padding: 1rem 0;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .shop-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .shop-avatar i {
+        color: white;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .shop-stats {
+        display: flex;
+        justify-content: space-around;
+        padding: 1rem 0;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .stat-item i {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #718096;
+    }
+
+    .pagination .page-link {
+        color: #0d6efd;
+        border-radius: 8px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+    }
+</style>
