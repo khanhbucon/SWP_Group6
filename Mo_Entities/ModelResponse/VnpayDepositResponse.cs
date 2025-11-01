@@ -23,4 +23,3 @@ namespace Mo_Entities.ModelResponse
         public string QrCode { get; set; } = string.Empty; // QR code để scan
     }
 }
-

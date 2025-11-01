@@ -283,8 +283,6 @@ public class CategoryService
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/Category";
-            System.Diagnostics.Debug.WriteLine($"API URL: {apiUrl}");
-            System.Diagnostics.Debug.WriteLine($"Request JSON: {json}");
             
             HttpResponseMessage response;
             try
@@ -294,15 +292,11 @@ public class CategoryService
             catch (HttpRequestException ex)
             {
                 // Thử URL khác nếu API server không chạy
-                System.Diagnostics.Debug.WriteLine($"Primary API failed: {ex.Message}");
                 var fallbackUrl = "https://localhost:7234/api/Category";
-                System.Diagnostics.Debug.WriteLine($"Trying fallback URL: {fallbackUrl}");
                 response = await _httpClient.PostAsync(fallbackUrl, content);
             }
             
-            System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
             var responseContent = await response.Content.ReadAsStringAsync();
-            System.Diagnostics.Debug.WriteLine($"Response Content: {responseContent}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -319,6 +313,14 @@ public class CategoryService
                 {
                     throw new Exception(result?.Message ?? "Không thể tạo danh mục");
                 }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorResult = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                throw new Exception(errorResult?.Message ?? "Dữ liệu không hợp lệ");
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -350,6 +352,114 @@ public class CategoryService
         // Lấy token từ cookie
         // Token được lưu trong cookie "accessToken"
         return _httpContextAccessor.HttpContext?.Request?.Cookies?["accessToken"];
+    }
+
+    public async Task<SubCategoryVm?> CreateSubCategoryAsync(long categoryId, string name)
+    {
+        try
+        {
+            var token = GetTokenFromStorage();
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new UnauthorizedAccessException("Token không tồn tại");
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var request = new { CategoryId = categoryId, Name = name };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_configuration["Api:BaseUrl"]}/api/SubCategory", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<SubCategoryVm>>(responseContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                return result?.Data;
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                var errorResult = JsonSerializer.Deserialize<ApiResponse<object>>(errorContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                throw new Exception(errorResult?.Message ?? "Không thể tạo danh mục con");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                throw new UnauthorizedAccessException("Phiên đăng nhập đã hết hạn");
+            }
+            else
+            {
+                throw new Exception($"Lỗi khi tạo danh mục con: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Lỗi khi tạo danh mục con: {ex.Message}");
+        }
+    }
+
+    public async Task<SubCategoryVm?> UpdateSubCategoryAsync(long id, string name, bool isActive = true)
+    {
+        try
+        {
+            var token = GetTokenFromStorage();
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new UnauthorizedAccessException("Token không tồn tại");
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var request = new { Name = name, IsActive = isActive };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync($"{_configuration["Api:BaseUrl"]}/api/SubCategory/{id}", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<SubCategoryVm>>(responseContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                return result?.Data;
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                var errorResult = JsonSerializer.Deserialize<ApiResponse<object>>(errorContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                throw new Exception(errorResult?.Message ?? "Không thể cập nhật danh mục con");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new Exception("Không tìm thấy danh mục con");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                throw new UnauthorizedAccessException("Phiên đăng nhập đã hết hạn");
+            }
+            else
+            {
+                throw new Exception($"Lỗi khi cập nhật danh mục con: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Lỗi khi cập nhật danh mục con: {ex.Message}");
+        }
     }
 }
 

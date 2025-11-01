@@ -16,7 +16,7 @@ namespace Mo_Entities.ModelResponse
         public bool? IsActive { get; set; }
         public List<string> Roles { get; set; } = new();     
         public DateTime? CreatedAt { get; set; }
-        public DateTime? UpdateAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public int TotalOrders { get; set; }
         public int TotalShops { get; set; } 
         public int TotalProductsSold { get; set; } 

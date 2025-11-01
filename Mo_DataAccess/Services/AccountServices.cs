@@ -19,10 +19,12 @@ namespace Mo_DataAccess.Services;
 public class AccountServices :GenericRepository<Account>, IAccountServices
 {
     private readonly IConfiguration _configuration;
+    private readonly INotificationService _notificationService;
 
-    public AccountServices(SwpGroup6Context context, IConfiguration configuration) : base(context)
+    public AccountServices(SwpGroup6Context context, IConfiguration configuration, INotificationService notificationService) : base(context)
     {
         _configuration = configuration;
+        _notificationService = notificationService;
     }
 
    
@@ -118,53 +120,83 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
     public async Task SendResetPasswordEmailAsync(string email)
     {
+        // Tìm account theo email
         var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Email == email);
         if (account == null)
         {
+            // Không throw exception để tránh leak thông tin về email có tồn tại hay không
             return;
         }
 
+        // Lấy cấu hình JWT
         var jwtKey = _configuration["Jwt:Key"] ?? string.Empty;
         if (string.IsNullOrWhiteSpace(jwtKey))
         {
             throw new InvalidOperationException("Missing Jwt:Key configuration");
         }
 
+        var issuer = _configuration["Jwt:Issuer"];
+        var audience = _configuration["Jwt:Audience"];
+
+        // Tạo reset password token
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(15);
+        var expires = DateTime.UtcNow.AddMinutes(30); // Reset password token - 30 phút
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
-            new Claim("purpose", "reset")
+            new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+            new Claim("purpose", "reset_password"),
+            new Claim(JwtRegisteredClaimNames.Email, account.Email)
         };
-        var token = new JwtSecurityToken(claims: claims, expires: expires, signingCredentials: creds);
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: expires,
+            signingCredentials: creds
+        );
+
         var resetToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-        var resetBaseUrl = _configuration["App:ResetPasswordUrl"] ?? string.Empty;
-        var resetLink = string.IsNullOrWhiteSpace(resetBaseUrl)
-            ? $"https://example.com/reset?token={WebUtility.UrlEncode(resetToken)}"
-            : $"{resetBaseUrl}{WebUtility.UrlEncode(resetToken)}";
-
-        // Read sender config from SystemsConfig in DB
-        var sysCfg = await _context.Set<SystemsConfig>().AsNoTracking().FirstOrDefaultAsync();
-        if (sysCfg == null || string.IsNullOrWhiteSpace(sysCfg.Email) || string.IsNullOrWhiteSpace(sysCfg.GoogleAppPassword))
+        // Lấy cấu hình email từ SystemsConfig
+        var sysConfig = await _context.Set<SystemsConfig>().AsNoTracking().FirstOrDefaultAsync();
+        if (sysConfig == null || string.IsNullOrWhiteSpace(sysConfig.Email) || string.IsNullOrWhiteSpace(sysConfig.GoogleAppPassword))
         {
             throw new InvalidOperationException("Thiếu cấu hình email trong SystemsConfig");
         }
 
+        // Tạo reset link
+        var resetBaseUrl = _configuration["App:ResetPasswordUrl"] ?? "https://localhost:7164/Account/ResetPassword?token=";
+        var resetLink = $"{resetBaseUrl}{WebUtility.UrlEncode(resetToken)}";
+
+        // Gửi email
         using var smtp = new SmtpClient("smtp.gmail.com", 587)
         {
             EnableSsl = true,
-            Credentials = new NetworkCredential(sysCfg.Email, sysCfg.GoogleAppPassword)
+            Credentials = new NetworkCredential(sysConfig.Email, sysConfig.GoogleAppPassword)
         };
+
         var mail = new MailMessage
         {
-            From = new MailAddress(sysCfg.Email),
-            Subject = "Đặt lại mật khẩu",
-            Body = $"Nhấn vào liên kết để đặt lại mật khẩu: {resetLink}",
-            IsBodyHtml = false
+            From = new MailAddress(sysConfig.Email),
+            Subject = "Đặt lại mật khẩu - SWP Group6",
+            Body = $@"
+                <h2>Đặt lại mật khẩu</h2>
+                <p>Xin chào {account.Username},</p>
+                <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
+                <p>Nhấn vào liên kết bên dưới để đặt lại mật khẩu:</p>
+                <p><a href=""{resetLink}"" style=""background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;"">Đặt lại mật khẩu</a></p>
+                <p>Liên kết này sẽ hết hạn sau 30 phút.</p>
+                <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                <br>
+                <p>Trân trọng,<br>Đội ngũ SWP Group6</p>
+            ",
+            IsBodyHtml = true
         };
+
         mail.To.Add(account.Email);
         await smtp.SendMailAsync(mail);
     }
@@ -179,29 +211,65 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
 
         var tokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidIssuer = _configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = _configuration["Jwt:Audience"],
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(30)
+            ClockSkew = TimeSpan.FromMinutes(30)
         };
 
         var handler = new JwtSecurityTokenHandler();
-        var principal = handler.ValidateToken(token, tokenValidationParameters, out _);
-        var purpose = principal.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
-        if (purpose != "reset") throw new SecurityTokenException("Invalid purpose");
+        ClaimsPrincipal principal;
+        
+        try
+        {
+            principal = handler.ValidateToken(token, tokenValidationParameters, out _);
+        }
+        catch (Exception ex)
+        {
+            throw new SecurityTokenException($"Token validation failed: {ex.Message}");
+        }
 
+        var purpose = principal.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
+        if (purpose != "reset_password")
+        {
+            throw new SecurityTokenException("Invalid token purpose");
+        }
+
+        // Tìm account ID từ các claim types khác nhau
         var sub = principal.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-        if (!long.TryParse(sub, out var accountId)) throw new SecurityTokenException("Invalid subject");
+        var nameIdentifier = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        
+        // Sử dụng nameIdentifier nếu sub không có
+        var accountIdString = sub ?? nameIdentifier;
+        
+        if (string.IsNullOrEmpty(accountIdString))
+        {
+            throw new SecurityTokenException("Token sub and nameIdentifier are null or empty");
+        }
+        
+        if (!long.TryParse(accountIdString, out var accountId))
+        {
+            throw new SecurityTokenException("Invalid account ID in token");
+        }
 
         var account = await _context.Set<Account>().FirstOrDefaultAsync(a => a.Id == accountId);
-        if (account == null) return;
+        if (account == null)
+        {
+            throw new InvalidOperationException("Account not found");
+        }
 
         account.Password = ComputeSha256(newPassword);
+        account.UpdatedAt = DateTime.UtcNow;
+
         _context.Update(account);
         await _context.SaveChangesAsync();
     }
+
+
 
     private static string ComputeSha256(string raw)
     {
@@ -399,24 +467,47 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
     public async Task<ProfileResponse> GetProfileByIdAsync(long userId)
     {
         var account = await _context.Accounts
-            .Include(a => a.Roles)
-            .FirstOrDefaultAsync(a => a.Id == userId);
+         .Include(a => a.Roles)
+         .Include(a => a.Shops)
+         .ThenInclude(s => s.Products)
+         .SingleOrDefaultAsync(a => a.Id == userId);
 
         if (account == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException($"Account với ID {userId} không tồn tại");
 
-        // Tính toán thống kê
-        var totalOrders = await _context.OrderProducts
-            .Where(op => op.AccountId == userId)
-            .CountAsync();
+        //  Đếm số đơn hàng đã mua
+        var totalOrders = await _context.Set<OrderProduct>()
+            .CountAsync(o => o.AccountId == account.Id);
 
-        var totalShops = await _context.Shops
-            .Where(s => s.AccountId == userId)
-            .CountAsync();
+        //  Đếm số gian hàng
+        var totalShops = account.Shops?.Count ?? 0;
 
-        var totalProductsSold = await _context.OrderProducts
-            .Where(op => op.AccountId == userId)
-            .SumAsync(op => op.Quantity);
+        //  Đếm số sản phẩm đã bán
+        var totalProductsSold = 0;
+        if (account.Shops != null && account.Shops.Any())
+        {
+            var productIds = account.Shops
+                .SelectMany(s => s.Products)
+                .Select(p => p.Id)
+                .ToList();
+
+            totalProductsSold = await _context.Set<OrderProduct>()
+                .Where(o => _context.Set<ProductVariant>()
+                    .Where(pv => productIds.Contains(pv.ProductId))
+                    .Select(pv => pv.Id)
+                    .Contains(o.ProductVariantId))
+                .SumAsync(o => o.Quantity);
+        }
+
+        //  Thêm thông tin chi tiết về Shop (nếu cần)
+        var shopDetails = account.Shops?.Select(s => new
+        {
+            ShopId = s.Id,
+            ShopName = s.Name,
+            ProductCount = s.Products?.Count ?? 0,
+            IsActive = s.IsActive
+        }).ToList();
+
 
         return new Mo_Entities.ModelResponse.ProfileResponse
         {
@@ -509,7 +600,12 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
         account.Roles.Add(sellerRole);
         account.UpdatedAt = DateTime.UtcNow;
 
-        return await UpdateAsync(account);
+        await UpdateAsync(account);
+
+        // Send notification to user
+        await _notificationService.CreateSellerApprovalNotificationAsync(accountId);
+
+        return account;
     }
 
     public async Task<Account> BanUserAsync(long accountId)

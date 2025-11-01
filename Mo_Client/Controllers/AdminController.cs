@@ -273,7 +273,7 @@ namespace Mo_Client.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ManagerUser()
+        public async Task<IActionResult> ManagerUser(UserSearchVm? searchModel = null)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
@@ -281,19 +281,118 @@ namespace Mo_Client.Controllers
             try
             {
                 _adminService.SetToken(Request.Cookies["accessToken"]);
-                var users = await _adminService.GetAllUsersAsync();
-                if (users == null)
+                
+                // Set default values
+                if (searchModel == null)
+                {
+                    searchModel = new UserSearchVm
+                    {
+                        PageNumber = 1,
+                        PageSize = 10
+                    };
+                }
+                
+                // Truyền search parameters vào ViewBag để giữ lại giá trị trong form
+                ViewBag.UserId = searchModel.UserId;
+                ViewBag.Email = searchModel.Email;
+                ViewBag.Phone = searchModel.Phone;
+                ViewBag.Role = searchModel.Role;
+                ViewBag.IsActive = searchModel.IsActive?.ToString();
+                ViewBag.IsEKYCVerified = searchModel.IsEKYCVerified?.ToString();
+                ViewBag.PageNumber = searchModel.PageNumber;
+                ViewBag.PageSize = searchModel.PageSize;
+                
+                // Lấy tất cả users từ API
+                var allUsers = await _adminService.GetAllUsersAsync();
+                if (allUsers == null)
                 {
                     ViewBag.Error = "Không thể tải danh sách người dùng";
-                    return View(new List<ListAccountVm>());
+                    return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
                 }
-                return View(users);
+                
+                // Thực hiện search/filter ở phía frontend
+                var filteredUsers = FilterUsers(allUsers, searchModel);
+                
+                // Thực hiện phân trang
+                var paginatedUsers = PaginateUsers(filteredUsers, searchModel.PageNumber, searchModel.PageSize);
+                
+                var searchResult = new UserSearchResultVm
+                {
+                    Users = paginatedUsers,
+                    TotalCount = filteredUsers.Count,
+                    PageNumber = searchModel.PageNumber,
+                    PageSize = searchModel.PageSize
+                };
+                
+                return View(searchResult);
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new List<ListAccountVm>());
+                return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
             }
+        }
+
+        /// <summary>
+        /// Filter users based on search criteria
+        /// </summary>
+        private List<ListAccountVm> FilterUsers(List<ListAccountVm> users, UserSearchVm searchModel)
+        {
+            var filteredUsers = users.AsQueryable();
+
+            // Filter by UserId
+            if (searchModel.UserId.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.UserId == searchModel.UserId.Value);
+            }
+
+            // Filter by Email
+            if (!string.IsNullOrEmpty(searchModel.Email))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Email != null && 
+                    u.Email.Contains(searchModel.Email, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Phone
+            if (!string.IsNullOrEmpty(searchModel.Phone))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Phone != null && 
+                    u.Phone.Contains(searchModel.Phone, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Role
+            if (!string.IsNullOrEmpty(searchModel.Role))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Roles != null && 
+                    u.Roles.Contains(searchModel.Role, StringComparer.OrdinalIgnoreCase));
+            }
+
+
+            // Filter by IsActive
+            if (searchModel.IsActive.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.IsActive == searchModel.IsActive.Value);
+            }
+
+            // Filter by IsEKYCVerified
+            if (searchModel.IsEKYCVerified.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.IsEKYCVerified == searchModel.IsEKYCVerified.Value);
+            }
+
+            return filteredUsers.ToList();
+        }
+
+        /// <summary>
+        /// Paginate users based on page number and page size
+        /// </summary>
+        private List<ListAccountVm> PaginateUsers(List<ListAccountVm> users, int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var skip = (pageNumber - 1) * pageSize;
+            return users.Skip(skip).Take(pageSize).ToList();
         }
 
         [HttpPost]

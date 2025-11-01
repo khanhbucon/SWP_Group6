@@ -20,8 +20,4 @@
       <ProjectReference Include="..\Mo_Entities\Mo_Entities.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="ApiController\" />
-    </ItemGroup>
-
 </Project>
