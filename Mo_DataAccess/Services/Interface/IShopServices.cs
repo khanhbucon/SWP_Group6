@@ -27,4 +27,7 @@ public interface IShopServices : IGenericRepository<Shop>
 
     // Seller operations on status (only when not pending)
     Task<bool> SellerSetActiveAsync(long shopId, long accountId, bool isActive);
+
+    // Public operations
+    Task<List<Shop>> GetAllShopsAsync();
 }

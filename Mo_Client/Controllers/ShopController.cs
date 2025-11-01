@@ -23,6 +23,61 @@ public class ShopController : Controller
         return true;
     }
 
+    // Public shop listing for guests
+    [HttpGet]
+    public async Task<IActionResult> Index(int page = 1, int pageSize = 12)
+    {
+        try
+        {
+            var http = new HttpClient();
+            var apiUrl = _authApiClient.GetBaseAddress().ToString().TrimEnd('/');
+            var response = await http.GetAsync($"{apiUrl}/api/shop/GetAllShops?page={page}&pageSize={pageSize}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ShopListApiResponse>();
+                if (result?.Success == true && result.Data != null)
+                {
+                    ViewBag.CurrentPage = result.Pagination?.CurrentPage ?? page;
+                    ViewBag.TotalPages = result.Pagination?.TotalPages ?? 1;
+                    ViewBag.PageSize = pageSize;
+                    return View(result.Data);
+                }
+            }
+            
+            return View(new List<ShopListItem>());
+        }
+        catch
+        {
+            return View(new List<ShopListItem>());
+        }
+    }
+
+    public class ShopListItem
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int ProductCount { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public string OwnerName { get; set; } = string.Empty;
+    }
+
+    public class ShopListApiResponse
+    {
+        public bool Success { get; set; }
+        public List<ShopListItem>? Data { get; set; }
+        public PaginationInfo? Pagination { get; set; }
+    }
+
+    public class PaginationInfo
+    {
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalItems { get; set; }
+    }
+
     // GET: /Shop/Create
     public async Task<IActionResult> Create()
     {
@@ -77,7 +132,7 @@ public class ShopController : Controller
         if (shops == null || shops.Count == 0)
         {
             return RedirectToAction("Create");
-        }
+    }
 
         // For now reuse old view which expects a single shop: show the first
         return View(shops.First());

@@ -20,4 +20,10 @@ public class UpdateProductRequest
     public decimal? Fee { get; set; }
 
     public bool? IsActive { get; set; }
+
+    // Optional: base64 data URL (or plain base64) to update product image
+    // If null => do not change. If provided => replace image. If RemoveImage == true => clear image.
+    public string? ImageUrl { get; set; }
+
+    public bool? RemoveImage { get; set; }
 }
