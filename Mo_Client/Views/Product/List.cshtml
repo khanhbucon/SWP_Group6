@@ -30,7 +30,7 @@
         </thead>
         <tbody>
         @if(Model==null || !Model.Any()){
-          <tr><td colspan="7" class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x mb-3 d-block"></i>Chưa có sản phẩm nào</td></tr>
+          <tr><td colspan="6" class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x mb-3 d-block"></i>Chưa có sản phẩm nào</td></tr>
         } else {
           var page = (int)(ViewBag.Page ?? 1);
           var pageSize = (int)(ViewBag.PageSize ?? 10);
@@ -38,6 +38,7 @@
           string apiBase = (ViewBag.ApiBase as string) ?? string.Empty;
           var i=0; foreach(var p in Model){
             var imgUrl = string.IsNullOrEmpty(apiBase) ? string.Empty : $"{apiBase}/api/product/{p.Id}/image";
+            var isPending = p.IsActive == null;
             <tr class="border-bottom">
               <td class="px-4 fw-medium text-muted">@(startIndex + i)</td>
               <td>
@@ -53,7 +54,9 @@
               <td class="text-muted" style="max-width:250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@p.Description</td>
               <td><span class="badge bg-light text-dark border">@p.ShopName</span></td>
               <td class="text-center">
-                @if(p.IsActive==true){
+                @if(isPending){
+                  <span class="badge bg-warning text-dark px-2 py-1"><i class="fas fa-hourglass-half me-1"></i>Chờ duyệt</span>
+                } else if(p.IsActive==true){
                   <span class="badge bg-success px-2 py-1"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>
                 } else {
                   <span class="badge bg-danger px-2 py-1"><i class="fas fa-times-circle me-1"></i>Ngưng</span>
@@ -65,7 +68,7 @@
                     <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-outline-primary" title="Chi tiết">
                       <i class="fas fa-eye"></i>
                     </a>
-                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-outline-secondary" title="Sửa">
+                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-outline-secondary @(isPending ? "disabled" : string.Empty)" title="Sửa">
                       <i class="fas fa-edit"></i>
                     </a>
                     <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá sản phẩm này?');">
@@ -75,9 +78,12 @@
                       </button>
                     </form>
                   </div>
-                  <a asp-action="BulkUploadForProduct" asp-route-productId="@p.Id" class="btn btn-sm btn-success" title="Tải lên .txt cho sản phẩm này">
+                  <a asp-action="BulkUploadForProduct" asp-route-productId="@p.Id" class="btn btn-sm btn-success @(isPending ? "disabled" : string.Empty)" title="Tải lên .txt cho sản phẩm này">
                     <i class="fas fa-file-upload me-1"></i>Tải lên .txt
                   </a>
+                  @if(isPending){
+                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Sản phẩm đang chờ Admin duyệt</small>
+                  }
                 </div>
               </td>
             </tr>

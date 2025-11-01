@@ -83,6 +83,24 @@ public class CategoryController : ControllerBase
             return StatusCode(500, new { Success = false, Message = "Không lấy được danh sách danh mục" });
         }
     }
+ // Lấy danh sách danh mục cho khách hàng   Homepage
+    [HttpGet("all")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAllCategoriesForGuests()
+    {
+        try
+        {
+            var cats = await _context.Categories
+                .OrderBy(c => c.Name)
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync();
+            return Ok(new { Success = true, Data = cats });
+        }
+        catch
+        {
+            return StatusCode(500, new { Success = false, Message = "Không lấy được danh sách danh mục" });
+        }
+    }
 
     [HttpGet("{categoryId:long}/subcategories/public")]
     [Authorize(Roles = "Seller,Admin")]

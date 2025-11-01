@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ClosedXML.Excel; // Added for Excel parsing/template
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Services;
 using ClosedXML.Excel; // Added for Excel parsing/template
 
@@ -12,6 +14,81 @@ public class ProductController : Controller
     private bool TrySetApiToken()
     {
         var token = Request.Cookies["accessToken"]; if (string.IsNullOrWhiteSpace(token)) return false; _api.SetToken(token); return true;
+    }
+
+    // Public product listing for guests
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Index(int page = 1, int pageSize = 12, long? categoryId = null, long? subCategoryId = null)
+    {
+        try
+        {
+            var http = new HttpClient();
+            var apiUrl = _api.GetBaseAddress().ToString().TrimEnd('/');
+            
+            // Build URL with optional filters
+            var url = $"{apiUrl}/api/product/GetAllProducts?page={page}&pageSize={pageSize}";
+            if (subCategoryId.HasValue)
+            {
+                url += $"&subCategoryId={subCategoryId.Value}";
+            }
+            else if (categoryId.HasValue)
+            {
+                url += $"&categoryId={categoryId.Value}";
+            }
+            
+            var response = await http.GetAsync(url);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ProductListApiResponse>();
+                if (result?.Success == true && result.Data != null)
+                {
+                    ViewBag.CurrentPage = result.Pagination?.CurrentPage ?? page;
+                    ViewBag.TotalPages = result.Pagination?.TotalPages ?? 1;
+                    ViewBag.PageSize = pageSize;
+                    ViewBag.CategoryId = categoryId;
+                    ViewBag.SubCategoryId = subCategoryId;
+                    return View(result.Data);
+                }
+            }
+            
+            return View(new List<ProductListItem>());
+        }
+        catch
+        {
+            return View(new List<ProductListItem>());
+        }
+    }
+
+    public class ProductListItem
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? Image { get; set; }
+        public string ShopName { get; set; } = string.Empty;
+        public long ShopId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public string SubCategoryName { get; set; } = string.Empty;
+        public decimal MinPrice { get; set; }
+        public decimal MaxPrice { get; set; }
+        public DateTime? CreatedAt { get; set; }
+    }
+
+    public class ProductListApiResponse
+    {
+        public bool Success { get; set; }
+        public List<ProductListItem>? Data { get; set; }
+        public PaginationInfo? Pagination { get; set; }
+    }
+
+    public class PaginationInfo
+    {
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalItems { get; set; }
     }
 
     public IActionResult Create(long shopId)
@@ -72,6 +149,7 @@ public class ProductController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous] 
     public async Task<IActionResult> Details(long id)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
@@ -109,13 +187,19 @@ public class ProductController : Controller
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         if (!ModelState.IsValid) return View(model);
 
+        // fetch current product to determine pending state
+        var current = await _api.GetProductAsync(model.Id);
+        if (current == null) return RedirectToAction("List");
+        var isPending = current.IsActive == null;
+
+        // if pending, never send IsActive change
         var request = new AuthApiClient.UpdateProductRequest(
             model.Id,
             model.Name,
             model.ShortDescription,
             model.DetailedDescription,
             model.Fee,
-            model.IsActive
+            isPending ? null : model.IsActive
         );
 
         // attach image fields via dynamic to include properties not in the record
@@ -454,9 +538,78 @@ public class ProductController : Controller
         public decimal? Fee { get; set; }
         public bool? IsActive { get; set; }
         public bool IsPending { get; set; }
-        // image fields
-        public string? CurrentImageUrl { get; set; }
-        public string? NewImageBase64 { get; set; }
-        public bool? RemoveImage { get; set; }
     }
+
+    // Action công khai cho khách xem sản phẩm 
+    // Đổi tên action thành View thay vì PublicDetails
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> View(long id)  // ĐỔI TÊN THÀNH View
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            var isLoggedIn = !string.IsNullOrWhiteSpace(token);
+
+            var http = new HttpClient();
+            var apiUrl = _api.GetBaseAddress().ToString().TrimEnd('/');
+            var response = await http.GetAsync($"{apiUrl}/api/Product/details/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "Không tìm thấy sản phẩm";
+                return RedirectToAction("Index");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<PublicProductDetailResponse>();
+            if (result?.Success == true && result.Data != null)
+            {
+                ViewBag.IsLoggedIn = isLoggedIn;
+                return View("PublicDetails", result.Data);  // View name vẫn giữ nguyên
+            }
+
+            TempData["Error"] = "Không thể tải thông tin sản phẩm";
+            return RedirectToAction("Index");
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Lỗi: {ex.Message}";
+            return RedirectToAction("Index");
+        }
+    }
+
+    // Helper classes cho PublicDetails
+    public class PublicProductDetailResponse
+    {
+        public bool Success { get; set; }
+        public PublicProductDetailData? Data { get; set; }
+    }
+
+    public class PublicProductDetailData
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? Details { get; set; }
+        public string? Image { get; set; }
+        public string? ShopName { get; set; }
+        public long ShopId { get; set; }
+        public string? CategoryName { get; set; }
+        public string? SubCategoryName { get; set; }
+        public long? SubCategoryId { get; set; }
+        public decimal Fee { get; set; }
+        public int TotalStock { get; set; }
+        public int TotalSold { get; set; }
+        public List<PublicVariantInfo> Variants { get; set; } = new();
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class PublicVariantInfo
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int? Stock { get; set; }
+    }
+    
 }

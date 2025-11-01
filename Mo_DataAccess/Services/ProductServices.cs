@@ -146,6 +146,18 @@ public class ProductServices : GenericRepository<Product>, IProductServices
         return true;
     }
 
+    public async Task<List<Product>> GetAllProductsAsync()
+    {
+        return await Context.Products
+            .Include(p => p.Shop)
+                .ThenInclude(s => s.Account)
+            .Include(p => p.SubCategory)
+                .ThenInclude(sc => sc.Category)
+            .Include(p => p.ProductVariants)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task<bool> AdminSuspendAsync(long productId)
     {
         var p = await Context.Products.FirstOrDefaultAsync(x => x.Id == productId);

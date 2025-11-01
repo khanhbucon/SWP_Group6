@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
 
@@ -10,10 +11,51 @@ namespace Mo_Api.ApiController
     public class SubCategoryController : ControllerBase
     {
         private readonly ISubCategoryServices _subCategoryServices;
+        private readonly ICategoryServices _categoryServices;
 
-        public SubCategoryController(ISubCategoryServices subCategoryServices)
+        public SubCategoryController(ISubCategoryServices subCategoryServices, ICategoryServices categoryServices)
         {
             _subCategoryServices = subCategoryServices;
+            _categoryServices = categoryServices;
+        }
+
+        /// <summary>
+        /// Lấy danh sách SubCategories grouped by Category (public endpoint)
+        /// </summary>
+        [HttpGet("grouped")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSubCategoriesGrouped()
+        {
+            try
+            {
+                var categories = await _categoryServices.GetAllAsync();
+                var allSubCategories = await _subCategoryServices.GetAllAsync();
+
+                var grouped = categories
+                    .OrderBy(c => c.Name)
+                    .Select(cat => new
+                    {
+                        categoryId = cat.Id,
+                        categoryName = cat.Name,
+                        subCategories = allSubCategories
+                            .Where(sc => sc.CategoryId == cat.Id && sc.IsActive == true)
+                            .OrderBy(sc => sc.Name)
+                            .Select(sc => new
+                            {
+                                id = sc.Id,
+                                name = sc.Name
+                            })
+                            .ToList()
+                    })
+                    .Where(g => g.subCategories.Any())
+                    .ToList();
+
+                return Ok(new { success = true, data = grouped });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Không lấy được danh sách danh mục" });
+            }
         }
 
         /// <summary>

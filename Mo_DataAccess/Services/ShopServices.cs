@@ -428,4 +428,14 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         await _context.SaveChangesAsync();
         return true;
     }
+
+    // Public operations
+    public async Task<List<Shop>> GetAllShopsAsync()
+    {
+        return await _context.Set<Shop>()
+            .Include(s => s.Account)
+            .Include(s => s.Products)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync();
+    }
 }

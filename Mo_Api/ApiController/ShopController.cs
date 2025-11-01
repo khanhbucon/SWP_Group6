@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.ModelRequest;
+using Mo_Entities.ModelResponse;
 using Mo_Api.Extensions;
 
 namespace Mo_Api.ApiController;
@@ -277,5 +278,53 @@ public class ShopController : ControllerBase
         var ok = await _shopServices.AdminSuspendShopAsync(shopId);
         if (!ok) return NotFound(new { Success = false, Message = "Shop không tồn tại" });
         return Ok(new { Success = true, Message = "Tạm dừng shop thành công" });
+    }
+
+    [HttpGet("GetAllShops")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAllShops([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+    {
+        try
+        {
+            var shops = await _shopServices.GetAllShopsAsync();
+
+            // Filter only active shops
+            var activeShops = shops.Where(s => s.IsActive == true).ToList();
+
+            // Pagination
+            var totalItems = activeShops.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var pagedShops = activeShops
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(s => new ShopListResponse
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Description = s.Description,
+                    ProductCount = s.Products.Count(p => p.IsActive == true),
+                    CreatedAt = s.CreatedAt,
+                    OwnerName = s.Account.Username
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                success = true,
+                data = pagedShops,
+                pagination = new
+                {
+                    currentPage = page,
+                    pageSize = pageSize,
+                    totalPages = totalPages,
+                    totalItems = totalItems
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { success = false, message = ex.Message });
+        }
     }
 }
