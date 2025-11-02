@@ -20,4 +20,6 @@ public partial class ProductStore
     public DateTime? UpdatedAt { get; set; }
 
     public virtual ProductVariant ProductVariant { get; set; } = null!;
+
+    public virtual ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
 }

@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-
-
-public class ForgotPasswordRequest
+namespace Mo_Entities.ModelRequest
 {
-    [Required(ErrorMessage = "Vui lòng nhập email")]
-    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-    public string Email { get; set; } = string.Empty;
+    public class ForgotPasswordRequest
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
+    }
 }
-
-

@@ -7,10 +7,21 @@ builder.Services.AddControllersWithViews();
 // API options
 builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
 
+// Add HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
 // Register API Services
 builder.Services.AddHttpClient<AuthService>();
 builder.Services.AddHttpClient<UserService>();
 builder.Services.AddHttpClient<AdminService>();
+
+builder.Services.AddHttpClient<AuthApiClient>();
+
+builder.Services.AddHttpClient<CategoryService>();
+builder.Services.AddHttpClient<TransactionService>();
+builder.Services.AddHttpClient<OrderService>();
+builder.Services.AddHttpClient<NotificationService>();
+
 
 
 var app = builder.Build();
@@ -25,7 +36,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

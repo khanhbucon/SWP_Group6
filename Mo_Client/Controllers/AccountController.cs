@@ -9,7 +9,8 @@ public class AccountController : Controller
 {
     private readonly AuthService _authApiClient;
     private readonly UserService _userService;
-    public AccountController(AuthService authApiClient, UserService userService )
+    
+    public AccountController(AuthService authApiClient, UserService userService)
     {
         _authApiClient = authApiClient;
         _userService = userService;
@@ -19,7 +20,7 @@ public class AccountController : Controller
     public IActionResult Login(string? returnUrl = null, string? success = null)
     {
         ViewBag.ReturnUrl = returnUrl;
-        var vm = new LoginVm { ReturnUrl = returnUrl };
+        var vm = new LoginVm   { ReturnUrl = returnUrl };
         if (!string.IsNullOrEmpty(success))
         {
             vm.Success = success;
@@ -32,9 +33,6 @@ public class AccountController : Controller
     public async Task<IActionResult> Login(LoginVm vm, CancellationToken ct)
     {
         if (!ModelState.IsValid) return View(vm);
-
-        // Debug logging
-        Console.WriteLine($"Login attempt - Identifier: {vm.Identifier}, RememberMe: {vm.RememberMe}");
 
         var res = await _authApiClient.LoginAsync(new AuthService.LoginRequest(vm.Identifier, vm.Password, vm.RememberMe), ct);
         if (res == null)
@@ -52,9 +50,6 @@ public class AccountController : Controller
         {
             Expires = res.ExpiresAt
         });
-
-        // Debug logging
-        Console.WriteLine($"Login successful - RememberMe: {vm.RememberMe}, ExpiresAt: {res.ExpiresAt}");
 
         if (!string.IsNullOrWhiteSpace(vm.ReturnUrl)) return Redirect(vm.ReturnUrl);
         return RedirectToAction("Index", "Home");
@@ -97,6 +92,7 @@ public class AccountController : Controller
         }
     }
 
+
     [HttpGet]
     public IActionResult ForgotPassword()
     {
@@ -110,17 +106,17 @@ public class AccountController : Controller
 
         try
         {
-            var success = await _authApiClient.ForgotPasswordAsync(
+            var (success, message) = await _authApiClient.ForgotPasswordAsync(
                 new AuthService.ForgotPasswordRequest(vm.Email), ct);
 
             if (success)
             {
-                vm.Success = "Chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư.";
+                vm.Success = message ?? "Chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư.";
                 vm.Email = string.Empty; // Clear email for security
             }
             else
             {
-                vm.Error = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.";
+                vm.Error = message ?? "Có lỗi xảy ra khi gửi email đặt lại mật khẩu.";
             }
         }
         catch (Exception ex)
@@ -139,6 +135,16 @@ public class AccountController : Controller
             return RedirectToAction("ForgotPassword");
         }
 
+        try
+        {
+            var decodedToken = System.Web.HttpUtility.UrlDecode(token);
+            token = decodedToken;
+        }
+        catch (Exception)
+        {
+            // Ignore decode errors
+        }
+
         return View(new ResetPasswordVm { Token = token });
     }
 
@@ -149,17 +155,17 @@ public class AccountController : Controller
 
         try
         {
-            var success = await _authApiClient.ResetPasswordAsync(
-                new AuthService.ResetPasswordRequest(vm.Token, vm.NewPassword), ct);
+            var (success, message) = await _authApiClient.ResetPasswordAsync(
+                new AuthService.ResetPasswordRequest(vm.Token, vm.NewPassword, vm.ConfirmPassword), ct);
 
             if (success)
             {
-                vm.Success = "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.";
-                return RedirectToAction("Login", new { success = "Đặt lại mật khẩu thành công!" });
+                vm.Success = message ?? "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.";
+                return RedirectToAction("Login", new { success = vm.Success });
             }
             else
             {
-                vm.Error = "Token không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
+                vm.Error = message ?? "Token không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
             }
         }
         catch (Exception ex)
@@ -233,8 +239,11 @@ public class AccountController : Controller
         try
         {
             var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
             if (string.IsNullOrEmpty(token))
             {
+                ViewBag.Error = "Bạn cần đăng nhập để truy cập trang này";
                 return RedirectToAction("Login");
             }
 
@@ -271,6 +280,7 @@ public class AccountController : Controller
                 // Load lại data từ API để giữ nguyên thông tin hiện tại
                 vm = await LoadProfileVmAsync();
             }
+            return View("ViewProfile", vm);
         }
         catch (Exception ex)
         {
@@ -288,6 +298,8 @@ public class AccountController : Controller
         try
         {
             var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
             if (string.IsNullOrEmpty(token))
             {
                 return new ProfileVm();
@@ -377,6 +389,8 @@ public class AccountController : Controller
         try
         {
             var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
             if (string.IsNullOrEmpty(token))
             {
                 return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện thao tác này" });
@@ -387,10 +401,10 @@ public class AccountController : Controller
                 return Json(new { success = false, message = "Vui lòng chọn đầy đủ 2 ảnh" });
             }
 
+            // Kiểm tra xác minh danh tính trước khi cấp quyền Seller
             _authApiClient.SetToken(token);
             _userService.SetToken(token);
             var success = await _userService.UploadKYCAsync(identificationF, identificationB);
-            
             if (success)
             {
                 return Json(new { success = true, message = "Upload ảnh KYC thành công!" });
@@ -405,7 +419,6 @@ public class AccountController : Controller
             return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
     }
-
 }
 
 

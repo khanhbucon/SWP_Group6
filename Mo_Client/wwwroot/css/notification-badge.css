@@ -1,0 +1,58 @@
+/* Notification Badge Styles */
+.notification-badge {
+    font-size: 0.7rem;
+    min-width: 18px;
+    height: 18px;
+    line-height: 16px;
+    animation: pulse 2s infinite;
+    z-index: 1000;
+}
+
+.notification-link {
+    transition: all 0.3s ease;
+}
+
+.notification-link:hover {
+    transform: scale(1.05);
+}
+
+.notification-link.has-notifications {
+    color: #dc3545 !important;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+@keyframes bell-shake {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-10deg);
+    }
+
+    75% {
+        transform: rotate(10deg);
+    }
+}
+
+.notification-link.has-notifications i {
+    animation: bell-shake 0.5s ease-in-out;
+}

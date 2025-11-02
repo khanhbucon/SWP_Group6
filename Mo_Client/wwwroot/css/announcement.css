@@ -1,0 +1,33 @@
+﻿.announcement-bar {
+    background: linear-gradient(90deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 10px 0;
+    overflow: hidden;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1040;
+    cursor: default;
+}
+
+.announcement-content {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll-left 30s linear infinite;
+    padding-left: 100%;
+}
+
+.announcement-content span {
+    display: inline-block;
+    padding: 0 50px;
+}
+
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}

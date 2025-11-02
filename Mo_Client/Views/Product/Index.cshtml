@@ -1,0 +1,435 @@
+@model List<Mo_Client.Controllers.ProductController.ProductListItem>
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var pageSize = ViewBag.PageSize ?? 12;
+    var categoryId = ViewBag.CategoryId as long?;
+    var subCategoryId = ViewBag.SubCategoryId as long?;
+    var filterParam = "";
+    if (subCategoryId.HasValue)
+    {
+    filterParam = $"&subCategoryId={subCategoryId.Value}";
+    }
+    else if (categoryId.HasValue)
+    {
+        filterParam = $"&categoryId={categoryId.Value}";
+    }
+    var startPage = Math.Max(1, currentPage - 2);
+    var endPage = Math.Min(totalPages, currentPage + 2);
+}
+
+<div class="container-fluid mt-5 pt-4">
+    <!-- Header Section HOmepage -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold text-center mb-2">
+                <i class="fas fa-shopping-bag text-primary"></i> Danh sách sản phẩm
+            </h1>
+            <p class="text-center text-muted">Khám phá hàng nghìn sản phẩm số chất lượng cao</p>
+
+            @if (subCategoryId.HasValue || categoryId.HasValue)
+            {
+                <div class="text-center mt-3">
+                    <div class="d-inline-flex align-items-center bg-primary bg-opacity-10 px-4 py-2 rounded-pill">
+                        <i class="fas fa-filter text-primary me-2"></i>
+                        <span class="fw-semibold" id="activeFilterName">Đang lọc...</span>
+                        <a href="/Product/Index" class="btn btn-sm btn-outline-danger ms-3 rounded-pill">
+                            <i class="fas fa-times"></i> Xóa bộ lọc
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Main Content Row with Sidebar -->
+    <div class="row">
+        <!-- Left Sidebar Filter -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Bộ lọc</h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- All Products Link -->
+                    <a href="/Product/Index"
+                        class="filter-item @(!subCategoryId.HasValue && !categoryId.HasValue ? "active" : "")">
+                        <i class="fas fa-th-large"></i> Tất cả sản phẩm
+                    </a>
+
+                    <!-- Loading state -->
+                    <div id="filterLoading" class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <p class="small text-muted mt-2 mb-0">Đang tải...</p>
+                    </div>
+
+                    <!-- Categories will be loaded here -->
+                    <div id="filterCategories" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Content Area -->
+        <div class="col-lg-9 col-md-8">
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> Chưa có sản phẩm nào
+                </div>
+            }
+            else
+            {
+                <!-- Products Grid -->
+                <div class="row g-4 mb-5">
+                    @foreach (var product in Model)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="card h-100 product-card shadow-sm">
+                                @if (!string.IsNullOrEmpty(product.Image))
+                                {
+                                    <img src="data:image/jpeg;base64,@product.Image" class="card-img-top product-image"
+                                        alt="@product.Name">
+                                }
+                                else
+                                {
+                                    <div class="product-image-placeholder">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                }
+
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title text-truncate" title="@product.Name">@product.Name</h5>
+
+                                    <p class="card-text text-muted small mb-2">
+                                        <i class="fas fa-store"></i> @product.ShopName
+                                    </p>
+
+                                    <p class="card-text text-muted small mb-2">
+                                        <i class="fas fa-tags"></i> @product.CategoryName / @product.SubCategoryName
+                                    </p>
+
+                                    @if (!string.IsNullOrEmpty(product.Description))
+                                    {
+                                        <p class="card-text small text-muted mb-3" style="height: 40px; overflow: hidden;">
+                                            @product.Description
+                                        </p>
+                                    }
+
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            @if (product.MinPrice == product.MaxPrice)
+                                            {
+                                                <span class="h5 mb-0 text-primary fw-bold">@product.MinPrice.ToString("N0") ₫</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="h6 mb-0 text-primary fw-bold">@product.MinPrice.ToString("N0") ₫ -
+                                                    @product.MaxPrice.ToString("N0") ₫</span>
+                                            }
+                                        </div>
+                                        <a href="/Product/View/@product.Id" class="btn btn-primary w-100">
+                                            <i class="fas fa-eye"></i> Xem sản phẩm
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Product pagination">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous -->
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="?page=@(currentPage - 1)&pageSize=@pageSize@filterParam">
+                                    <i class="fas fa-chevron-left"></i> Trước
+                                </a>
+                            </li>
+
+                            <!-- Page Numbers -->
+                            @if (startPage > 1)
+
+
+
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1&pageSize=@pageSize@filterParam">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            @for (var i = startPage; i <= endPage; i++)
+
+
+
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link" href="?page=@i&pageSize=@pageSize@filterParam">@i</a>
+                                </li>
+                            }
+
+                            @if (endPage < totalPages)
+
+
+
+                            {
+                                @if (endPage < totalPages - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@totalPages&pageSize=@pageSize@filterParam">@totalPages</a>
+                                </li>
+                            }
+
+                            <!-- Next -->
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link" href="?page=@(currentPage + 1)&pageSize=@pageSize@filterParam">
+                                    Sau <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+        <!-- End Right Content Area -->
+    </div>
+    <!-- End Main Row -->
+</div>
+
+<style>
+    .product-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .product-image {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    .product-image-placeholder {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+    }
+
+    .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .pagination .page-link {
+        color: #0d6efd;
+        border-radius: 8px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+    }
+
+    /* Sidebar Filter Styles */
+    .filter-item {
+        display: block;
+        padding: 12px 20px;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.2s;
+    }
+
+    .filter-item:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        padding-left: 25px;
+    }
+
+    .filter-item.active {
+        background-color: #e7f1ff;
+        color: #0d6efd;
+        font-weight: 600;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .filter-item i {
+        width: 20px;
+        margin-right: 8px;
+    }
+
+    .category-group {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .category-header {
+        display: block;
+        padding: 12px 20px;
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .category-header:hover {
+        background-color: #e9ecef;
+    }
+
+    .category-header i {
+        float: right;
+        transition: transform 0.2s;
+    }
+
+    .category-header.collapsed i {
+        transform: rotate(-90deg);
+    }
+
+    .subcategory-list {
+        background-color: #fff;
+    }
+
+    .subcategory-item {
+        display: block;
+        padding: 10px 20px 10px 45px;
+        color: #555;
+        text-decoration: none;
+        border-bottom: 1px solid #f5f5f5;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .subcategory-item:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        padding-left: 50px;
+    }
+
+    .subcategory-item.active {
+        background-color: #e7f1ff;
+        color: #0d6efd;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    // Load subcategories grouped by category for sidebar filter
+    (function () {
+        const apiUrl = 'https://localhost:7234/api';
+        const currentSubCategoryId = @(subCategoryId?.ToString() ?? "null");
+        const currentCategoryId = @(categoryId?.ToString() ?? "null");
+
+        // Load subcategories
+        fetch(`${apiUrl}/SubCategory/grouped`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    renderCategories(data.data);
+                    updateActiveFilterName(data.data);
+                }
+            })
+            .catch(err => {
+                console.error('Error loading categories:', err);
+                document.getElementById('filterLoading').innerHTML =
+                    '<p class="text-danger small p-3">Không thể tải danh mục</p>';
+            });
+
+        function renderCategories(categories) {
+            const container = document.getElementById('filterCategories');
+            const loading = document.getElementById('filterLoading');
+
+            if (categories.length === 0) {
+                loading.innerHTML = '<p class="text-muted small p-3">Chưa có danh mục nào</p>';
+                return;
+            }
+
+            let html = '';
+            categories.forEach((cat, index) => {
+                const isExpanded = currentCategoryId == cat.categoryId ||
+                    cat.subCategories.some(sc => sc.id == currentSubCategoryId);
+
+                html += `
+                    <div class="category-group">
+                        <button class="category-header ${isExpanded ? '' : 'collapsed'}" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#category${cat.categoryId}">
+                            ${cat.categoryName}
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="collapse subcategory-list ${isExpanded ? 'show' : ''}" 
+                             id="category${cat.categoryId}">
+                `;
+
+                cat.subCategories.forEach(sub => {
+                    const isActive = currentSubCategoryId == sub.id;
+                    html += `
+                        <a href="/Product/Index?subCategoryId=${sub.id}" 
+                           class="subcategory-item ${isActive ? 'active' : ''}">
+                            ${sub.name}
+                        </a>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            loading.style.display = 'none';
+            container.style.display = 'block';
+        }
+
+        function updateActiveFilterName(categories) {
+            const nameElement = document.getElementById('activeFilterName');
+            if (!nameElement) return;
+
+            if (currentSubCategoryId) {
+                // Find subcategory name
+                for (let cat of categories) {
+                    const sub = cat.subCategories.find(s => s.id == currentSubCategoryId);
+                    if (sub) {
+                        nameElement.textContent = `${cat.categoryName} - ${sub.name}`;
+                        return;
+                    }
+                }
+            } else if (currentCategoryId) {
+                // Find category name
+                const cat = categories.find(c => c.categoryId == currentCategoryId);
+                if (cat) {
+                    nameElement.textContent = cat.categoryName;
+                }
+            }
+        }
+    })();
+</script>

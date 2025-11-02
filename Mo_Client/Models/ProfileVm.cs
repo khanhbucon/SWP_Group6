@@ -25,6 +25,8 @@ namespace Mo_Client.Models
         public DateTime? UpdatedAt { get; set; }
         public List<string> Roles { get; set; } = new();
         public bool IsEKYCVerified { get; set; }
+        
+        // Thêm các trường còn thiếu
         public int TotalOrders { get; set; }
         public int TotalShops { get; set; }
         public int TotalProductsSold { get; set; }

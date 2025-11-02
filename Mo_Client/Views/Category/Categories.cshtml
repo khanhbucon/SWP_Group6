@@ -1,0 +1,814 @@
+@model Mo_Client.Models.Admin.CategoryManagementVm
+
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@{
+    var successMessage = ViewBag.Success as string ?? TempData["Success"] as string;
+    var errorMessage = ViewBag.Error as string ?? TempData["Error"] as string;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
+        <i class="fas fa-check-circle"></i> @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
+        <i class="fas fa-exclamation-triangle"></i> @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<style>
+    .search-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .search-card .card-body {
+        padding: 2rem;
+    }
+    
+    .search-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .search-form {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .form-control {
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.9);
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        background: white;
+        box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+    }
+    
+    .btn-search {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+    }
+    
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-weight: 600;
+        padding: 1rem;
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: #e9ecef;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-group .btn {
+        margin: 0 2px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-group .btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    .delete-btn {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        border: none;
+        color: white;
+    }
+    
+    .delete-btn:hover {
+        background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+    }
+    
+    .search-badge {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        font-weight: 500;
+    }
+    
+    .subcategory-list {
+        max-height: 120px;
+        overflow-y: auto;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .subcategory-item {
+        display: inline-block;
+        margin: 0.25rem;
+    }
+    
+    .subcategory-item .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        background-color: #007bff !important;
+        color: white !important;
+        border: 1px solid #0056b3;
+    }
+    
+    .subcategory-item .badge:hover {
+        background-color: #0056b3 !important;
+    }
+    
+    .subcategory-badge {
+        background-color: #28a745 !important;
+        color: white !important;
+        border: 1px solid #1e7e34;
+        font-weight: 500;
+    }
+    
+    .subcategory-badge:hover {
+        background-color: #1e7e34 !important;
+        color: white !important;
+    }
+    
+    .subcategory-badge.inactive {
+        background-color: #dc3545 !important;
+        border-color: #c82333;
+    }
+    
+    .subcategory-badge.inactive:hover {
+        background-color: #c82333 !important;
+    }
+    
+    /* Modal styling */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1050;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal.show {
+        display: block !important;
+    }
+    
+    .modal-dialog {
+        position: relative;
+        width: auto;
+        max-width: 500px;
+        margin: 1.75rem auto;
+        transform: translate(0, 0);
+    }
+    
+    .modal-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,.2);
+        border-radius: 0.3rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,.5);
+    }
+    
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1040;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-tags"></i> Quản lý danh mục
+            </h1>
+            <button class="btn btn-success" onclick="showAddCategoryModal()">
+                <i class="fas fa-plus"></i> Thêm danh mục
+            </button>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        }
+
+        <!-- Search Form -->
+        <div class="card search-card mb-4">
+            <div class="card-body">
+                <h5 class="search-title">
+                    <i class="fas fa-search"></i> Tìm kiếm danh mục
+                </h5>
+                <div class="search-form">
+                    <form method="get" asp-action="Categories">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="search" class="text-white font-weight-bold">Tìm kiếm theo tên hoặc ID:</label>
+                                    <input type="text" 
+                                           id="search" 
+                                           name="search" 
+                                           class="form-control" 
+                                           placeholder="Nhập tên danh mục hoặc ID để tìm kiếm..."
+                                           value="@Model.SearchTerm">
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-group w-100">
+                                    <button type="submit" class="btn btn-search w-100">
+                                        <i class="fas fa-search"></i> Tìm kiếm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <div class="mt-3">
+                            <span class="badge search-badge">
+                                <i class="fas fa-filter"></i> 
+                                Đang tìm kiếm: "@Model.SearchTerm"
+                            </span>
+                            <a href="@Url.Action("Categories")" class="btn btn-sm btn-outline-light ml-2">
+                                <i class="fas fa-times"></i> Xóa bộ lọc
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên danh mục</th>
+                        <th>Danh mục con</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Categories.Any())
+                    {
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr>
+                                <td>@category.Id</td>
+                                <td>
+                                    <strong>@category.Name</strong>
+                                </td>
+                                <td>
+                                    @if (category.SubCategories.Any())
+                                    {
+                                        <div class="subcategory-list">
+                                            @foreach (var sub in category.SubCategories)
+                                            {
+                                                <div class="subcategory-item d-flex align-items-center mb-1">
+                                                    <span class="badge subcategory-badge @(sub.IsActive == false ? "inactive" : "") me-2">
+                                                        @sub.Name
+                                                        @if (sub.IsActive == false)
+                                                        {
+                                                            <i class="fas fa-ban ml-1" title="Tạm dừng"></i>
+                                                        }
+                                                    </span>
+                                                    <button class="btn btn-sm btn-outline-warning edit-subcategory-btn" 
+                                                            data-subcategory-id="@sub.Id" 
+                                                            data-subcategory-name="@sub.Name"
+                                                            data-subcategory-active="@sub.IsActive.ToString().ToLower()"
+                                                            title="Sửa danh mục con">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Chưa có danh mục con
+                                        </small>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-info add-subcategory-btn" data-category-id="@category.Id" data-category-name="@category.Name" title="Thêm danh mục con">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        <a href="@Url.Action("EditCategory", new { id = category.Id })" class="btn btn-sm btn-warning" title="Sửa danh mục">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger delete-btn" data-id="@category.Id" data-name="@category.Name" title="Xóa danh mục">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                @if (string.IsNullOrEmpty(Model.SearchTerm))
+                                {
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                        <div>Chưa có danh mục nào</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fas fa-search fa-2x mb-2"></i>
+                                        <div>Không tìm thấy danh mục nào</div>
+                                        <small class="text-muted">Thử từ khóa khác hoặc <a href="@Url.Action("Categories")">xem tất cả</a></small>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Form for Delete -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm danh mục mới</h5>
+                <button type="button" class="close" onclick="hideAddCategoryModal()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm" method="post" action="@Url.Action("CreateCategory", "Category")">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label for="categoryName">Tên danh mục:</label>
+                        <input type="text" id="categoryName" name="Name" class="form-control" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideAddCategoryModal()">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="submitCategoryForm()">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add SubCategory Modal -->
+<div class="modal fade" id="addSubCategoryModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm danh mục con</h5>
+                <button type="button" class="close" onclick="hideAddSubCategoryModal()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addSubCategoryForm" method="post" action="@Url.Action("CreateSubCategory", "Category")">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label for="parentCategoryName">Danh mục cha:</label>
+                        <input type="text" id="parentCategoryName" class="form-control" readonly />
+                        <input type="hidden" id="parentCategoryId" name="CategoryId" />
+                    </div>
+                    <div class="form-group">
+                        <label for="subCategoryName">Tên danh mục con:</label>
+                        <input type="text" id="subCategoryName" name="Name" class="form-control" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideAddSubCategoryModal()">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="submitSubCategoryForm()">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit SubCategory Modal -->
+<div class="modal fade" id="editSubCategoryModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa danh mục con</h5>
+                <button type="button" class="close" onclick="hideEditSubCategoryModal()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editSubCategoryForm" method="post" action="@Url.Action("UpdateSubCategory", "Category")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editSubCategoryId" name="Id" />
+                    <div class="form-group">
+                        <label for="editSubCategoryName">Tên danh mục con:</label>
+                        <input type="text" id="editSubCategoryName" name="Name" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="editSubCategoryIsActive" name="IsActive" class="form-check-input" value="true" />
+                            <label for="editSubCategoryIsActive" class="form-check-label">
+                                Kích hoạt danh mục con
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideEditSubCategoryModal()">Hủy</button>
+                <button type="button" class="btn btn-warning" onclick="submitEditSubCategoryForm()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Remove duplicate alerts
+        const existingAlerts = document.querySelectorAll('.alert');
+        if (existingAlerts.length > 1) {
+            // Keep only the first alert of each type
+            const successAlerts = document.querySelectorAll('#successAlert');
+            const errorAlerts = document.querySelectorAll('#errorAlert');
+            
+            // Remove duplicate success alerts
+            for (let i = 1; i < successAlerts.length; i++) {
+                successAlerts[i].remove();
+            }
+            
+            // Remove duplicate error alerts
+            for (let i = 1; i < errorAlerts.length; i++) {
+                errorAlerts[i].remove();
+            }
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        
+        if (successAlert) {
+            setTimeout(function() {
+                successAlert.style.display = 'none';
+            }, 5000);
+        }
+        
+        if (errorAlert) {
+            setTimeout(function() {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Sử dụng event delegation để tránh lỗi
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-btn')) {
+                e.preventDefault();
+                var button = e.target.closest('.delete-btn');
+                var id = button.getAttribute('data-id');
+                var name = button.getAttribute('data-name');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa danh mục "' + name + '"?')) {
+                    var form = document.getElementById('deleteForm');
+                    if (form) {
+                        form.action = '@Url.Action("DeleteCategory", "Category")/' + id;
+                        form.submit();
+                    }
+                }
+            }
+            
+            if (e.target.closest('.add-subcategory-btn')) {
+                e.preventDefault();
+                var button = e.target.closest('.add-subcategory-btn');
+                var categoryId = button.getAttribute('data-category-id');
+                var categoryName = button.getAttribute('data-category-name');
+                
+                showAddSubCategoryModal(categoryId, categoryName);
+            }
+            
+            if (e.target.closest('.edit-subcategory-btn')) {
+                e.preventDefault();
+                var button = e.target.closest('.edit-subcategory-btn');
+                var subCategoryId = button.getAttribute('data-subcategory-id');
+                var subCategoryName = button.getAttribute('data-subcategory-name');
+                var isActive = button.getAttribute('data-subcategory-active') === 'true';
+                
+                showEditSubCategoryModal(subCategoryId, subCategoryName, isActive);
+            }
+        });
+    });
+
+    function showAddCategoryModal() {
+        console.log('Opening modal...');
+        const modal = document.getElementById('addCategoryModal');
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            
+            // Tạo backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = 'modalBackdrop';
+            document.body.appendChild(backdrop);
+            
+            console.log('Modal opened');
+        } else {
+            console.error('Modal not found');
+        }
+    }
+
+    function hideAddCategoryModal() {
+        console.log('Closing modal...');
+        const modal = document.getElementById('addCategoryModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            
+            // Xóa backdrop
+            const backdrop = document.getElementById('modalBackdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+            
+            console.log('Modal closed');
+        }
+    }
+
+    function submitCategoryForm() {
+        const form = document.getElementById('addCategoryForm');
+        const nameInput = document.getElementById('categoryName');
+        
+        if (!form || !nameInput) {
+            console.error('Form or input not found');
+            return;
+        }
+        
+        const categoryName = nameInput.value.trim();
+        if (!categoryName) {
+            alert('Vui lòng nhập tên danh mục');
+            return;
+        }
+        
+        // Disable button to prevent double submit
+        const submitBtn = event.target;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang thêm...';
+        
+        // Submit form
+        form.submit();
+    }
+
+    function showAddSubCategoryModal(categoryId, categoryName) {
+        console.log('Opening subcategory modal for:', categoryName);
+        
+        // Set category info
+        document.getElementById('parentCategoryId').value = categoryId;
+        document.getElementById('parentCategoryName').value = categoryName;
+        document.getElementById('subCategoryName').value = '';
+        
+        const modal = document.getElementById('addSubCategoryModal');
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            
+            // Add backdrop
+            const backdrop = document.createElement('div');
+            backdrop.id = 'modalBackdrop';
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+            
+            console.log('SubCategory modal opened');
+        } else {
+            console.error('SubCategory modal not found');
+        }
+    }
+
+    function hideAddSubCategoryModal() {
+        console.log('Closing subcategory modal...');
+        const modal = document.getElementById('addSubCategoryModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            
+            // Xóa backdrop
+            const backdrop = document.getElementById('modalBackdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+            
+            console.log('SubCategory modal closed');
+        }
+    }
+
+    function submitSubCategoryForm() {
+        const form = document.getElementById('addSubCategoryForm');
+        const nameInput = document.getElementById('subCategoryName');
+        
+        if (!form || !nameInput) {
+            console.error('SubCategory form or input not found');
+            return;
+        }
+        
+        const subCategoryName = nameInput.value.trim();
+        if (!subCategoryName) {
+            alert('Vui lòng nhập tên danh mục con');
+            return;
+        }
+        
+        // Disable button to prevent double submit
+        const submitBtn = event.target;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang thêm...';
+        
+        // Submit form
+        form.submit();
+    }
+
+    function showEditSubCategoryModal(subCategoryId, subCategoryName, isActive = true) {
+        console.log('Opening edit subcategory modal for:', subCategoryName);
+        
+        // Set subcategory info
+        document.getElementById('editSubCategoryId').value = subCategoryId;
+        document.getElementById('editSubCategoryName').value = subCategoryName;
+        document.getElementById('editSubCategoryIsActive').checked = isActive;
+        
+        const modal = document.getElementById('editSubCategoryModal');
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            
+            // Add backdrop
+            const backdrop = document.createElement('div');
+            backdrop.id = 'modalBackdrop';
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+            
+            console.log('Edit SubCategory modal opened');
+        } else {
+            console.error('Edit SubCategory modal not found');
+        }
+    }
+
+    function hideEditSubCategoryModal() {
+        console.log('Closing edit subcategory modal...');
+        const modal = document.getElementById('editSubCategoryModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            
+            // Xóa backdrop
+            const backdrop = document.getElementById('modalBackdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+            
+            console.log('Edit SubCategory modal closed');
+        }
+    }
+
+    function submitEditSubCategoryForm() {
+        const form = document.getElementById('editSubCategoryForm');
+        const nameInput = document.getElementById('editSubCategoryName');
+        const isActiveCheckbox = document.getElementById('editSubCategoryIsActive');
+        
+        if (!form || !nameInput || !isActiveCheckbox) {
+            console.error('Edit SubCategory form or inputs not found');
+            return;
+        }
+        
+        const subCategoryName = nameInput.value.trim();
+        if (!subCategoryName) {
+            alert('Vui lòng nhập tên danh mục con');
+            return;
+        }
+        
+        // Ensure checkbox value is properly set
+        if (isActiveCheckbox.checked) {
+            isActiveCheckbox.value = 'true';
+        } else {
+            // Add hidden input for false value
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'IsActive';
+            hiddenInput.value = 'false';
+            form.appendChild(hiddenInput);
+        }
+        
+        // Disable button to prevent double submit
+        const submitBtn = event.target;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang cập nhật...';
+        
+        // Submit form
+        form.submit();
+    }
+</script>
+
+<!-- Hidden form for delete operations -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>

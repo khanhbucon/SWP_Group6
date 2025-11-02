@@ -2,17 +2,21 @@ using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Models;
 using Mo_Client.Models.Admin;
 using Mo_Client.Services;
+using System.Linq;
+using System;
 
 namespace Mo_Client.Controllers
 {
     public class AdminController : Controller
     {
         private readonly AdminService _adminService;
+        private readonly CategoryService _categoryService;
 
-        public AdminController(AdminService adminService)
+        public AdminController(AdminService adminService, CategoryService categoryService)
         {
             _adminService = adminService;
-        }
+            _categoryService = categoryService;
+       }
 
         /// <summary>
         /// Kiểm tra quyền Admin
@@ -49,21 +53,24 @@ namespace Mo_Client.Controllers
                 if (!IsAdmin())
                     return RedirectToLogin();
 
-                // TODO: Gọi API để lấy thống kê thực tế
+                _adminService.SetToken(Request.Cookies["accessToken"]);
+                var stats = await _adminService.GetDashboardStatsAsync();
+                
                 var dashboardVm = new DashboardVm
                 {
-                    TotalUsers = 1250, // Demo data
-                    TotalShops = 45,   // Demo data
-                    TotalProducts = 320, // Demo data
-                    PendingShops = 3,  // Demo data
-                    PendingProducts = 8, // Demo data
-                    BannedUsers = 12,  // Demo data
-                    RecentUsers = new List<RecentUserVm>
+                    TotalUsers = stats?.TotalUsers ?? 0,
+                    TotalShops = stats?.TotalShops ?? 0,
+                    TotalProducts = stats?.TotalProducts ?? 0,
+                    PendingShops = stats?.PendingShops ?? 0,
+                    PendingProducts = stats?.PendingProducts ?? 0,
+                    BannedUsers = stats?.BannedUsers ?? 0,
+                    RecentUsers = stats?.RecentUsers?.Select(u => new RecentUserVm
                     {
-                        new RecentUserVm { Username = "user1", Email = "user1@example.com", CreatedAt = DateTime.Now.AddDays(-1) },
-                        new RecentUserVm { Username = "user2", Email = "user2@example.com", CreatedAt = DateTime.Now.AddDays(-2) },
-                        new RecentUserVm { Username = "user3", Email = "user3@example.com", CreatedAt = DateTime.Now.AddDays(-3) }
-                    }
+                        Username = u.Username,
+                        Email = u.Email,
+                        CreatedAt = u.CreatedAt,
+                        IsActive = u.IsActive
+                    }).ToList() ?? new List<RecentUserVm>()
                 };
 
                 return View(dashboardVm);
@@ -76,58 +83,41 @@ namespace Mo_Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Shops(string? search = null, int page = 1)
+        public async Task<IActionResult> Shops(string? search = null, int page = 1)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
 
             try
             {
-                // TODO: Gọi API để lấy danh sách cửa hàng
-                var shopsVm = new ShopManagementVm
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var items = await _adminService.GetShopsAsync(search);
+
+                if (items == null)
+                {
+                    TempData["Error"] = "Không thể tải danh sách cửa hàng";
+                    return View(new ShopManagementVm());
+                }
+
+                var vm = new ShopManagementVm
                 {
                     SearchTerm = search,
                     PageNumber = page,
-                    TotalCount = 3, // Demo data
-                    Shops = new List<ShopVm>
+                    TotalCount = items.Count,
+                    Shops = items.Select(s => new ShopVm
                     {
-                        new ShopVm 
-                        { 
-                            Id = 1, 
-                            Name = "Cửa hàng demo 1", 
-                            Owner = "user1", 
-                            Status = "Active", 
-                            CreatedAt = DateTime.Now.AddDays(-10), 
-                            ProductCount = 15,
-                            ReportCount = 0,
-                            Description = "Cửa hàng chuyên bán điện tử"
-                        },
-                        new ShopVm 
-                        { 
-                            Id = 2, 
-                            Name = "Cửa hàng demo 2", 
-                            Owner = "user2", 
-                            Status = "Pending", 
-                            CreatedAt = DateTime.Now.AddDays(-5), 
-                            ProductCount = 8,
-                            ReportCount = 2,
-                            Description = "Cửa hàng thời trang"
-                        },
-                        new ShopVm 
-                        { 
-                            Id = 3, 
-                            Name = "Cửa hàng demo 3", 
-                            Owner = "user3", 
-                            Status = "Inactive", 
-                            CreatedAt = DateTime.Now.AddDays(-15), 
-                            ProductCount = 0,
-                            ReportCount = 5,
-                            Description = "Cửa hàng gia dụng"
-                        }
-                    }
+                        Id = s.Id,
+                        Name = s.Name,
+                        Owner = s.Owner,
+                        Status = s.Status,
+                        CreatedAt = s.CreatedAt ?? DateTime.UtcNow,
+                        ProductCount = s.ProductCount,
+                        ReportCount = s.ReportCount,
+                        Description = null
+                    }).ToList()
                 };
 
-                return View(shopsVm);
+                return View(vm);
             }
             catch (Exception ex)
             {
@@ -136,62 +126,93 @@ namespace Mo_Client.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ApproveShop(long shopId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ApproveShopAsync(shopId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Duyệt cửa hàng thành công" : "Không thể duyệt cửa hàng";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Shops");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SuspendShop(long shopId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.SuspendShopAsync(shopId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Tạm dừng cửa hàng thành công" : "Không thể tạm dừng cửa hàng";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Shops");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActivateShop(long shopId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ActivateShopAsync(shopId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Kích hoạt cửa hàng thành công" : "Không thể kích hoạt cửa hàng";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Shops");
+        }
+
         [HttpGet]
-        public IActionResult Products(string? search = null, int page = 1)
+        public async Task<IActionResult> Products(string? search = null, int page = 1)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
 
             try
             {
-                // TODO: Gọi API để lấy danh sách sản phẩm
-                var productsVm = new ProductManagementVm
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var items = await _adminService.GetProductsAsync(search);
+                if (items == null)
+                {
+                    TempData["Error"] = "Không thể tải danh sách sản phẩm";
+                    return View(new ProductManagementVm());
+                }
+
+                var vm = new ProductManagementVm
                 {
                     SearchTerm = search,
                     PageNumber = page,
-                    TotalCount = 3, // Demo data
-                    Products = new List<ProductVm>
+                    TotalCount = items.Count,
+                    Products = items.Select(p => new ProductVm
                     {
-                        new ProductVm 
-                        { 
-                            Id = 1, 
-                            Name = "Sản phẩm demo 1", 
-                            ShopName = "Cửa hàng demo 1", 
-                            Category = "Điện tử", 
-                            Status = "Active", 
-                            Price = 500000, 
-                            CreatedAt = DateTime.Now.AddDays(-5),
-                            SoldCount = 25,
-                            Description = "Sản phẩm điện tử chất lượng cao"
-                        },
-                        new ProductVm 
-                        { 
-                            Id = 2, 
-                            Name = "Sản phẩm demo 2", 
-                            ShopName = "Cửa hàng demo 2", 
-                            Category = "Thời trang", 
-                            Status = "Pending", 
-                            Price = 300000, 
-                            CreatedAt = DateTime.Now.AddDays(-3),
-                            SoldCount = 0,
-                            Description = "Quần áo thời trang"
-                        },
-                        new ProductVm 
-                        { 
-                            Id = 3, 
-                            Name = "Sản phẩm demo 3", 
-                            ShopName = "Cửa hàng demo 3", 
-                            Category = "Gia dụng", 
-                            Status = "Inactive", 
-                            Price = 200000, 
-                            CreatedAt = DateTime.Now.AddDays(-7),
-                            SoldCount = 8,
-                            Description = "Đồ dùng gia đình"
-                        }
-                    }
+                        Id = p.Id,
+                        Name = p.Name,
+                        ShopName = p.ShopName,
+                        Category = p.Category,
+                        Price = p.Price,
+                        SoldCount = p.SoldCount,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt ?? DateTime.UtcNow,
+                        Description = p.Description
+                    }).ToList()
                 };
 
-                return View(productsVm);
+                return View(vm);
             }
             catch (Exception ex)
             {
@@ -200,66 +221,59 @@ namespace Mo_Client.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult Categories()
+        [HttpPost]
+        public async Task<IActionResult> ApproveProduct(long productId)
         {
-            if (!IsAdmin())
-                return RedirectToLogin();
-
+            if (!IsAdmin()) return RedirectToLogin();
             try
             {
-                // TODO: Gọi API để lấy danh sách danh mục
-                var categoriesVm = new CategoryManagementVm
-                {
-                    TotalCount = 3, // Demo data
-                    Categories = new List<CategoryVm>
-                    {
-                        new CategoryVm 
-                        { 
-                            Id = 1, 
-                            Name = "Điện tử", 
-                            Description = "Thiết bị điện tử", 
-                            ProductCount = 45, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-30),
-                            SubCategories = new List<SubCategoryVm>
-                            {
-                                new SubCategoryVm { Id = 1, Name = "Điện thoại", Description = "Smartphone", ProductCount = 20, IsActive = true, CategoryId = 1 },
-                                new SubCategoryVm { Id = 2, Name = "Laptop", Description = "Máy tính xách tay", ProductCount = 25, IsActive = true, CategoryId = 1 }
-                            }
-                        },
-                        new CategoryVm 
-                        { 
-                            Id = 2, 
-                            Name = "Thời trang", 
-                            Description = "Quần áo, giày dép", 
-                            ProductCount = 120, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-25)
-                        },
-                        new CategoryVm 
-                        { 
-                            Id = 3, 
-                            Name = "Gia dụng", 
-                            Description = "Đồ dùng gia đình", 
-                            ProductCount = 80, 
-                            IsActive = true,
-                            CreatedAt = DateTime.Now.AddDays(-20)
-                        }
-                    }
-                };
-
-                return View(categoriesVm);
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ApproveProductAsync(productId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Duyệt sản phẩm thành công" : "Không thể duyệt sản phẩm";
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new CategoryManagementVm());
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
             }
+            return RedirectToAction("Products");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SuspendProduct(long productId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.SuspendProductAsync(productId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Tạm dừng sản phẩm thành công" : "Không thể tạm dừng sản phẩm";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Products");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActivateProduct(long productId)
+        {
+            if (!IsAdmin()) return RedirectToLogin();
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"] ?? string.Empty);
+                var ok = await _adminService.ActivateProductAsync(productId);
+                TempData[ok ? "Success" : "Error"] = ok ? "Kích hoạt sản phẩm thành công" : "Không thể kích hoạt sản phẩm";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            return RedirectToAction("Products");
         }
 
         [HttpGet]
-        public async Task<IActionResult> ManagerUser()
+        public async Task<IActionResult> ManagerUser(UserSearchVm? searchModel = null)
         {
             if (!IsAdmin())
                 return RedirectToLogin();
@@ -267,19 +281,118 @@ namespace Mo_Client.Controllers
             try
             {
                 _adminService.SetToken(Request.Cookies["accessToken"]);
-                var users = await _adminService.GetAllUsersAsync();
-                if (users == null)
+                
+                // Set default values
+                if (searchModel == null)
+                {
+                    searchModel = new UserSearchVm
+                    {
+                        PageNumber = 1,
+                        PageSize = 10
+                    };
+                }
+                
+                // Truyền search parameters vào ViewBag để giữ lại giá trị trong form
+                ViewBag.UserId = searchModel.UserId;
+                ViewBag.Email = searchModel.Email;
+                ViewBag.Phone = searchModel.Phone;
+                ViewBag.Role = searchModel.Role;
+                ViewBag.IsActive = searchModel.IsActive?.ToString();
+                ViewBag.IsEKYCVerified = searchModel.IsEKYCVerified?.ToString();
+                ViewBag.PageNumber = searchModel.PageNumber;
+                ViewBag.PageSize = searchModel.PageSize;
+                
+                // Lấy tất cả users từ API
+                var allUsers = await _adminService.GetAllUsersAsync();
+                if (allUsers == null)
                 {
                     ViewBag.Error = "Không thể tải danh sách người dùng";
-                    return View(new List<ListAccountResponse>());
+                    return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
                 }
-                return View(users);
+                
+                // Thực hiện search/filter ở phía frontend
+                var filteredUsers = FilterUsers(allUsers, searchModel);
+                
+                // Thực hiện phân trang
+                var paginatedUsers = PaginateUsers(filteredUsers, searchModel.PageNumber, searchModel.PageSize);
+                
+                var searchResult = new UserSearchResultVm
+                {
+                    Users = paginatedUsers,
+                    TotalCount = filteredUsers.Count,
+                    PageNumber = searchModel.PageNumber,
+                    PageSize = searchModel.PageSize
+                };
+                
+                return View(searchResult);
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                return View(new List<ListAccountResponse>());
+                return View(new UserSearchResultVm { Users = new List<ListAccountVm>() });
             }
+        }
+
+        /// <summary>
+        /// Filter users based on search criteria
+        /// </summary>
+        private List<ListAccountVm> FilterUsers(List<ListAccountVm> users, UserSearchVm searchModel)
+        {
+            var filteredUsers = users.AsQueryable();
+
+            // Filter by UserId
+            if (searchModel.UserId.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.UserId == searchModel.UserId.Value);
+            }
+
+            // Filter by Email
+            if (!string.IsNullOrEmpty(searchModel.Email))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Email != null && 
+                    u.Email.Contains(searchModel.Email, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Phone
+            if (!string.IsNullOrEmpty(searchModel.Phone))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Phone != null && 
+                    u.Phone.Contains(searchModel.Phone, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Role
+            if (!string.IsNullOrEmpty(searchModel.Role))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Roles != null && 
+                    u.Roles.Contains(searchModel.Role, StringComparer.OrdinalIgnoreCase));
+            }
+
+
+            // Filter by IsActive
+            if (searchModel.IsActive.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.IsActive == searchModel.IsActive.Value);
+            }
+
+            // Filter by IsEKYCVerified
+            if (searchModel.IsEKYCVerified.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.IsEKYCVerified == searchModel.IsEKYCVerified.Value);
+            }
+
+            return filteredUsers.ToList();
+        }
+
+        /// <summary>
+        /// Paginate users based on page number and page size
+        /// </summary>
+        private List<ListAccountVm> PaginateUsers(List<ListAccountVm> users, int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var skip = (pageNumber - 1) * pageSize;
+            return users.Skip(skip).Take(pageSize).ToList();
         }
 
         [HttpPost]
@@ -351,16 +464,5 @@ namespace Mo_Client.Controllers
         }
 
         // TODO: Thêm các action khác khi có API
-        // [HttpPost]
-        // public async Task<IActionResult> ApproveShop(long shopId)
-        // {
-        //     // Implement approve shop logic
-        // }
-        
-        // [HttpPost]
-        // public async Task<IActionResult> SuspendShop(long shopId)
-        // {
-        //     // Implement suspend shop logic
-        // }
     }
 }

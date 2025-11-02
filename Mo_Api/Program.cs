@@ -1,4 +1,5 @@
-using System.Text;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Mo_DataAccess.Services;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
+using Mo_Api.Services;
 
 namespace Mo_Api;
 
@@ -20,6 +22,10 @@ public class Program
         {
             options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100);
         });
+        // Enable HttpClient factory for services that need HttpClient (e.g., VnpayTransactionServices)
+        builder.Services.AddHttpClient();
+        // Register CORS services
+        builder.Services.AddCors();
         builder.Services.AddDbContext<SwpGroup6Context>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -65,10 +71,10 @@ public class Program
         });
         builder.Services.AddScoped<IAccountServices, AccountServices>();
         builder.Services.AddScoped<ICategoryServices, CategoryServices>();
+        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<IFeedbackServices, FeedbackServices>();
         builder.Services.AddScoped<IImageMessageServices, ImageMessageServices>();
         builder.Services.AddScoped<IMessageServices, MessageServices>();
-        builder.Services.AddScoped<IOrderProductProductStoreServices, OrderProductProductStoreServices>();
         builder.Services.AddScoped<IOrderProductServices, OrderProductServices>();
         builder.Services.AddScoped<IPaymentTransactionServices, PaymentTransactionServices>();
         builder.Services.AddScoped<IProductServices, ProductServices>();
@@ -77,13 +83,15 @@ public class Program
         builder.Services.AddScoped<IReplyServices, ReplyServices>();
         builder.Services.AddScoped<IRoleServices, RoleServices>();
         builder.Services.AddScoped<IShopServices, ShopServices>();
-        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<ISupportTicketServices, SupportTicketServices>();
         builder.Services.AddScoped<ISystemsConfigServices, SystemsConfigServices>();
         builder.Services.AddScoped<ITextMessageServices, TextMessageServices>();
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
+        builder.Services.AddHttpClient<VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
+        builder.Services.AddHostedService<SellerPayoutBackgroundService>();
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
         {
@@ -92,12 +100,16 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.UseCors(options =>
+        {
+            options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        });
         app.UseAuthentication();
         app.UseAuthorization();
          app.UseCors(options =>
          {
               options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-         })  ;
+        });
 
         app.MapControllers();
 
