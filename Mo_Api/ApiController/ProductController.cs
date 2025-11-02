@@ -547,7 +547,13 @@ public class ProductController : ControllerBase
     {
         try
         {
-            var product = await _products.GetByIdAsync(id);
+            // Load product with all necessary navigation properties
+            var product = await _db.Products
+                .Include(p => p.Shop)
+                .Include(p => p.SubCategory)
+                    .ThenInclude(sc => sc.Category)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (product == null || product.IsActive != true)
                 return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại hoặc chưa được kích hoạt" });
 
@@ -577,10 +583,10 @@ public class ProductController : ControllerBase
                     product.Description,
                     product.Details,
                     Image = product.Image != null ? Convert.ToBase64String(product.Image) : null,
-                    ShopName = product.Shop?.Name,
+                    ShopName = product.Shop != null ? product.Shop.Name : null,
                     ShopId = product.ShopId,
-                    CategoryName = product.SubCategory?.Category?.Name,
-                    SubCategoryName = product.SubCategory?.Name,
+                    CategoryName = product.SubCategory != null && product.SubCategory.Category != null ? product.SubCategory.Category.Name : null,
+                    SubCategoryName = product.SubCategory != null ? product.SubCategory.Name : null,
                     SubCategoryId = product.SubCategoryId,
                     product.Fee,
                     TotalStock = totalStock,
