@@ -32,4 +32,7 @@ public interface IProductServices : IGenericRepository<Product>
     Task<bool> AdminApproveAsync(long productId);
     Task<bool> AdminActivateAsync(long productId);
     Task<bool> AdminSuspendAsync(long productId);
+
+    // Public operations
+    Task<List<Product>> GetAllProductsAsync();
 }

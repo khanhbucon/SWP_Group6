@@ -20,11 +20,12 @@
         <thead class="bg-light">
           <tr>
             <th class="px-4 py-3" style="width: 5%">#</th>
+            <th class="py-3" style="width: 10%">Ảnh</th>
             <th class="py-3" style="width: 20%">Tên</th>
             <th class="py-3" style="width: 25%">Mô tả ngắn</th>
             <th class="py-3" style="width: 12%">Shop</th>
             <th class="py-3 text-center" style="width: 10%">Trạng thái</th>
-            <th class="py-3 text-end px-4" style="width: 28%">Thao tác</th>
+            <th class="py-3 text-end px-4" style="width: 18%">Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -34,10 +35,21 @@
           var page = (int)(ViewBag.Page ?? 1);
           var pageSize = (int)(ViewBag.PageSize ?? 10);
           var startIndex = (page - 1) * pageSize + 1;
+          string apiBase = (ViewBag.ApiBase as string) ?? string.Empty;
           var i=0; foreach(var p in Model){
+            var imgUrl = string.IsNullOrEmpty(apiBase) ? string.Empty : $"{apiBase}/api/product/{p.Id}/image";
             var isPending = p.IsActive == null;
             <tr class="border-bottom">
               <td class="px-4 fw-medium text-muted">@(startIndex + i)</td>
+              <td>
+                @if(!string.IsNullOrEmpty(imgUrl)){
+                  <img src="@imgUrl" alt="@p.Name" onerror="this.onerror=null;this.src='/images/no-image.png';" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />
+                } else {
+                  <div style="width:60px;height:60px;background:#f5f5f7;border:1px solid #eee;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#bbb;">
+                    <i class="fas fa-image"></i>
+                  </div>
+                }
+              </td>
               <td class="fw-semibold">@p.Name</td>
               <td class="text-muted" style="max-width:250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@p.Description</td>
               <td><span class="badge bg-light text-dark border">@p.ShopName</span></td>

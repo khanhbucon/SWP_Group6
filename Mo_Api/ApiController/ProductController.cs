@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Mo_Api.Extensions;
+using Mo_DataAccess.Services;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.ModelRequest;
+using Mo_Entities.ModelResponse;
 using Mo_Entities.Models;
+using static Mo_Client.Controllers.ProductController;
 
 namespace Mo_Api.ApiController;
 
@@ -101,6 +105,24 @@ public class ProductController : ControllerBase
                 MaxPrice = maxPrice
             }
         });
+    }
+
+    [HttpGet("{id:long}/image")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetImage(long id)
+    {
+        var product = await _products.GetByIdAsync(id);
+        if (product == null) return NotFound();
+
+        if (product.Image == null || product.Image.Length == 0)
+            return NotFound();
+
+        // Best-effort mime type detection (PNG header) else default jpeg
+        string contentType = (product.Image.Length > 8 &&
+                              product.Image[0] == 0x89 && product.Image[1] == 0x50 && product.Image[2] == 0x4E && product.Image[3] == 0x47)
+            ? "image/png"
+            : "image/jpeg";
+        return File(product.Image, contentType);
     }
 
     [HttpGet("{productId:long}/variants")]
@@ -318,9 +340,29 @@ public class ProductController : ControllerBase
         // Harden rule: Seller cannot change status while pending (IsActive == null)
         if (request.IsActive.HasValue)
         {
-            if (product.IsActive == null)
+            product.IsActive = request.IsActive;
+        }
+
+        // Image update
+        if (request.RemoveImage == true)
+        {
+            product.Image = null;
+        }
+        else if (!string.IsNullOrWhiteSpace(request.ImageUrl))
+        {
+            try
             {
-                return BadRequest(new { Success = false, Message = "Sản phẩm đang chờ duyệt, không thể thay đổi trạng thái" });
+                var base64 = request.ImageUrl;
+                var commaIdx = base64.IndexOf(',');
+                if (base64.StartsWith("data:") && commaIdx > -1)
+                {
+                    base64 = base64[(commaIdx + 1)..];
+                }
+                product.Image = Convert.FromBase64String(base64);
+            }
+            catch
+            {
+                return BadRequest(new { Success = false, Message = "Ảnh không hợp lệ (không phải base64)" });
             }
             product.IsActive = request.IsActive;
         }
@@ -423,4 +465,136 @@ public class ProductController : ControllerBase
         await _variants.CreateAsync(variant);
         return Ok(new { Success = true, Id = variant.Id });
     }
+
+    [HttpGet("GetAllProducts")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAllProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 12, [FromQuery] long? categoryId = null, [FromQuery] long? subCategoryId = null)
+    {
+        try
+        {
+            var products = await _products.GetAllProductsAsync();
+
+            // Filter only active products with valid data
+            var activeProducts = products
+                .Where(p => p.IsActive == true 
+                    && p.Shop != null 
+                    && p.SubCategory != null 
+                    && p.SubCategory.Category != null 
+                    && p.ProductVariants != null 
+                    && p.ProductVariants.Any())
+                .ToList();
+
+            // Filter by subCategoryId (takes priority)
+            if (subCategoryId.HasValue)
+            {
+                activeProducts = activeProducts
+                    .Where(p => p.SubCategoryId == subCategoryId.Value)
+                    .ToList();
+            }
+            // Otherwise filter by categoryId if provided
+            else if (categoryId.HasValue)
+            {
+                activeProducts = activeProducts
+                    .Where(p => p.SubCategory.CategoryId == categoryId.Value)
+                    .ToList();
+            }
+
+            // Pagination
+            var totalItems = activeProducts.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var pagedProducts = activeProducts
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new ProductListResponse
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Image = p.Image != null ? Convert.ToBase64String(p.Image) : null,
+                    ShopName = p.Shop.Name,
+                    ShopId = p.ShopId,
+                    CategoryName = p.SubCategory.Category.Name,
+                    SubCategoryName = p.SubCategory.Name,
+                    MinPrice = p.ProductVariants.Min(v => v.Price),
+                    MaxPrice = p.ProductVariants.Max(v => v.Price),
+                    CreatedAt = p.CreatedAt
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                Success = true,
+                Data = pagedProducts,
+                Pagination = new
+                {
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalItems = totalItems
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = ex.Message });
+        }
+    }
+
+    [HttpGet("details/{id:long}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetProductDetails(long id)
+    {
+        try
+        {
+            var product = await _products.GetByIdAsync(id);
+            if (product == null || product.IsActive != true)
+                return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại hoặc chưa được kích hoạt" });
+
+            // Get variants
+            var variants = await _db.ProductVariants
+                .Where(v => v.ProductId == id)
+                .OrderBy(v => v.Price)
+                .Select(v => new
+                {
+                    v.Id,
+                    v.Name,
+                    v.Price,
+                    v.Stock
+                })
+                .ToListAsync();
+
+            // Get total stock and sold
+            var (totalStock, totalSold) = await _products.GetStockAndSoldAsync(id);
+
+            return Ok(new
+            {
+                Success = true,
+                Data = new
+                {
+                    product.Id,
+                    product.Name,
+                    product.Description,
+                    product.Details,
+                    Image = product.Image != null ? Convert.ToBase64String(product.Image) : null,
+                    ShopName = product.Shop?.Name,
+                    ShopId = product.ShopId,
+                    CategoryName = product.SubCategory?.Category?.Name,
+                    SubCategoryName = product.SubCategory?.Name,
+                    SubCategoryId = product.SubCategoryId,
+                    product.Fee,
+                    TotalStock = totalStock,
+                    TotalSold = totalSold,
+                    Variants = variants,
+                    product.CreatedAt,
+                    product.UpdatedAt
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = ex.Message });
+        }
+    }
+   
 }
