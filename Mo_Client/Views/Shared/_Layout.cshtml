@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,12 +7,13 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Mo_Client.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notification-badge.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/announcement.css" asp-append-version="true" />
+
     <style>
         /* Category Dropdown Styling */
         #productDropdown .dropdown-menu {
@@ -29,16 +30,16 @@
             transition: all 0.2s;
         }
 
-        #productDropdown .dropdown-item:hover {
-            background-color: #f8f9fa;
-            padding-left: 25px;
-        }
+            #productDropdown .dropdown-item:hover {
+                background-color: #f8f9fa;
+                padding-left: 25px;
+            }
 
-        #productDropdown .dropdown-item i {
-            width: 20px;
-            margin-right: 8px;
-            color: #0d6efd;
-        }
+            #productDropdown .dropdown-item i {
+                width: 20px;
+                margin-right: 8px;
+                color: #0d6efd;
+            }
 
         /* Hover effect for product menu */
         #productDropdown:hover .nav-link {
@@ -61,7 +62,7 @@
 
                 <!-- Mobile Toggle Button -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -75,13 +76,15 @@
                         </li>
                         <li class="nav-item dropdown" id="productDropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
+                               aria-expanded="false">
                                 <i class="fas fa-shopping-bag"></i> Sản phẩm
                             </a>
                             <ul class="dropdown-menu" id="categoryDropdownMenu">
-                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Index">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Product" asp-action="Index">
                                         <i class="fas fa-th-large"></i> Tất cả sản phẩm
-                                    </a></li>
+                                    </a>
+                                </li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
@@ -107,11 +110,10 @@
                     <ul class="navbar-nav user-nav">
                         @{
                             var token = Context.Request.Cookies["accessToken"];
-
                             var roles = Context.Request.Cookies["roles"];
                         }
                         @if (!string.IsNullOrEmpty(token))
-                       {
+                        {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Payment" asp-action="Deposit">
                                     <i class="fas fa-plus-circle text-success"></i> Nạp tiền
@@ -119,11 +121,10 @@
                             </li>
                             <li class="nav-item position-relative">
                                 <a class="nav-link" asp-area="" asp-controller="Notification" asp-action="Index"
-                                    id="notificationLink">
+                                   id="notificationLink">
                                     <i class="fas fa-bell"></i> Thông báo
-                                    <span
-                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
-                                        id="notificationBadge" style="display: none;">0</span>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
+                                          id="notificationBadge" style="display: none;">0</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -132,20 +133,23 @@
                                 </a>
                             </li>
                             @if (!string.IsNullOrEmpty(roles) && roles.Contains("Admin"))
-
                             {
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
-                                        data-bs-toggle="dropdown">
+                                       data-bs-toggle="dropdown">
                                         <i class="fas fa-cog"></i> Admin
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
                                                 <i class="fas fa-tachometer-alt"></i> Dashboard
-                                            </a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManagerUser">
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Admin" asp-action="ManagerUser">
                                                 <i class="fas fa-users"></i> Quản lý người dùng
-                                            </a></li>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                             }
@@ -182,6 +186,13 @@
                 </div>
             </div>
         </nav>
+
+        <!-- Announcement Bar -->
+        <div class="announcement-bar">
+            <div class="announcement-content">
+                <span>🎉 DIgital Product Selling - Mua bán sản phẩm số phục vụ Kiếm tiền online. Mọi giao dịch trên trang đều hoàn toàn tự động và được giữ tiền 3 ngày, thay thế cho hình thức giao dịch trung gian 🎉</span>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content with padding for fixed header -->
@@ -272,6 +283,7 @@
             </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -311,7 +323,6 @@
                         badge.style.display = 'block';
                         link.classList.add('has-notifications');
 
-                        // Add shake animation to bell icon
                         const bellIcon = link.querySelector('i');
                         if (bellIcon) {
                             bellIcon.style.animation = 'bell-shake 0.5s ease-in-out';
@@ -336,21 +347,6 @@
             }
         };
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function () {
-            if (NotificationBadge.getToken()) {
-                NotificationBadge.updateBadge();
-
-                // Update every 30 seconds
-                setInterval(() => {
-                    NotificationBadge.updateBadge();
-                }, 30000);
-            }
-
-            // Load categories for product dropdown
-            CategoryDropdown.loadCategories();
-        });
-
         // Category Dropdown System
         const CategoryDropdown = {
             apiBaseUrl: 'https://localhost:7234/api',
@@ -364,16 +360,13 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log('Categories response:', data); // Debug log
                         if (data.success && data.data) {
                             this.renderCategories(data.data);
                             this.categoriesLoaded = true;
                         } else {
-                            console.error('Invalid response format:', data);
                             this.renderError();
                         }
                     } else {
-                        console.error('Response not OK:', response.status);
                         this.renderError();
                     }
                 } catch (error) {
@@ -386,7 +379,6 @@
                 const menu = document.getElementById('categoryDropdownMenu');
                 if (!menu) return;
 
-                // Keep "Tất cả sản phẩm" and divider
                 menu.innerHTML = `
                     <li><a class="dropdown-item" href="/Product/Index">
                         <i class="fas fa-th-large"></i> Tất cả sản phẩm
@@ -426,8 +418,19 @@
                 `;
             }
         };
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            if (NotificationBadge.getToken()) {
+                NotificationBadge.updateBadge();
+                setInterval(() => {
+                    NotificationBadge.updateBadge();
+                }, 30000);
+            }
+
+            CategoryDropdown.loadCategories();
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>
