@@ -10,4 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Mo_Entities\Mo_Entities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.102.2" />
+  </ItemGroup>
 </Project>

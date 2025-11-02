@@ -146,6 +146,24 @@ public class ShopController : ControllerBase
         }
     }
 
+    // Seller toggles active/inactive (only when not pending)
+    [HttpPost("toggle/{shopId:long}")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> ToggleActive(long shopId, [FromQuery] bool active)
+    {
+        var userId = User.GetUserId();
+        if (!userId.HasValue)
+        {
+            return Unauthorized(new { Success = false, Message = "Invalid token" });
+        }
+        var ok = await _shopServices.SellerSetActiveAsync(shopId, userId.Value, active);
+        if (!ok)
+        {
+            return BadRequest(new { Success = false, Message = "Không thể thay đổi trạng thái. Có thể shop đang chờ duyệt hoặc không thuộc tài khoản." });
+        }
+        return Ok(new { Success = true, Message = active ? "Đã bật hoạt động" : "Đã tạm dừng hoạt động" });
+    }
+
     // Delete shop by id
     [HttpDelete("{shopId:long}")]
     [Authorize(Roles = "Seller")]

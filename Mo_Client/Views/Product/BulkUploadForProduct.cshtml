@@ -1,0 +1,139 @@
+﻿@{
+    Layout = "~/Views/Seller/_SellerLayout.cshtml";
+    ViewData["Title"] = "Tải lên .txt/.xlsx cho sản phẩm";
+    var product = (Mo_Client.Services.AuthApiClient.ProductDetail?)ViewBag.Product;
+    var variants = ViewBag.Variants as IEnumerable<Mo_Client.Services.AuthApiClient.VariantDto> ?? Enumerable.Empty<Mo_Client.Services.AuthApiClient.VariantDto>();
+}
+
+<div class="mb-3">
+    <a asp-action="List" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
+
+<h4 class="mb-3">
+    <i class="fas fa-file-upload me-2 text-primary"></i>Tải lên file cho sản phẩm: <strong>@product?.Name</strong>
+</h4>
+
+@if(TempData["Error"]!=null){<div class="alert alert-danger">@TempData["Error"]</div>}
+@if(TempData["Success"]!=null){<div class="alert alert-success">@TempData["Success"]</div>}
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Thông tin sản phẩm</h6>
+        <p><strong>ID:</strong> @product?.Id</p>
+        <p><strong>Shop ID:</strong> @product?.ShopId</p>
+        <p><strong>SubCategory ID:</strong> @product?.SubCategoryId</p>
+        <p><strong>Giá (min-max):</strong> @product?.MinPrice?.ToString("N0") - @product?.MaxPrice?.ToString("N0") VNĐ</p>
+        <p><strong>Tồn kho:</strong> @product?.TotalStock</p>
+        <p><strong>Đã bán:</strong> @product?.TotalSold</p>
+    </div>
+</div>
+
+<form asp-action="BulkUploadForProduct" method="post" enctype="multipart/form-data" class="card shadow-sm p-3">
+    <input type="hidden" name="productId" value="@product?.Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Chọn biến thể (ProductVariants)</label>
+        <select name="variantId" class="form-select" required>
+            <option value="">-- Chọn biến thể --</option>
+            @foreach (var v in variants)
+            {
+                <option value="@v.Id">@v.Name - Giá: @v.Price.ToString("N0") VNĐ - Stock: @(v.Stock ?? 0)</option>
+            }
+        </select>
+        <small class="text-muted">Hiển thị theo bảng ProductVariants (name/price/stock). Khi import sẽ tăng stock tương ứng.</small>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Chọn file .xlsx hoặc .txt</label>
+        <div class="d-flex gap-2 align-items-center">
+            <input id="fileInput" class="form-control" type="file" name="file" accept=".xlsx,.txt" required />
+            <a asp-action="DownloadSerialTemplate" class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-1"></i>Tải Template</a>
+            <button type="button" id="btnClearFile" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Xóa File</button>
+        </div>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Lưu ý:</strong>
+            <p>Excel theo template: Cột A1 tiêu đề "Value" giữ nguyên</p>
+            <p>Từ dòng 2 trở đi: Điền từng value (serial key, account, v.v.) vào mỗi ô của cột A.</p>
+            <p>Không cần điền các cột khác: Chỉ dùng cột A. Các cột B, C, D... có thể bỏ trống hoặc xóa nếu muốn.</p>
+            <p>Hỗ trợ cả .txt (mỗi dòng là một value).</p>
+        </div>
+
+        <div id="fileInfo" class="alert alert-success mt-3 d-none">
+            <div class="fw-semibold mb-1"><i class="fas fa-check-circle me-1"></i>File đã sẵn sàng!</div>
+            <div><i class="far fa-file-alt me-1"></i><strong>Tên file:</strong> <span data-field="name"></span></div>
+            <div><i class="far fa-hdd me-1"></i><strong>Kích thước:</strong> <span data-field="size"></span></div>
+            <div><i class="far fa-clock me-1"></i><strong>Ngày tạo:</strong> <span data-field="date"></span></div>
+            <small class="text-muted d-block mt-2">Đang xử lý và hiển thị danh sách values sẽ được thêm vào...</small>
+        </div>
+        <div id="fileTodo" class="alert alert-warning mt-2 d-none">
+            <i class="fas fa-list me-1"></i>Danh sách values sẽ được thêm vào
+        </div>
+    </div>
+
+    <div class="form-check mb-5">
+        <input class="form-check-input" type="checkbox" name="ignoreDuplicates" id="ignoreDuplicates" checked />
+        <label class="form-check-label fs-5 fw-bold" for="ignoreDuplicates">
+            Bỏ qua thông tin trùng (theo Value trong ProductStores)
+        </label>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary"><i class="fas fa-upload me-1"></i>Tải lên</button>
+        <a asp-action="Details" asp-route-id="@product?.Id" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+</form>
+
+@if(ViewBag.Summary!=null){
+    <div class="alert alert-info mt-3"><strong>Kết quả:</strong> @ViewBag.Summary</div>
+}
+
+@if(ViewBag.Results!=null){
+    var list = (IEnumerable<Mo_Client.Controllers.ProductController.LineResult>)ViewBag.Results;
+    <div class="card mt-3">
+        <div class="card-header">Chi tiết các dòng</div>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>#</th><th>Nội dung</th><th>Trạng thái</th><th>Lỗi</th></tr></thead>
+                <tbody>
+                @foreach(var r in list){
+                    <tr class="@(r.Success?"table-success":"table-danger")">
+                        <td>@r.Index</td>
+                        <td style="white-space:pre-wrap">@r.Content</td>
+                        <td>@(r.Success?"OK":"FAIL")</td>
+                        <td>@r.Error</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<script>
+(function(){
+  const input = document.getElementById('fileInput');
+  const info = document.getElementById('fileInfo');
+  const todo = document.getElementById('fileTodo');
+  const btnClear = document.getElementById('btnClearFile');
+  function prettySize(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1024/1024).toFixed(2) + ' MB';
+  }
+  function update(){
+    if(!input.files || input.files.length===0){ info.classList.add('d-none'); todo.classList.add('d-none'); return; }
+    const f = input.files[0];
+    info.querySelector('[data-field=name]').textContent = f.name;
+    info.querySelector('[data-field=size]').textContent = prettySize(f.size);
+    const d = new Date(f.lastModified || Date.now());
+    info.querySelector('[data-field=date]').textContent = d.toLocaleString();
+    info.classList.remove('d-none');
+    todo.classList.remove('d-none');
+  }
+  input.addEventListener('change', update);
+  btnClear.addEventListener('click', function(){ input.value=''; update(); });
+})();
+</script>

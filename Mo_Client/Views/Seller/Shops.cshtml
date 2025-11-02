@@ -54,6 +54,10 @@ else
         @foreach (var s in Model)
         {
             var isPending = s.IsActive == null; // null = pending approval
+            var isActive = s.IsActive == true;   // only true means active
+            var statusText = isPending ? "Chờ admin xác nhận" : (s.IsActive == true ? "Hoạt động" : "Tạm dừng");
+            var statusClass = isPending ? "badge bg-warning text-dark" : (s.IsActive == true ? "badge bg-success" : "badge bg-secondary");
+            var statusIcon = isPending ? "fa-hourglass-half" : (s.IsActive == true ? "fa-check" : "fa-pause");
             <div class="col-lg-6 col-xl-4">
                 <div class="card shop-card h-100 shadow-sm border-0">
                     <div class="card-header bg-gradient-primary-light border-0 pb-3">
@@ -65,20 +69,10 @@ else
                                     @s.CreatedAt?.ToString("dd/MM/yyyy")
                                 </div>
                             </div>
-                            @if (isPending)
-                            {
-                                <span class="badge bg-warning text-dark ms-2 px-2 py-1">
-                                    <i class="fas fa-hourglass-half fa-xs me-1"></i>
-                                    Chờ duyệt
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge @(s.IsActive == true ? "bg-success" : "bg-secondary") ms-2 px-2 py-1">
-                                    <i class="fas @(s.IsActive == true ? "fa-check" : "fa-pause") fa-xs me-1"></i>
-                                    @(s.IsActive == true ? "Hoạt động" : "Tạm dừng")
-                                </span>
-                            }
+                            <span class="@statusClass ms-2 px-2 py-1">
+                                <i class="fas @statusIcon fa-xs me-1"></i>
+                                @statusText
+                            </span>
                         </div>
                     </div>
                     
@@ -154,7 +148,8 @@ else
                                     <i class="fas fa-trash me-1"></i>Xóa
                                 </button>
                             </div>
-                            <a class="btn btn-success btn-sm @(isPending ? "disabled" : string.Empty)" asp-controller="Product" asp-action="Create" asp-route-shopId="@s.Id">
+                            <!-- Disable Add Product when shop is not active (pending or paused) -->
+                            <a class="btn btn-success btn-sm @(isActive ? string.Empty : "disabled")" asp-controller="Product" asp-action="Create" asp-route-shopId="@s.Id" aria-disabled="@(!isActive)" tabindex="@(isActive ? "0" : "-1")">
                                 <i class="fas fa-plus me-1"></i>Thêm sản phẩm
                             </a>
                             <form id="delete-form-@s.Id" asp-controller="Seller" asp-action="DeleteShop" method="post" class="d-none">
@@ -165,6 +160,10 @@ else
                         @if (isPending)
                         {
                             <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Gian hàng đang chờ Admin duyệt. Bạn chưa thể thêm sản phẩm.</small>
+                        }
+                        else if (!isActive)
+                        {
+                            <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Gian hàng đang tạm dừng. Bạn chưa thể thêm sản phẩm.</small>
                         }
                     </div>
                 </div>
