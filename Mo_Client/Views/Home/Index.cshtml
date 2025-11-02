@@ -4,6 +4,9 @@
     var roles = Context.Request.Cookies["roles"];
 }
 
+<!-- Link CSS file -->
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -12,196 +15,84 @@
     </div>
 }
 
-<!-- Hero Section -->
-<section class="hero-section">
+<!-- Hero Section with Search -->
+<section class="hero-search-section">
+    <div class="hero-overlay"></div>
     <div class="container">
-        <div class="row align-items-center min-vh-75">
-            <div class="col-lg-6">
-                <div class="hero-content">
-                    <h1 class="hero-title">
-                        <span class="text-gradient">Digital Product Selling</span> 
-                        <br>Nền tảng bán sản phẩm số hàng đầu
-                    </h1>
-                    <p class="hero-subtitle">
-                        Kết nối người mua và người bán sản phẩm kỹ thuật số trên một nền tảng an toàn, 
-                        tiện lợi với đầy đủ tính năng hiện đại.
-                    </p>
-                    
-                    @if (string.IsNullOrEmpty(token))
-                    {
-                        <div class="hero-buttons">
-                            <a href="/Account/Register" class="btn btn-primary btn-lg me-3">
-                                <i class="fas fa-store"></i> Bắt đầu bán hàng
-                            </a>
-                            <a href="/Account/Login" class="btn btn-outline-primary btn-lg">
-                                <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                            </a>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="hero-content text-center mb-5">
+                    <h1 class="hero-title text-white mb-3">                         </h1>
+                    <h1 class="hero-title text-white mb-3">                         </h1>
+                    <h1 class="hero-title text-white mb-3">                         </h1>
+                    <h1 class="hero-title text-white mb-5">                         </h1>
+                    <h1 class="hero-title text-white mb-3">Tìm Kiếm Sản Phẩm Số</h1>
+                    <p class="hero-subtitle text-white-50">Khám phá hàng nghìn sản phẩm số chất lượng cao</p>
+                </div>
+
+                <!-- Search Form -->
+                <div class="search-form-card shadow-lg">
+                    <form id="searchForm" method="get" action="/Product/Index">
+                        <div class="row g-3">
+                            <!-- Search Type -->
+                            <div class="col-lg-3 col-md-6">
+                                <select class="form-select search-input" id="searchType" name="searchType">
+                                    <option value="">Tùy chọn tìm kiếm</option>
+                                    <option value="product">Tìm theo sản phẩm</option>
+                                    <option value="shop">Tìm theo cửa hàng</option>
+                                    <option value="category">Tìm theo danh mục</option>
+                                </select>
+                            </div>
+
+                            <!-- Category Filter -->
+                            <div class="col-lg-3 col-md-6">
+                                <select class="form-select search-input" id="categoryFilter" name="categoryId">
+                                    <option value="">Tất cả danh mục</option>
+                                    <!-- Categories will be loaded dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Search Input -->
+                            <div class="col-lg-4 col-md-8">
+                                <input type="text"
+                                       class="form-control search-input"
+                                       id="searchQuery"
+                                       name="search"
+                                       placeholder="Tìm gian hàng hoặc người bán">
+                            </div>
+
+                            <!-- Search Button -->
+                            <div class="col-lg-2 col-md-4">
+                                <button type="submit" class="btn btn-search w-100">
+                                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                                </button>
+                            </div>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="hero-buttons">
-                            @if (!string.IsNullOrEmpty(roles) && roles.Contains("Seller"))
-                            {
-                                <a href="/Seller/Dashboard" class="btn btn-primary btn-lg me-3">
-                                    <i class="fas fa-tachometer-alt"></i> Quản lý cửa hàng
-                                </a>
-                            }
-                            @if (!string.IsNullOrEmpty(roles) && roles.Contains("Admin"))
-                            {
-                                <a href="/Admin/Dashboard" class="btn btn-success btn-lg me-3">
-                                    <i class="fas fa-cog"></i> Admin Panel
-                                </a>
-                            }
-                            <a href="/Products" class="btn btn-outline-primary btn-lg">
-                                <i class="fas fa-shopping-bag"></i> Mua sắm ngay
-                            </a>
-                        </div>
-                    }
+                    </form>
                 </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="hero-image">
-                    <div class="floating-card">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Mua sắm</span>
-                    </div>
-                    <div class="floating-card delay-1">
-                        <i class="fas fa-store"></i>
-                        <span>Bán hàng</span>
-                    </div>
-                    <div class="floating-card delay-2">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Thống kê</span>
-                    </div>
-                    <div class="hero-main-icon">
-                        <i class="fas fa-globe"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
-<!-- Features Section -->
-<section class="features-section py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <h2 class="section-title">Tại sao chọn Digital Product Selling?</h2>
-                <p class="section-subtitle">Nền tảng bán sản phẩm số với đầy đủ tính năng hiện đại</p>
-            </div>
-        </div>
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h4>Bảo mật tuyệt đối</h4>
-                    <p>Hệ thống bảo mật đa lớp với JWT authentication, mã hóa dữ liệu và bảo vệ thông tin cá nhân.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <h4>Responsive Design</h4>
-                    <p>Giao diện tối ưu cho mọi thiết bị, từ desktop đến mobile, mang lại trải nghiệm tuyệt vời.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <h4>Hiệu suất cao</h4>
-                    <p>Tốc độ tải trang nhanh, xử lý đơn hàng mượt mà với công nghệ .NET 8 hiện đại.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <h4>Thanh toán an toàn</h4>
-                    <p>Tích hợp VNPay, hỗ trợ nhiều phương thức thanh toán cho sản phẩm số với bảo mật cao.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <h4>Hỗ trợ 24/7</h4>
-                    <p>Hệ thống hỗ trợ khách hàng liên tục với chat real-time và ticket system.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <h4>Thống kê chi tiết</h4>
-                    <p>Dashboard thống kê đầy đủ cho người bán và admin với báo cáo real-time.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Stats Section -->
-<section class="stats-section py-5 bg-light">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-item">
-                    <div class="stat-number">10,000+</div>
-                    <div class="stat-label">Sản phẩm</div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-item">
-                    <div class="stat-number">1,000+</div>
-                    <div class="stat-label">Cửa hàng</div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-item">
-                    <div class="stat-number">50,000+</div>
-                    <div class="stat-label">Khách hàng</div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-item">
-                    <div class="stat-number">99.9%</div>
-                    <div class="stat-label">Uptime</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- CTA Section -->
-@if (string.IsNullOrEmpty(token))
-{
-    <section class="cta-section py-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h3>Sẵn sàng bắt đầu bán sản phẩm số?</h3>
-                    <p class="mb-0">Tham gia cùng hàng nghìn người bán đang kiếm tiền trên Digital Product Selling</p>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <a href="/Account/Register" class="btn btn-primary btn-lg">
-                        <i class="fas fa-rocket"></i> Đăng ký ngay
+                <!-- Quick Search Tags -->
+                <div class="quick-search-tags text-center mt-4">
+                    <span class="tags-label">
+                        <i class="fas fa-fire me-2"></i>Tìm kiếm phổ biến:
+                    </span>
+                    <a href="/Product/Index?search=Liên Quân" class="tag-badge">
+                        <i class="fas fa-gamepad"></i>Liên Quân
+                    </a>
+                    <a href="/Product/Index?search=Facebook" class="tag-badge">
+                        <i class="fab fa-facebook"></i>Facebook
+                    </a>
+                    <a href="/Product/Index?search=Netflix" class="tag-badge">
+                        <i class="fas fa-film"></i>Netflix
+                    </a>
+                    <a href="/Product/Index?search=Card Viettel" class="tag-badge">
+                        <i class="fas fa-mobile-alt"></i>Card Viettel
+                    </a>
+                    <a href="/Product/Index?search=Youtube Premium" class="tag-badge">
+                        <i class="fab fa-youtube"></i>Youtube Premium
                     </a>
                 </div>
-            </div>
-        </div>
-    </section>
-}
+</section>
 
 <!-- User Dashboard (if logged in) -->
 @if (!string.IsNullOrEmpty(token))
@@ -260,7 +151,7 @@
                         </div>
                         <h5>Mua sắm</h5>
                         <p>Khám phá và mua sắm hàng nghìn sản phẩm số</p>
-                        <a href="/Products" class="btn btn-outline-primary">Xem ngay</a>
+                        <a href="/Product/Index" class="btn btn-outline-primary">Xem ngay</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -270,10 +161,257 @@
                         </div>
                         <h5>Thông tin cá nhân</h5>
                         <p>Quản lý thông tin tài khoản và cài đặt</p>
-                        <a href="/Account/Profile" class="btn btn-outline-secondary">Cập nhật</a>
+                        <a href="/Account/ViewProfile" class="btn btn-outline-secondary">Cập nhật</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+}
+
+<!-- Featured Products Section -->
+<!-- Category Tabs Section -->
+<section class="category-tabs-section">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="section-title">-- DANH SÁCH SẢN PHẨM --</h2>
+            <p class="section-subtitle">Sản phẩm mới nhất và được quan tâm nhiều nhất</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <a href="#" class="category-tab active" data-category="all">
+                <i class="fas fa-th-large"></i>
+                <span>Tất cả</span>
+            </a>
+            <a href="#" class="category-tab" data-category="game">
+                <i class="fas fa-gamepad"></i>
+                <span>Game Accounts</span>
+            </a>
+            <a href="#" class="category-tab" data-category="gift">
+                <i class="fas fa-gift"></i>
+                <span>Gift Cards</span>
+            </a>
+            <a href="#" class="category-tab" data-category="premium">
+                <i class="fas fa-crown"></i>
+                <span>Premium Services</span>
+            </a>
+            <a href="#" class="category-tab" data-category="phone">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Phone Cards</span>
+            </a>
+            <a href="#" class="category-tab" data-category="social">
+                <i class="fas fa-share-alt"></i>
+                <span>Social Media</span>
+            </a>
+        </div>
+
+        <!-- Products Container -->
+        <div id="productsContainer">
+            <div class="loading-state">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-3 text-muted">Đang tải sản phẩm...</p>
+            </div>
+        </div>
+
+        <!-- View All Button -->
+        <div class="text-center mt-5">
+            <a href="/Product/Index" class="btn btn-primary btn-lg">
+                <i class="fas fa-th-large me-2"></i>Xem tất cả sản phẩm
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const API_BASE = 'https://localhost:7234/api';
+        let allProducts = [];
+        let currentCategory = 'all';
+
+        // Category mapping
+        const categoryMapping = {
+            'game': ['Game', 'Gaming', 'Game Accounts', 'Tài khoản game'],
+            'gift': ['Gift Card', 'Voucher', 'Thẻ quà tặng'],
+            'premium': ['Premium', 'Netflix', 'Spotify', 'YouTube Premium'],
+            'phone': ['Phone Card', 'Thẻ điện thoại', 'Nạp thẻ'],
+            'social': ['Facebook', 'Instagram', 'TikTok', 'Social Media']
+        };
+
+        // Load categories for search filter
+        (async function() {
+            try {
+                const response = await fetch(`${API_BASE}/Category/all`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        const select = document.getElementById('categoryFilter');
+                        data.data.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.id;
+                            option.textContent = cat.name;
+                            select.appendChild(option);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        })();
+
+        // Load all products
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/product/GetAllProducts?page=1&pageSize=100`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        allProducts = data.data;
+                        renderProducts('all');
+                    } else {
+                        showEmptyState();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showErrorState();
+            }
+        }
+
+        // Filter products by category
+        function filterProducts(category) {
+            if (category === 'all') {
+                return allProducts;
+            }
+
+            const keywords = categoryMapping[category] || [];
+            return allProducts.filter(product => {
+                const searchText = `${product.name} ${product.categoryName} ${product.subCategoryName}`.toLowerCase();
+                return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
+            });
+        }
+
+        // Render products
+        function renderProducts(category) {
+            currentCategory = category;
+            const filteredProducts = filterProducts(category);
+            const container = document.getElementById('productsContainer');
+
+            if (filteredProducts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>Không có sản phẩm nào</h4>
+                        <p class="text-muted">Danh mục này hiện chưa có sản phẩm</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const categoryNames = {
+                'all': 'Tất cả sản phẩm',
+                'game': 'Game Accounts',
+                'gift': 'Gift Cards',
+                'premium': 'Premium Services',
+                'phone': 'Phone Cards',
+                'social': 'Social Media'
+            };
+
+            container.innerHTML = `
+                <div class="category-header">
+                    <h3>${categoryNames[category]}</h3>
+                    <p>Hiển thị ${filteredProducts.length} sản phẩm</p>
+                </div>
+                <div class="row g-4">
+                    ${filteredProducts.slice(0, 12).map(product => `
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="product-card">
+                                ${product.image ?
+                                    `<img src="data:image/jpeg;base64,${product.image}" class="card-img-top" alt="${product.name}">` :
+                                    `<div class="product-placeholder">
+                                        <i class="fas fa-image fa-3x text-white"></i>
+                                    </div>`
+                                }
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate" title="${product.name}">${product.name}</h6>
+                                    <p class="shop-name mb-3">
+                                        <i class="fas fa-store me-1"></i>${product.shopName}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="price">${product.minPrice.toLocaleString('vi-VN')} ₫</div>
+                                        <a href="/Product/View/${product.id}" class="btn btn-view btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Xem
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function showEmptyState() {
+            document.getElementById('productsContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h4>Chưa có sản phẩm nào</h4>
+                    <p class="text-muted">Hệ thống hiện chưa có sản phẩm để hiển thị</p>
+                </div>
+            `;
+        }
+
+        function showErrorState() {
+            document.getElementById('productsContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    <h4>Không thể tải sản phẩm</h4>
+                    <p class="text-muted">Vui lòng thử lại sau</p>
+                    <button class="btn btn-primary mt-3" onclick="loadProducts()">
+                        <i class="fas fa-redo me-2"></i>Thử lại
+                    </button>
+                </div>
+            `;
+        }
+
+        // Category tab click handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load products on page load
+            loadProducts();
+
+            // Handle category tab clicks
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    // Get category and render products
+                    const category = this.dataset.category;
+                    renderProducts(category);
+                });
+            });
+        });
+
+        // Search form enhancement
+        const searchTypeSelect = document.getElementById('searchType');
+        if (searchTypeSelect) {
+            searchTypeSelect.addEventListener('change', function() {
+                const query = document.getElementById('searchQuery');
+                const placeholders = {
+                    'product': 'Tìm kiếm sản phẩm...',
+                    'shop': 'Tìm kiếm cửa hàng...',
+                    'category': 'Tìm kiếm danh mục...',
+                    '': 'Tìm gian hàng hoặc người bán'
+                };
+                query.placeholder = placeholders[this.value] || placeholders[''];
+            });
+        }
+    </script>
 }
