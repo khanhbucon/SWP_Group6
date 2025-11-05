@@ -8,8 +8,11 @@ namespace Mo_DataAccess.Services;
 
 public class ProductServices : GenericRepository<Product>, IProductServices
 {
-    public ProductServices(SwpGroup6Context context) : base(context)
+    private readonly INotificationService _notificationService;
+
+    public ProductServices(SwpGroup6Context context, INotificationService notificationService) : base(context)
     {
+        _notificationService = notificationService;
     }
 
     public async Task<List<Product>> GetBySellerAccountIdAsync(long accountId)
@@ -130,10 +133,16 @@ public class ProductServices : GenericRepository<Product>, IProductServices
 
     public async Task<bool> AdminApproveAsync(long productId)
     {
-        var p = await Context.Products.FirstOrDefaultAsync(x => x.Id == productId);
+        var p = await Context.Products
+            .Include(x => x.Shop)
+            .FirstOrDefaultAsync(x => x.Id == productId);
         if (p == null) return false;
         p.IsActive = true;
         await Context.SaveChangesAsync();
+        if (p.Shop != null)
+        {
+            await _notificationService.CreateProductApprovalNotificationAsync(p.Shop.AccountId, p.Id);
+        }
         return true;
     }
 

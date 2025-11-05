@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
+using Mo_DataAccess.Services.Interface;
+using Microsoft.Data.SqlClient;
+using Hangfire;
 
 namespace Mo_DataAccess.Services;
 
@@ -8,8 +11,196 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
 {
     // Test: hold time before releasing payout (minutes)
     private const int SellerPayoutHoldMinutes = 2;
-    public OrderProductServices(SwpGroup6Context context) : base(context)
+    private readonly INotificationService _notificationService;
+    private readonly IBackgroundJobClient? _jobs;
+
+    public OrderProductServices(SwpGroup6Context context, INotificationService notificationService, IBackgroundJobClient? jobs = null) : base(context)
     {
+        _notificationService = notificationService;
+        _jobs = jobs;
+    }
+    public async Task<(bool Success, string Message, long OrderId, string IdempotencyKey)> PreparePurchaseAsync(long userId, PurchaseRequest request)
+    {
+        // Quick checks without locking rows
+        var productVariant = await _context.ProductVariants
+            .Include(pv => pv.Product)
+            .FirstOrDefaultAsync(pv => pv.Id == request.ProductVariantId);
+        if (productVariant == null)
+        {
+            return (false, "Sản phẩm không tồn tại", 0, string.Empty);
+        }
+        var availableCount = await _context.ProductStores
+            .CountAsync(s => s.ProductVariantId == request.ProductVariantId && s.Status == "AVAILABLE");
+        if (availableCount < request.Quantity)
+        {
+            return (false, $"Không đủ mã sản phẩm. Chỉ còn {availableCount} mã", 0, string.Empty);
+        }
+        var user = await _context.Accounts.FindAsync(userId);
+        if (user == null)
+        {
+            return (false, "Người dùng không tồn tại", 0, string.Empty);
+        }
+        var totalAmount = request.Quantity * productVariant.Price;
+        if (user.Balance < totalAmount)
+        {
+            return (false, "Số dư không đủ để mua hàng", 0, string.Empty);
+        }
+
+        var order = new OrderProduct
+        {
+            AccountId = userId,
+            ProductVariantId = request.ProductVariantId,
+            Quantity = request.Quantity,
+            TotalAmount = totalAmount,
+            Status = "PENDING"
+        };
+        _context.OrderProducts.Add(order);
+        await _context.SaveChangesAsync();
+        
+        await _notificationService.CreateOrderNotificationAsync(userId, order.Id, "PENDING");
+
+        var key = Guid.NewGuid().ToString("N");
+        return (true, "Đã ghi nhận đơn hàng, đang xử lý", order.Id, key);
+    }
+
+    public async Task ProcessPurchaseJobAsync(long userId, long orderId, PurchaseRequest request, string idempotencyKey)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var orderProduct = await _context.OrderProducts.FirstOrDefaultAsync(o => o.Id == orderId && o.AccountId == userId);
+            if (orderProduct == null)
+            {
+                await transaction.RollbackAsync();
+                return;
+            }   
+            if ((orderProduct.Status ?? string.Empty).ToUpper() == "CONFIRMED")
+            {
+                await transaction.CommitAsync();
+                return;
+            }
+
+            var productVariant = await _context.ProductVariants
+                .Include(pv => pv.Product)
+                .FirstOrDefaultAsync(pv => pv.Id == request.ProductVariantId);
+            if (productVariant == null)
+            {
+                orderProduct.Status = "FAILED";
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return;
+            }
+
+            var sql = @"
+                SELECT * FROM ProductStores WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
+                WHERE ProductVariantId = @p0 AND Status = 'AVAILABLE'
+                ORDER BY Id
+                OFFSET 0 ROWS FETCH NEXT @p1 ROWS ONLY
+            ";
+            var availableCodes = await _context.ProductStores
+                .FromSqlRaw(sql, request.ProductVariantId, request.Quantity)
+                .ToListAsync();
+            if (availableCodes.Count < request.Quantity)
+            {
+                orderProduct.Status = "FAILED";
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return;
+            }
+
+            var user = await _context.Accounts.FindAsync(userId);
+            if (user == null)
+            {
+                orderProduct.Status = "FAILED";
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return;
+            }
+            var totalAmount = request.Quantity * productVariant.Price;
+            if (user.Balance < totalAmount)
+            {
+                orderProduct.Status = "FAILED";
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return;
+            }
+
+            var paymentTransaction = new PaymentTransaction
+            {
+                UserId = userId,
+                Type = "MuaHang",
+                Amount = totalAmount,
+                PaymentDescription = $"Mua sản phẩm {productVariant.Product.Name}",
+                Status = "PENDING",
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.PaymentTransactions.Add(paymentTransaction);
+
+            foreach (var code in availableCodes)
+            {
+                orderProduct.ProductStores ??= new List<ProductStore>();
+                orderProduct.ProductStores.Add(code);
+                code.Status = "SOLD";
+                code.UpdatedAt = DateTime.Now;
+            }
+
+            user.Balance -= totalAmount;
+            orderProduct.Status = "CONFIRMED";
+            paymentTransaction.Status = "COMPLETED";
+
+            if (productVariant.Stock.HasValue)
+            {
+                productVariant.Stock = Math.Max(0, productVariant.Stock.Value - request.Quantity);
+            }
+            productVariant.UpdatedAt = DateTime.Now;
+
+            var shop = await _context.Shops.Include(s => s.Account).FirstOrDefaultAsync(s => s.Id == productVariant.Product.ShopId);
+            if (shop?.Account != null)
+            {
+                var feePercent = productVariant.Product.Fee ?? 0m;
+                var feeAmount = Math.Round(totalAmount * (feePercent / 100m), 2, MidpointRounding.AwayFromZero);
+                var sellerIncome = totalAmount - feeAmount;
+                var sellerTransaction = new PaymentTransaction
+                {
+                    UserId = shop.Account.Id,
+                    Type = "BanHang",
+                    Amount = sellerIncome,
+                    PaymentDescription = $"Bán sản phẩm {productVariant.Product.Name} (Order #{orderProduct.Id})",
+                    Status = "PENDING",
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.PaymentTransactions.Add(sellerTransaction);
+
+                await _context.Set<Notification>().AddAsync(new Notification
+                {
+                    UserId = shop.Account.Id,
+                    Type = "Payment",
+                    Title = "Doanh thu đang tạm giữ",
+                    Content = $"{sellerIncome:N0} VNĐ từ đơn hàng #{orderProduct.Id} đang được tạm giữ và sẽ giải ngân sau {SellerPayoutHoldMinutes} phút nếu không có khiếu nại.",
+                    RelatedEntityType = "PaymentTransaction",
+                    RelatedEntityId = sellerTransaction.Id,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            await _notificationService.CreateOrderNotificationAsync(userId, orderProduct.Id, "CONFIRMED");
+            await _notificationService.CreatePaymentNotificationAsync(userId, paymentTransaction.Id, "MuaHang", totalAmount);
+
+            // Schedule seller payout release via Hangfire after hold window
+            if (_jobs != null)
+            {
+                _jobs.Schedule<IOrderProductServices>(svc => svc.ReleaseSellerPayoutAsync(orderProduct.Id), TimeSpan.FromMinutes(SellerPayoutHoldMinutes));
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<OrderHistoryListResponse> GetUserOrdersAsync(long userId, string? status = null)
@@ -90,9 +281,9 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
                     _ => "secondary"
                 },
                 Quantity = order.Quantity,
-                TotalAmount = order.Quantity * (order.ProductVariant?.Price ?? 0), // Tính lại từ Quantity × Price
+                TotalAmount = order.Quantity * (order.ProductVariant?.Price ?? 0), 
                 TotalAmountDisplay = $"{(order.Quantity * (order.ProductVariant?.Price ?? 0)):N0} VNĐ",
-                CreatedAt = DateTime.Now, // TODO: Add CreatedAt field to OrderProduct model
+                CreatedAt = DateTime.Now, 
                 CreatedAtDisplay = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                 
                 // Product Info
@@ -290,7 +481,7 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
                       
             // Sử dụng raw SQL với UPDLOCK để lock rows khi đọc
             var sql = @"
-                SELECT * FROM ProductStores WITH (UPDLOCK, ROWLOCK)
+                SELECT * FROM ProductStores WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
                 WHERE ProductVariantId = @p0 AND Status = 'AVAILABLE'
                 ORDER BY Id
                 OFFSET 0 ROWS FETCH NEXT @p1 ROWS ONLY
@@ -354,7 +545,8 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
 
             _context.OrderProducts.Add(orderProduct);
             await _context.SaveChangesAsync();
-            Console.WriteLine($" OrderProduct created with ID: {orderProduct.Id}");
+            // Notify buyer that order is pending (sync path compatibility)
+            await _notificationService.CreateOrderNotificationAsync(userId, orderProduct.Id, "PENDING");
 
             // 6. Tao  PaymentTransaction
             Console.WriteLine($" Creating PaymentTransaction...");
@@ -395,7 +587,6 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
             orderProduct.Status = "CONFIRMED";
             paymentTransaction.Status = "COMPLETED";
             // 9.x. Trừ stock của ProductVariant
-            Console.WriteLine($" Updating ProductVariant stock: {productVariant.Stock?.ToString() ?? "null"} -> {(productVariant.Stock.HasValue ? (productVariant.Stock.Value - request.Quantity) : "null")}");
             if (productVariant.Stock.HasValue)
             {
                 productVariant.Stock = productVariant.Stock.Value - request.Quantity;
@@ -460,6 +651,10 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
 
 
             await _context.SaveChangesAsync();
+
+            // Notify buyer: order confirmed and payment completed
+            await _notificationService.CreateOrderNotificationAsync(userId, orderProduct.Id, "CONFIRMED");
+            await _notificationService.CreatePaymentNotificationAsync(userId, paymentTransaction.Id, "MuaHang", totalAmount);
 
             await transaction.CommitAsync();
 
