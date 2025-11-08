@@ -35,19 +35,38 @@ namespace Mo_Client.Services
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 var queryString = string.IsNullOrEmpty(status) ? "" : $"?status={status}";
-                var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/order/my-orders{queryString}";
+                var apiUrl = $"{_configuration["ApiOptions:BaseUrl"]}/api/order/my-orders{queryString}";
                 
                 var response = await _httpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<OrderHistoryListResponse>(jsonContent, new JsonSerializerOptions
+                    
+                    // Handle both wrapped and unwrapped responses
+                    using (JsonDocument doc = JsonDocument.Parse(jsonContent))
                     {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    return result;
+                        JsonElement root = doc.RootElement;
+                        
+                        // If root has a "value" property (ASP.NET Core ActionResult wrapping)
+                        if (root.TryGetProperty("value", out JsonElement valueElement))
+                        {
+                            var result = JsonSerializer.Deserialize<OrderHistoryListResponse>(valueElement.GetRawText(), new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return result;
+                        }
+                        // Otherwise, try to parse the root directly
+                        else
+                        {
+                            var result = JsonSerializer.Deserialize<OrderHistoryListResponse>(jsonContent, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return result;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -71,7 +90,7 @@ namespace Mo_Client.Services
                 _httpClient.DefaultRequestHeaders.Authorization = 
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/order/{orderId}";
+                var apiUrl = $"{_configuration["ApiOptions:BaseUrl"]}/api/order/{orderId}";
                 var response = await _httpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
@@ -106,7 +125,7 @@ namespace Mo_Client.Services
                 _httpClient.DefaultRequestHeaders.Authorization = 
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/order/stats";
+                var apiUrl = $"{_configuration["ApiOptions:BaseUrl"]}/api/order/stats";
                 var response = await _httpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
@@ -157,7 +176,7 @@ namespace Mo_Client.Services
                         new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 }
 
-                var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/order/purchase";
+                var apiUrl = $"{_configuration["ApiOptions:BaseUrl"]}/api/order/purchase";
                 
                 var requestBody = new
                 {
