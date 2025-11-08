@@ -8,7 +8,6 @@ using Mo_Entities.ModelResponse;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Mo_Api.ApiController;
-
 [Route("api/[controller]")]
 [ApiController]
 public class AccountController : ControllerBase

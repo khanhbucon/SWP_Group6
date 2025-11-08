@@ -6,278 +6,298 @@
 
 @Html.AntiForgeryToken()
 
-<div class="container mt-5 pt-4">
-    <div class="row">
-        <!-- Product Image -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                @if (!string.IsNullOrEmpty(Model.Image))
-                {
-                    <img src="data:image/jpeg;base64,@Model.Image" class="card-img-top" alt="@Model.Name"
-                         style="max-height: 500px; object-fit: contain; border-radius: 12px;">
-                }
-                else
-                {
-                    <div class="text-center p-5 bg-light" style="min-height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
-                        <i class="fas fa-image fa-5x text-muted"></i>
-                    </div>
-                }
-            </div>
-        </div>
+<div class="product-detail-wrapper">
+    <div class="container mt-4 pt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/Product/Index"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="/Product/Index">Sản phẩm</a></li>
+                <li class="breadcrumb-item">@Model.CategoryName</li>
+                <li class="breadcrumb-item active">@Model.Name</li>
+            </ol>
+        </nav>
 
-        <!-- Product Info -->
-        <div class="col-md-6">
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/Product/Index">Sản phẩm</a></li>
-                    <li class="breadcrumb-item">@Model.CategoryName</li>
-                    <li class="breadcrumb-item active">@Model.Name</li>
-                </ol>
-            </nav>
-
-            <!-- Product Title & Badges -->
-            <div class="d-flex align-items-center mb-3">
-                <span class="badge bg-success me-2 px-3 py-2">SẢN PHẨM</span>
-                <h4 class="mb-0 fw-bold">@Model.Name</h4>
-            </div>
-
-            <!-- Rating & Stats -->
-            <div class="mb-3 d-flex align-items-center">
-                <div class="text-warning me-3">
-                    @{
-                        var avgRating = Model.AverageRating;
-                        var fullStars = (int)Math.Floor((double)avgRating);
-                        var remainder = avgRating - fullStars;
-                        var hasHalfStar = remainder >= 0.5m;
-                        var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-                    }
-                    @for (int i = 0; i < fullStars; i++)
+        <div class="row g-4">
+            <!-- Product Image -->
+            <div class="col-lg-5 col-md-6">
+                <div class="product-image-wrapper">
+                    @if (!string.IsNullOrEmpty(Model.Image))
                     {
-                        <i class="fas fa-star"></i>
-                    }
-                    @if (hasHalfStar)
-                    {
-                        <i class="fas fa-star-half-alt"></i>
-                    }
-                    @for (int i = 0; i < emptyStars; i++)
-                    {
-                        <i class="far fa-star"></i>
-                    }
-                    <span class="text-muted ms-2">
-                        (@Model.TotalFeedbacks @(Model.TotalFeedbacks == 1 ? "Đánh giá" : "Đánh giá"))
-                        @if (Model.AverageRating > 0)
-                        {
-                            <text> - @Model.AverageRating.ToString("F1")/5</text>
-                        }
-                    </span>
-                </div>
-                <span class="text-muted">| Đã bán: <strong>@Model.TotalSold</strong></span>
-                <span class="text-muted ms-3">| Kho: <strong class="@(Model.TotalStock > 0 ? "text-success" : "text-danger")">@Model.TotalStock</strong></span>
-            </div>
-
-            <!-- Shop Info -->
-            <div class="card mb-3 border-0 bg-light">
-                <div class="card-body py-2">
-                    <small>
-                        <strong>Người bán:</strong>
-                        <span class="text-primary">@(!string.IsNullOrEmpty(Model.ShopName) ? Model.ShopName : "Chưa có thông tin")</span>
-                        @if (!string.IsNullOrEmpty(Model.ShopName))
-                        {
-                            <span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> Đã xác thực</span>
-                        }
-                    </small>
-                </div>
-            </div>
-
-            <!-- Category -->
-            <div class="mb-3">
-                <small>
-                    <strong>Sản phẩm:</strong> 
-                    @if (!string.IsNullOrEmpty(Model.SubCategoryName))
-                    {
-                        @if (Model.SubCategoryId.HasValue)
-                        {
-                            <a href="/Product/Index?subCategoryId=@Model.SubCategoryId" class="text-decoration-none">@Model.SubCategoryName</a>
-                        }
-                        else
-                        {
-                            <span class="text-decoration-none">@Model.SubCategoryName</span>
-                        }
+                        <div class="product-image-container">
+                            <img src="data:image/jpeg;base64,@Model.Image" class="product-image" alt="@Model.Name">
+                            <div class="image-overlay"></div>
+                        </div>
                     }
                     else
                     {
-                        <span class="text-muted">Chưa có thông tin</span>
+                        <div class="product-image-placeholder">
+                            <i class="fas fa-image"></i>
+                            <p class="mt-3 text-muted">Không có hình ảnh</p>
+                        </div>
                     }
-                </small>
+                </div>
             </div>
 
-            <!-- Stock Info -->
-            <div class="mb-4">
-                <small><strong>Kho:</strong> <span class="text-success fw-bold">@Model.TotalStock</span></small>
-            </div>
-
-            <!-- Price Range -->
-            <div class="mb-4">
-                <h2 class="text-danger fw-bold">
-                    @{
-                        var minPrice = Model.Variants.Min(v => v.Price);
-                        var maxPrice = Model.Variants.Max(v => v.Price);
-                        if (minPrice == maxPrice)
-                        {
-                            @minPrice.ToString("N0") <text>₫</text>
-                        }
-                        else
-                        {
-                            @minPrice.ToString("N0") <text>₫ - </text> @maxPrice.ToString("N0") <text>₫</text>
-                        }
-                    }
-                </h2>
-            </div>
-
-            <!-- Variants as Product Options -->
-            @if (Model.Variants != null && Model.Variants.Any())
-            {
-                <div class="card mb-4 border">
-                    <div class="card-header bg-white border-bottom">
-                        <h6 class="mb-0 fw-bold text-uppercase">Sản Phẩm</h6>
+            <!-- Product Info -->
+            <div class="col-lg-7 col-md-6">
+                <div class="product-info-card">
+                    <!-- Product Title -->
+                    <div class="product-title-section mb-4">
+                        <span class="product-badge">SẢN PHẨM</span>
+                        <h1 class="product-title">@Model.Name</h1>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-2">
-                            @foreach (var variant in Model.Variants)
-                            {
-                                <div class="col-12">
-                                    <div class="variant-option p-3 border rounded @(variant.Stock > 0 ? "" : "disabled")"
-                                         style="cursor: pointer; transition: all 0.2s;"
-                                         onclick="selectVariant(@variant.Id, '@variant.Name', @variant.Price, @(variant.Stock ?? 0))">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="flex-grow-1">
-                                                <div class="fw-bold text-success mb-1">@variant.Name</div>
-                                                @if (variant.Stock > 0)
-                                                {
-                                                    <small class="text-muted">Kho: <strong class="text-success">@variant.Stock</strong></small>
-                                                }
-                                                else
-                                                {
-                                                    <small class="text-danger"><strong>Hết hàng</strong></small>
-                                                }
-                                            </div>
-                                            <div class="text-end">
-                                                <div class="text-danger fw-bold fs-5">@variant.Price.ToString("N0") ₫</div>
-                                            </div>
-                                        </div>
-                                    </div>
+
+                    <!-- Rating & Stats -->
+                    <div class="rating-stats-section mb-4">
+                        <div class="rating-display">
+                            @{
+                                var avgRating = Model.AverageRating;
+                                var fullStars = (int)Math.Floor((double)avgRating);
+                                var remainder = avgRating - fullStars;
+                                var hasHalfStar = remainder >= 0.5m;
+                                var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                            }
+                            <div class="stars-container">
+                                @for (int i = 0; i < fullStars; i++)
+                                {
+                                    <i class="fas fa-star star-filled"></i>
+                                }
+                                @if (hasHalfStar)
+                                {
+                                    <i class="fas fa-star-half-alt star-half"></i>
+                                }
+                                @for (int i = 0; i < emptyStars; i++)
+                                {
+                                    <i class="far fa-star star-empty"></i>
+                                }
+                            </div>
+                            <div class="rating-info">
+                                <span class="rating-value">@(Model.AverageRating > 0 ? Model.AverageRating.ToString("F1") : "0.0")</span>
+                                <span class="rating-separator">/</span>
+                                <span class="rating-max">5.0</span>
+                                <span class="rating-count">(@Model.TotalFeedbacks @(Model.TotalFeedbacks == 1 ? "đánh giá" : "đánh giá"))</span>
+                            </div>
+                        </div>
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <i class="fas fa-shopping-bag stat-icon"></i>
+                                <span class="stat-label">Đã bán:</span>
+                                <span class="stat-value">@Model.TotalSold</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-box stat-icon"></i>
+                                <span class="stat-label">Kho:</span>
+                                <span class="stat-value @(Model.TotalStock > 0 ? "text-success" : "text-danger")">@Model.TotalStock</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shop & Category Info -->
+                    <div class="info-section mb-4">
+                        <div class="shop-info-card">
+                            <div class="shop-info-header">
+                                <i class="fas fa-store shop-icon"></i>
+                                <div class="shop-info-content">
+                                    <span class="shop-label">Người bán</span>
+                                    <span class="shop-name">@(!string.IsNullOrEmpty(Model.ShopName) ? Model.ShopName : "Chưa có thông tin")</span>
                                 </div>
+                                @if (!string.IsNullOrEmpty(Model.ShopName))
+                                {
+                                    <span class="verified-badge"><i class="fas fa-check-circle"></i> Đã xác thực</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="category-info">
+                            <i class="fas fa-tag category-icon"></i>
+                            <span class="category-label">Danh mục:</span>
+                            @if (!string.IsNullOrEmpty(Model.SubCategoryName))
+                            {
+                                @if (Model.SubCategoryId.HasValue)
+                                {
+                                    <a href="/Product/Index?subCategoryId=@Model.SubCategoryId" class="category-link">@Model.SubCategoryName</a>
+                                }
+                                else
+                                {
+                                    <span class="category-text">@Model.SubCategoryName</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có thông tin</span>
                             }
                         </div>
                     </div>
-                </div>
 
-                <!-- Selected Variant Info -->
-                <div id="selectedVariantInfo" class="alert alert-info mb-3" style="display: none;">
-                    <strong>Đã chọn:</strong> <span id="selectedVariantName"></span> -
-                    <strong class="text-danger"><span id="selectedVariantPrice"></span> ₫</strong>
-                    <div class="mt-2">
-                        <small class="text-muted">Tồn kho: <span id="selectedVariantStock" class="fw-bold"></span></small>
-                    </div>
-                </div>
-
-                <!-- Quantity Selector -->
-                <div id="quantitySelector" class="card mb-3" style="display: none;">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
-                                <label for="quantityInput" class="form-label mb-0 fw-bold">Số lượng:</label>
+                    <!-- Price -->
+                    <div class="price-section mb-4">
+                        @{
+                            var minPrice = Model.Variants.Min(v => v.Price);
+                            var maxPrice = Model.Variants.Max(v => v.Price);
+                        }
+                        @if (minPrice == maxPrice)
+                        {
+                            <div class="price-single">
+                                <span class="price-label">Giá:</span>
+                                <span class="price-value">@minPrice.ToString("N0")</span>
+                                <span class="price-currency">₫</span>
                             </div>
-                            <div class="col-auto">
-                                <div class="input-group" style="width: 150px;">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()" id="decreaseBtn">
+                        }
+                        else
+                        {
+                            <div class="price-range">
+                                <span class="price-label">Giá:</span>
+                                <span class="price-value">@minPrice.ToString("N0")</span>
+                                <span class="price-separator">-</span>
+                                <span class="price-value">@maxPrice.ToString("N0")</span>
+                                <span class="price-currency">₫</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Variants as Product Options -->
+                    @if (Model.Variants != null && Model.Variants.Any())
+                    {
+                        <div class="variants-section mb-4">
+                            <h5 class="variants-title"><i class="fas fa-list me-2"></i>Chọn sản phẩm</h5>
+                            <div class="variants-list">
+                                @foreach (var variant in Model.Variants)
+                                {
+                                    <div class="variant-card @(variant.Stock > 0 ? "" : "disabled")"
+                                         onclick="selectVariant(@variant.Id, '@variant.Name', @variant.Price, @(variant.Stock ?? 0))">
+                                        <div class="variant-content">
+                                            <div class="variant-info">
+                                                <div class="variant-name">@variant.Name</div>
+                                                @if (variant.Stock > 0)
+                                                {
+                                                    <div class="variant-stock">
+                                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                                        <span>Còn hàng: <strong>@variant.Stock</strong></span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="variant-stock text-danger">
+                                                        <i class="fas fa-times-circle me-1"></i>
+                                                        <strong>Hết hàng</strong>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="variant-price">
+                                                <span class="price-amount">@variant.Price.ToString("N0")</span>
+                                                <span class="price-unit">₫</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Selected Variant Info -->
+                        <div id="selectedVariantInfo" class="selected-variant-card" style="display: none;">
+                            <div class="selected-variant-content">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <div class="selected-variant-info">
+                                    <div class="selected-variant-name">Đã chọn: <strong id="selectedVariantName"></strong></div>
+                                    <div class="selected-variant-details">
+                                        <span class="selected-price"><strong id="selectedVariantPrice"></strong> ₫</span>
+                                        <span class="selected-stock">| Tồn kho: <strong id="selectedVariantStock"></strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity Selector -->
+                        <div id="quantitySelector" class="quantity-section" style="display: none;">
+                            <div class="quantity-controls">
+                                <label class="quantity-label">Số lượng:</label>
+                                <div class="quantity-input-group">
+                                    <button class="quantity-btn" type="button" onclick="decreaseQuantity()" id="decreaseBtn">
                                         <i class="fas fa-minus"></i>
                                     </button>
-                                    <input type="number" class="form-control text-center" id="quantityInput" 
+                                    <input type="number" class="quantity-input" id="quantityInput" 
                                            value="1" min="1" max="1" onchange="updateQuantity()" oninput="validateQuantity()">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()" id="increaseBtn">
+                                    <button class="quantity-btn" type="button" onclick="increaseQuantity()" id="increaseBtn">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="text-end">
-                                    <small class="text-muted">Tổng tiền:</small>
-                                    <div class="fs-4 fw-bold text-danger" id="totalPrice">0 ₫</div>
-                                </div>
+                            <div class="total-price-display">
+                                <span class="total-label">Tổng tiền:</span>
+                                <span class="total-amount" id="totalPrice">0 ₫</span>
                             </div>
+                        </div>
+
+                        <!-- Buy Button -->
+                        <div class="buy-button-section mb-4">
+                            <button id="buyButton" class="buy-button" disabled onclick="buyProduct()">
+                                <i class="fas fa-shopping-cart me-2"></i>
+                                <span>Mua ngay</span>
+                            </button>
+                        </div>
+                    }
+
+                    <!-- Description -->
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="description-card">
+                            <i class="fas fa-info-circle description-icon"></i>
+                            <p class="description-text">@Model.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details Section -->
+        @if (!string.IsNullOrEmpty(Model.Details))
+        {
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="details-card">
+                        <div class="details-header">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <h5 class="details-title">Chi tiết sản phẩm</h5>
+                        </div>
+                        <div class="details-content">
+                            @Html.Raw(Model.Details)
                         </div>
                     </div>
                 </div>
+            </div>
+        }
 
-                <!-- Buy Button -->
-                <div class="d-grid gap-2 mb-4">
-                    <button id="buyButton" class="btn btn-success btn-lg" disabled onclick="buyProduct()">
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        <strong>Mua ngay</strong>
-                    </button>
-                </div>
-            }
-
-            <!-- Description -->
-            @if (!string.IsNullOrEmpty(Model.Description))
-            {
-                <div class="alert alert-success">
-                    <small>
-                        <i class="fas fa-check-circle me-2"></i>
-                        <em>@Model.Description</em>
-                    </small>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Product Details Section -->
-    @if (!string.IsNullOrEmpty(Model.Details))
-    {
+        <!-- Feedbacks Section -->
         <div class="row mt-5">
             <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2"></i>Chi tiết sản phẩm</h5>
+                <div class="feedbacks-card">
+                    <div class="feedbacks-header">
+                        <div class="feedbacks-header-content">
+                            <i class="fas fa-comments feedbacks-icon"></i>
+                            <h5 class="feedbacks-title">Đánh giá sản phẩm</h5>
+                            <span class="feedbacks-badge" id="feedbackCount">@Model.TotalFeedbacks</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        @Html.Raw(Model.Details)
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Feedbacks Section -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-comments me-2"></i>Đánh giá sản phẩm
-                        <span class="badge bg-primary ms-2" id="feedbackCount">@Model.TotalFeedbacks</span>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="feedbacksContainer">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Đang tải...</span>
+                    <div class="feedbacks-body">
+                        <div id="feedbacksContainer">
+                            <div class="loading-state">
+                                <div class="spinner-custom">
+                                    <div class="spinner"></div>
+                                </div>
+                                <p class="loading-text">Đang tải đánh giá...</p>
                             </div>
-                            <p class="text-muted mt-2">Đang tải đánh giá...</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Back Button -->
-    <div class="text-center mt-5 mb-5">
-        <a href="/Product/Index" class="btn btn-outline-primary btn-lg px-5">
-            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
-        </a>
+        <!-- Back Button -->
+        <div class="text-center mt-5 mb-5">
+            <a href="/Product/Index" class="back-button">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+            </a>
+        </div>
     </div>
 </div>
 
@@ -333,61 +353,896 @@
 </div>
 
 <style>
-    .variant-option {
-        background: #f8f9fa;
-        transition: all 0.3s ease;
+    /* ========== Global Styles ========== */
+    .product-detail-wrapper {
+        background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+        min-height: 100vh;
+        padding-bottom: 3rem;
     }
 
-        .variant-option:hover:not(.disabled) {
-            background: #e7f5ff;
-            border-color: #28a745 !important;
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
-            transform: translateX(5px);
-        }
-
-        .variant-option.disabled {
-            opacity: 0.5;
-            cursor: not-allowed !important;
-        }
-
-        .variant-option.selected {
-            background: #d4edda;
-            border-color: #28a745 !important;
-            border-width: 2px !important;
-        }
-
-    #quantitySelector {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
+    /* ========== Breadcrumb ========== */
+    .breadcrumb-custom {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 1.5rem;
     }
 
-    #quantityInput {
-        border-left: none;
-        border-right: none;
+    .breadcrumb-custom .breadcrumb-item a {
+        color: #6c757d;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .breadcrumb-custom .breadcrumb-item a:hover {
+        color: #28a745;
+    }
+
+    .breadcrumb-custom .breadcrumb-item.active {
+        color: #212529;
+        font-weight: 500;
+    }
+
+    /* ========== Product Image ========== */
+    .product-image-wrapper {
+        position: sticky;
+        top: 100px;
+    }
+
+    .product-image-container {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        background: #fff;
+        padding: 1rem;
+    }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        max-height: 600px;
+        object-fit: contain;
+        border-radius: 12px;
+        transition: transform 0.3s;
+    }
+
+    .product-image:hover {
+        transform: scale(1.02);
+    }
+
+    .product-image-placeholder {
+        min-height: 500px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 16px;
+        color: #6c757d;
+    }
+
+    .product-image-placeholder i {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* ========== Product Info Card ========== */
+    .product-info-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .product-title-section {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 1rem;
+    }
+
+    .product-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
         font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
     }
 
-    #quantityInput:focus {
-        border-color: #ced4da;
-        box-shadow: none;
+    .product-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0;
+        line-height: 1.3;
     }
 
-    #decreaseBtn, #increaseBtn {
-        border-color: #ced4da;
-        transition: all 0.2s;
+    /* ========== Rating & Stats ========== */
+    .rating-stats-section {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
     }
 
-    #decreaseBtn:hover, #increaseBtn:hover {
-        background-color: #e9ecef;
-        border-color: #adb5bd;
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
     }
 
-    #totalPrice {
-        color: #dc3545;
+    .stars-container {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .star-filled {
+        color: #ffc107;
+        font-size: 1.25rem;
+    }
+
+    .star-half {
+        color: #ffc107;
+        font-size: 1.25rem;
+    }
+
+    .star-empty {
+        color: #dee2e6;
+        font-size: 1.25rem;
+    }
+
+    .rating-info {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+
+    .rating-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .rating-separator {
+        color: #6c757d;
+        font-size: 1.2rem;
+    }
+
+    .rating-max {
+        color: #6c757d;
+        font-size: 1.2rem;
+    }
+
+    .rating-count {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-icon {
+        color: #28a745;
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .stat-value {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    /* ========== Shop & Category Info ========== */
+    .info-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .shop-info-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%);
+        border-radius: 12px;
+        padding: 1rem;
+        border-left: 4px solid #2196f3;
+    }
+
+    .shop-info-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .shop-icon {
+        font-size: 1.5rem;
+        color: #2196f3;
+    }
+
+    .shop-info-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .shop-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
-    /* Success Modal Styles */
+    .shop-name {
+        font-weight: 600;
+        color: #1976d2;
+        font-size: 1rem;
+    }
+
+    .verified-badge {
+        background: #4caf50;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .category-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .category-icon {
+        color: #ff9800;
+    }
+
+    .category-link {
+        color: #ff9800;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+    }
+
+    .category-link:hover {
+        color: #f57c00;
+        text-decoration: underline;
+    }
+
+    /* ========== Price Section ========== */
+    .price-section {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-radius: 12px;
+        border-left: 4px solid #ff9800;
+    }
+
+    .price-single, .price-range {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .price-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .price-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #e65100;
+    }
+
+    .price-separator {
+        color: #6c757d;
+        font-size: 1.5rem;
+    }
+
+    .price-currency {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #e65100;
+    }
+
+    /* ========== Variants ========== */
+    .variants-section {
+        margin-top: 1.5rem;
+    }
+
+    .variants-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 1rem;
+    }
+
+    .variants-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .variant-card {
+        background: #fff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .variant-card:hover:not(.disabled) {
+        border-color: #28a745;
+        background: #f8fff9;
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+    }
+
+    .variant-card.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: #f5f5f5;
+    }
+
+    .variant-card.selected {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+    }
+
+    .variant-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .variant-info {
+        flex: 1;
+    }
+
+    .variant-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+
+    .variant-stock {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .variant-price {
+        text-align: right;
+    }
+
+    .price-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #e65100;
+    }
+
+    .price-unit {
+        font-size: 1rem;
+        color: #e65100;
+        margin-left: 0.25rem;
+    }
+
+    /* ========== Selected Variant ========== */
+    .selected-variant-card {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .selected-variant-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .selected-variant-info {
+        flex: 1;
+    }
+
+    .selected-variant-name {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.25rem;
+    }
+
+    .selected-variant-details {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .selected-price {
+        color: #e65100;
+        font-weight: 600;
+    }
+
+    /* ========== Quantity Section ========== */
+    .quantity-section {
+        background: #fff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .quantity-label {
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+    }
+
+    .quantity-input-group {
+        display: flex;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .quantity-btn {
+        background: #f8f9fa;
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #6c757d;
+    }
+
+    .quantity-btn:hover:not(:disabled) {
+        background: #e9ecef;
+        color: #212529;
+    }
+
+    .quantity-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .quantity-input {
+        border: none;
+        width: 80px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 0.5rem;
+    }
+
+    .quantity-input:focus {
+        outline: none;
+    }
+
+    .total-price-display {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .total-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+
+    .total-amount {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #e65100;
+    }
+
+    /* ========== Buy Button ========== */
+    .buy-button-section {
+        margin-top: 1.5rem;
+    }
+
+    .buy-button {
+        width: 100%;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .buy-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+
+    .buy-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* ========== Description ========== */
+    .description-card {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        border-left: 4px solid #4caf50;
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .description-icon {
+        color: #4caf50;
+        font-size: 1.25rem;
+        margin-top: 0.25rem;
+    }
+
+    .description-text {
+        margin: 0;
+        color: #2e7d32;
+        font-style: italic;
+    }
+
+    /* ========== Details Card ========== */
+    .details-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .details-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .details-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .details-content {
+        padding: 2rem;
+    }
+
+    /* ========== Feedbacks Card ========== */
+    .feedbacks-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .feedbacks-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 1.5rem;
+    }
+
+    .feedbacks-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white;
+    }
+
+    .feedbacks-icon {
+        font-size: 1.5rem;
+    }
+
+    .feedbacks-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        flex: 1;
+    }
+
+    .feedbacks-badge {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+
+    .feedbacks-body {
+        padding: 2rem;
+    }
+
+    /* ========== Loading State ========== */
+    .loading-state {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .spinner-custom {
+        margin: 0 auto 1rem;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #f5576c;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+        color: #6c757d;
+        margin: 0;
+    }
+
+    /* ========== Feedback Item Card ========== */
+    .feedback-item-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s;
+    }
+
+    .feedback-item-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .feedback-header {
+        margin-bottom: 1rem;
+    }
+
+    .feedback-user {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .feedback-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .feedback-stars {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .feedback-stars .star-filled,
+    .feedback-stars .star-half {
+        color: #ffc107;
+        font-size: 0.9rem;
+    }
+
+    .feedback-stars .star-empty {
+        color: #dee2e6;
+        font-size: 0.9rem;
+    }
+
+    .feedback-date {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .feedback-content {
+        margin-left: 66px;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    .feedback-content p {
+        margin: 0;
+    }
+
+    /* ========== Replies Section ========== */
+    .replies-section {
+        margin-top: 1.5rem;
+        margin-left: 66px;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .replies-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .replies-icon {
+        color: #2196f3;
+    }
+
+    .reply-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%);
+        border-left: 4px solid #2196f3;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .reply-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .reply-shop-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .reply-shop-icon {
+        color: #2196f3;
+    }
+
+    .reply-shop-name {
+        color: #1976d2;
+        font-size: 0.95rem;
+    }
+
+    .reply-date {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .reply-content {
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    .reply-text {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    /* ========== Empty & Error States ========== */
+    .empty-feedbacks, .error-feedbacks {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon, .error-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+    }
+
+    .empty-icon {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        color: #6c757d;
+    }
+
+    .error-icon {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        color: #e65100;
+    }
+
+    .empty-text, .error-text {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-subtext, .error-subtext {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .error-details {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    /* ========== Back Button ========== */
+    .back-button {
+        display: inline-block;
+        background: #fff;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .back-button:hover {
+        background: #f8f9fa;
+        border-color: #6c757d;
+        color: #212529;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== Modal Styles ========== */
     .success-icon {
         width: 80px;
         height: 80px;
@@ -400,6 +1255,7 @@
         font-size: 2.5rem;
         box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         animation: scaleIn 0.3s ease-out;
+        margin: 0 auto;
     }
 
     .error-icon {
@@ -414,6 +1270,7 @@
         font-size: 2.5rem;
         box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
         animation: scaleIn 0.3s ease-out;
+        margin: 0 auto;
     }
 
     @@keyframes scaleIn {
@@ -442,6 +1299,50 @@
 
     #errorModal .modal-body {
         background: linear-gradient(to bottom, #fff5f5 0%, #ffffff 100%);
+    }
+
+    /* ========== Responsive ========== */
+    @@media (max-width: 768px) {
+        .product-image-wrapper {
+            position: static;
+        }
+
+        .product-title {
+            font-size: 1.5rem;
+        }
+
+        .price-value {
+            font-size: 1.5rem;
+        }
+
+        .rating-display {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-row {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .quantity-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .total-price-display {
+            align-items: flex-start;
+        }
+
+        .feedback-content,
+        .replies-section {
+            margin-left: 0;
+        }
+
+        .feedback-user {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 </style>
 
@@ -827,17 +1728,20 @@
                     // Build comment HTML
                     let commentHtml = '';
                     if (comment && comment.length > 0) {
-                        commentHtml = `<p class="mb-2">${escapeHtml(comment)}</p>`;
+                        commentHtml = `<p>${escapeHtml(comment)}</p>`;
                     } else {
-                        commentHtml = '<p class="text-muted mb-2"><em>Không có bình luận</em></p>';
+                        commentHtml = '<p class="text-muted"><em>Không có bình luận</em></p>';
                     }
                     
                     // Build replies HTML
                     let repliesHtml = '';
                     if (replies && replies.length > 0) {
                         repliesHtml = `
-                            <div class="replies ms-4 mt-3">
-                                <h6 class="text-muted mb-2"><i class="fas fa-reply me-1"></i>Phản hồi (${replies.length})</h6>
+                            <div class="replies-section">
+                                <div class="replies-header">
+                                    <i class="fas fa-reply replies-icon"></i>
+                                    <span class="replies-title">Phản hồi từ cửa hàng (${replies.length})</span>
+                                </div>
                                 ${replies.map(reply => {
                                     const shopName = (reply.shopName || reply.ShopName || 'Cửa hàng').trim();
                                     const replyComment = (reply.comment || reply.Comment || '').trim();
@@ -845,16 +1749,23 @@
                                     
                                     let replyCommentHtml = '';
                                     if (replyComment && replyComment.length > 0) {
-                                        replyCommentHtml = `<p class="mb-0 mt-1">${escapeHtml(replyComment)}</p>`;
+                                        replyCommentHtml = `<p class="reply-text">${escapeHtml(replyComment)}</p>`;
                                     } else {
-                                        replyCommentHtml = '<p class="mb-0 mt-1 text-muted"><em>Không có nội dung</em></p>';
+                                        replyCommentHtml = '<p class="reply-text text-muted"><em>Không có nội dung</em></p>';
                                     }
                                     
                                     return `
-                                    <div class="reply-item mb-2 p-2 bg-light rounded">
-                                        <strong class="text-primary">${escapeHtml(shopName)}</strong>
-                                        <small class="text-muted ms-2">${formatDate(replyCreatedAt)}</small>
-                                        ${replyCommentHtml}
+                                    <div class="reply-card">
+                                        <div class="reply-header">
+                                            <div class="reply-shop-info">
+                                                <i class="fas fa-store reply-shop-icon"></i>
+                                                <strong class="reply-shop-name">${escapeHtml(shopName)}</strong>
+                                            </div>
+                                            <small class="reply-date">${formatDate(replyCreatedAt)}</small>
+                                        </div>
+                                        <div class="reply-content">
+                                            ${replyCommentHtml}
+                                        </div>
                                     </div>
                                     `;
                                 }).join('')}
@@ -863,17 +1774,24 @@
                     }
                     
                     return `
-                    <div class="feedback-item mb-4 pb-4 border-bottom">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <strong class="me-2">${escapeHtml(userName)}</strong>
-                                <div class="text-warning d-inline">
-                                    ${renderStars(rating)}
+                    <div class="feedback-item-card">
+                        <div class="feedback-header">
+                            <div class="feedback-user">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
                                 </div>
-                                <small class="text-muted ms-2">${formatDate(createdAt)}</small>
+                                <div class="user-info">
+                                    <div class="user-name">${escapeHtml(userName)}</div>
+                                    <div class="feedback-meta">
+                                        <div class="feedback-stars">${renderStars(rating)}</div>
+                                        <span class="feedback-date">${formatDate(createdAt)}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        ${commentHtml}
+                        <div class="feedback-content">
+                            ${commentHtml}
+                        </div>
                         ${repliesHtml}
                     </div>
                     `;
@@ -888,9 +1806,12 @@
                 console.log('Is Array:', Array.isArray(feedbackData));
                 
                 container.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này</p>
+                    <div class="empty-feedbacks">
+                        <div class="empty-icon">
+                            <i class="fas fa-comment-slash"></i>
+                        </div>
+                        <p class="empty-text">Chưa có đánh giá nào cho sản phẩm này</p>
+                        <p class="empty-subtext">Hãy là người đầu tiên đánh giá sản phẩm này!</p>
                     </div>
                 `;
             }
@@ -898,10 +1819,13 @@
             console.error('Error loading feedbacks:', error);
             console.error('Error stack:', error.stack);
             container.innerHTML = `
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Không thể tải đánh giá. Vui lòng thử lại sau.
-                    <br><small class="text-muted">Lỗi: ${escapeHtml(error.message)}</small>
+                <div class="error-feedbacks">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <p class="error-text">Không thể tải đánh giá</p>
+                    <p class="error-subtext">Vui lòng thử lại sau</p>
+                    <small class="error-details">Lỗi: ${escapeHtml(error.message)}</small>
                 </div>
             `;
         }
@@ -913,14 +1837,14 @@
         let html = '';
         
         for (let i = 0; i < fullStars; i++) {
-            html += '<i class="fas fa-star"></i>';
+            html += '<i class="fas fa-star star-filled"></i>';
         }
         if (hasHalfStar) {
-            html += '<i class="fas fa-star-half-alt"></i>';
+            html += '<i class="fas fa-star-half-alt star-half"></i>';
         }
         const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
         for (let i = 0; i < emptyStars; i++) {
-            html += '<i class="far fa-star"></i>';
+            html += '<i class="far fa-star star-empty"></i>';
         }
         return html;
     }
