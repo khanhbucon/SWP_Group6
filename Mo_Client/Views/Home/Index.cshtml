@@ -104,31 +104,13 @@
         </div>
 
         <!-- Category Tabs -->
-        <div class="category-tabs">
-            <a href="#" class="category-tab active" data-category="all">
-                <i class="fas fa-th-large"></i>
-                <span>Tất cả</span>
-            </a>
-            <a href="#" class="category-tab" data-category="game">
-                <i class="fas fa-gamepad"></i>
-                <span>Game Accounts</span>
-            </a>
-            <a href="#" class="category-tab" data-category="gift">
-                <i class="fas fa-gift"></i>
-                <span>Gift Cards</span>
-            </a>
-            <a href="#" class="category-tab" data-category="premium">
-                <i class="fas fa-crown"></i>
-                <span>Premium Services</span>
-            </a>
-            <a href="#" class="category-tab" data-category="phone">
-                <i class="fas fa-mobile-alt"></i>
-                <span>Phone Cards</span>
-            </a>
-            <a href="#" class="category-tab" data-category="social">
-                <i class="fas fa-share-alt"></i>
-                <span>Social Media</span>
-            </a>
+
+        <div id="categoryTabsContainer" class="category-tabs">
+            <!-- Loading state -->
+            <div class="text-center py-3">
+                <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                <span class="ms-2 text-muted">Đang tải danh mục...</span>
+            </div>
         </div>
 
         <!-- Products Container -->
@@ -152,52 +134,200 @@
 
 @section Scripts {
     <script>
-        const API_BASE = 'https://localhost:7234/api';
+                const API_BASE = 'https://localhost:7234/api';
         let allProducts = [];
+        let allCategories = [];
         let currentCategory = 'all';
 
         // Category mapping
-        const categoryMapping = {
-            'game': ['Game', 'Gaming', 'Game Accounts', 'Tài khoản game'],
-            'gift': ['Gift Card', 'Voucher', 'Thẻ quà tặng'],
-            'premium': ['Premium', 'Netflix', 'Spotify', 'YouTube Premium'],
-            'phone': ['Phone Card', 'Thẻ điện thoại', 'Nạp thẻ'],
-            'social': ['Facebook', 'Instagram', 'TikTok', 'Social Media']
+                // Icon mapping for categories
+        const categoryIcons = {
+            'game': 'fas fa-gamepad',
+            'gift': 'fas fa-gift',
+            'premium': 'fas fa-crown',
+            'phone': 'fas fa-mobile-alt',
+            'social': 'fas fa-share-alt',
+            'netflix': 'fas fa-film',
+            'spotify': 'fas fa-music',
+            'youtube': 'fab fa-youtube',
+            'facebook': 'fab fa-facebook',
+            'card': 'fas fa-credit-card',
+            'account': 'fas fa-user-circle',
+            'default': 'fas fa-tag'
         };
 
-        // Load categories for search filter
-        (async function() {
+        // Get icon for category
+        function getCategoryIcon(categoryName) {
+            const name = categoryName.toLowerCase();
+
+            for (const [key, icon] of Object.entries(categoryIcons)) {
+                if (name.includes(key)) {
+                    return icon;
+                }
+            }
+
+            return categoryIcons.default;
+        }
+
+        // Load categories and render tabs
+        async function loadCategoryTabs() {
             try {
                 const response = await fetch(`${API_BASE}/Category/all`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.data) {
-                        const select = document.getElementById('categoryFilter');
-                        data.data.forEach(cat => {
-                            const option = document.createElement('option');
-                            option.value = cat.id;
-                            option.textContent = cat.name;
-                            select.appendChild(option);
-                        });
+                        allCategories = data.data;
+                        renderCategoryTabs(data.data);
+
+                        // Also populate category filter
+                        populateCategoryFilter(data.data);
+                    } else {
+                        showCategoryTabsError();
                     }
+                } else {
+                    showCategoryTabsError();
                 }
             } catch (error) {
                 console.error('Error loading categories:', error);
+                showCategoryTabsError();
             }
-        })();
+        }
+
+        // Render category tabs dynamically
+        function renderCategoryTabs(categories) {
+            const container = document.getElementById('categoryTabsContainer');
+
+            if (categories.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-inbox me-2"></i>Chưa có danh mục nào
+                    </div>
+                `;
+                return;
+            }
+
+            // Build tabs HTML
+            let tabsHTML = `
+                <a href="#" class="category-tab active" data-category="all" data-category-id="">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tất cả</span>
+                </a>
+            `;
+
+            categories.forEach(cat => {
+                const icon = getCategoryIcon(cat.name);
+                tabsHTML += `
+                    <a href="#" class="category-tab" data-category="${cat.name.toLowerCase()}" data-category-id="${cat.id}">
+                        <i class="${icon}"></i>
+                        <span>${cat.name}</span>
+                    </a>
+                `;
+            });
+
+            container.innerHTML = tabsHTML;
+
+            // Attach click handlers
+            attachCategoryTabHandlers();
+        }
+
+        // Show error state for category tabs
+        function showCategoryTabsError() {
+            const container = document.getElementById('categoryTabsContainer');
+            container.innerHTML = `
+                <div class="text-center py-3">
+                    <span class="text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Không thể tải danh mục
+                    </span>
+                    <button class="btn btn-sm btn-outline-primary ms-3" onclick="loadCategoryTabs()">
+                        <i class="fas fa-redo me-1"></i>Thử lại
+                    </button>
+                </div>
+            `;
+        }
+
+        // Populate category filter dropdown
+        function populateCategoryFilter(categories) {
+            const select = document.getElementById('categoryFilter');
+
+            // Clear existing options except first one
+            select.innerHTML = '<option value="">Tất cả danh mục</option>';
+
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Attach event handlers to category tabs
+        function attachCategoryTabHandlers() {
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    // Get category and render products
+                    const categoryId = this.dataset.categoryId;
+                    const categoryName = this.dataset.category;
+
+                    currentCategory = categoryName;
+
+                    if (categoryId) {
+                        // Filter by category ID
+                        renderProductsByCategory(parseInt(categoryId));
+                    } else {
+                        // Show all products
+                        renderProducts(allProducts, 'Tất cả sản phẩm');
+                    }
+                });
+            });
+        }
+
+        // Render products by category ID
+        function renderProductsByCategory(categoryId) {
+            const filteredProducts = allProducts.filter(product =>
+                product.categoryId === categoryId
+            );
+
+            const category = allCategories.find(c => c.id === categoryId);
+            const categoryName = category ? category.name : 'Sản phẩm';
+
+            renderProducts(filteredProducts, categoryName);
+        }
+        // Load categories for search filter
+               // Filter products by category
+        function filterProducts(category) {
+            if (category === 'all') {
+                return allProducts;
+            }
+
+            const keywords = categoryMapping[category] || [];
+            return allProducts.filter(product => {
+                const searchText = `${product.name} ${product.categoryName} ${product.subCategoryName}`.toLowerCase();
+                return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
+            });
+        }
 
         // Load all products
-        async function loadProducts() {
+                async function loadProducts() {
             try {
                 const response = await fetch(`${API_BASE}/product/GetAllProducts?page=1&pageSize=100`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.data) {
                         allProducts = data.data;
-                        renderProducts('all');
+                        renderProducts(data.data, 'Tất cả sản phẩm');
                     } else {
                         showEmptyState();
                     }
+                } else {
+                    showErrorState();
                 }
             } catch (error) {
                 console.error('Error loading products:', error);
@@ -219,12 +349,10 @@
         }
 
         // Render products
-        function renderProducts(category) {
-            currentCategory = category;
-            const filteredProducts = filterProducts(category);
+                function renderProducts(products, categoryName = 'Tất cả sản phẩm') {
             const container = document.getElementById('productsContainer');
 
-            if (filteredProducts.length === 0) {
+            if (products.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
@@ -235,22 +363,13 @@
                 return;
             }
 
-            const categoryNames = {
-                'all': 'Tất cả sản phẩm',
-                'game': 'Game Accounts',
-                'gift': 'Gift Cards',
-                'premium': 'Premium Services',
-                'phone': 'Phone Cards',
-                'social': 'Social Media'
-            };
-
             container.innerHTML = `
                 <div class="category-header">
-                    <h3>${categoryNames[category]}</h3>
-                    <p>Hiển thị ${filteredProducts.length} sản phẩm</p>
+                    <h3>${categoryName}</h3>
+                    <p>Hiển thị ${products.length} sản phẩm</p>
                 </div>
                 <div class="row g-4">
-                    ${filteredProducts.slice(0, 12).map(product => `
+                    ${products.slice(0, 12).map(product => `
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="product-card">
                                 ${product.image ?
@@ -262,10 +381,10 @@
                                 <div class="card-body">
                                     <h6 class="card-title text-truncate" title="${product.name}">${product.name}</h6>
                                     <p class="shop-name mb-3">
-                                        <i class="fas fa-store me-1"></i>${product.shopName}
+                                        <i class="fas fa-store me-1"></i>${product.shopName || 'N/A'}
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <div class="price">${product.minPrice.toLocaleString('vi-VN')} ₫</div>
+                                        <div class="price">${(product.minPrice || 0).toLocaleString('vi-VN')} ₫</div>
                                         <a href="/Product/View/${product.id}" class="btn btn-view btn-sm">
                                             <i class="fas fa-eye me-1"></i>Xem
                                         </a>
@@ -302,26 +421,12 @@
         }
 
         // Category tab click handler
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load products on page load
+                document.addEventListener('DOMContentLoaded', function() {
+            // Load category tabs first
+            loadCategoryTabs();
+
+            // Then load products
             loadProducts();
-
-            // Handle category tab clicks
-            document.querySelectorAll('.category-tab').forEach(tab => {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-
-                    // Get category and render products
-                    const category = this.dataset.category;
-                    renderProducts(category);
-                });
-            });
         });
 
         // Search form enhancement
