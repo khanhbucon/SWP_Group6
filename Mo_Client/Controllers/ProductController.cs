@@ -564,7 +564,11 @@ public class ProductController : Controller
                 return RedirectToAction("Index");
             }
 
-            var result = await response.Content.ReadFromJsonAsync<PublicProductDetailResponse>();
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var result = await response.Content.ReadFromJsonAsync<PublicProductDetailResponse>(options);
             if (result?.Success == true && result.Data != null)
             {
                 ViewBag.IsLoggedIn = isLoggedIn;
@@ -603,6 +607,8 @@ public class ProductController : Controller
         public decimal Fee { get; set; }
         public int TotalStock { get; set; }
         public int TotalSold { get; set; }
+        public decimal AverageRating { get; set; } = 0;
+        public int TotalFeedbacks { get; set; } = 0;
         public List<PublicVariantInfo> Variants { get; set; } = new();
         public DateTime CreatedAt { get; set; }
     }

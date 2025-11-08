@@ -1,4 +1,4 @@
-﻿@model Mo_Client.Controllers.ProductController.PublicProductDetailData
+@model Mo_Client.Controllers.ProductController.PublicProductDetailData
 @{
     ViewData["Title"] = Model.Name;
     var isLoggedIn = ViewBag.IsLoggedIn ?? false;
@@ -41,15 +41,35 @@
                 <h4 class="mb-0 fw-bold">@Model.Name</h4>
             </div>
 
-            <!-- Rating & Stats (có thể thêm sau) -->
+            <!-- Rating & Stats -->
             <div class="mb-3 d-flex align-items-center">
                 <div class="text-warning me-3">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star-half-alt"></i>
-                    <span class="text-muted ms-2">(0 Reviews)</span>
+                    @{
+                        var avgRating = Model.AverageRating;
+                        var fullStars = (int)Math.Floor((double)avgRating);
+                        var remainder = avgRating - fullStars;
+                        var hasHalfStar = remainder >= 0.5m;
+                        var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                    }
+                    @for (int i = 0; i < fullStars; i++)
+                    {
+                        <i class="fas fa-star"></i>
+                    }
+                    @if (hasHalfStar)
+                    {
+                        <i class="fas fa-star-half-alt"></i>
+                    }
+                    @for (int i = 0; i < emptyStars; i++)
+                    {
+                        <i class="far fa-star"></i>
+                    }
+                    <span class="text-muted ms-2">
+                        (@Model.TotalFeedbacks @(Model.TotalFeedbacks == 1 ? "Đánh giá" : "Đánh giá"))
+                        @if (Model.AverageRating > 0)
+                        {
+                            <text> - @Model.AverageRating.ToString("F1")/5</text>
+                        }
+                    </span>
                 </div>
                 <span class="text-muted">| Đã bán: <strong>@Model.TotalSold</strong></span>
                 <span class="text-muted ms-3">| Kho: <strong class="@(Model.TotalStock > 0 ? "text-success" : "text-danger")">@Model.TotalStock</strong></span>
@@ -228,6 +248,30 @@
             </div>
         </div>
     }
+
+    <!-- Feedbacks Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-comments me-2"></i>Đánh giá sản phẩm
+                        <span class="badge bg-primary ms-2" id="feedbackCount">@Model.TotalFeedbacks</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="feedbacksContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p class="text-muted mt-2">Đang tải đánh giá...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Back Button -->
     <div class="text-center mt-5 mb-5">
@@ -688,4 +732,119 @@
         const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenElement ? tokenElement.value : '';
     }
+
+    // Load feedbacks
+    async function loadFeedbacks() {
+        const productId = @Model.Id;
+        const container = document.getElementById('feedbacksContainer');
+        
+        try {
+            const response = await fetch(`/api/Product/${productId}/feedbacks`);
+            const result = await response.json();
+            
+            if (result.Success && result.Data && result.Data.length > 0) {
+                container.innerHTML = result.Data.map(feedback => `
+                    <div class="feedback-item mb-4 pb-4 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong class="me-2">${escapeHtml(feedback.userName || 'Người dùng ẩn danh')}</strong>
+                                <div class="text-warning d-inline">
+                                    ${renderStars(feedback.rating)}
+                                </div>
+                                <small class="text-muted ms-2">${formatDate(feedback.createdAt)}</small>
+                            </div>
+                        </div>
+                        ${feedback.comment ? `<p class="mb-2">${escapeHtml(feedback.comment)}</p>` : '<p class="text-muted mb-2"><em>Không có bình luận</em></p>'}
+                        ${feedback.replies && feedback.replies.length > 0 ? `
+                            <div class="replies ms-4 mt-3">
+                                <h6 class="text-muted mb-2"><i class="fas fa-reply me-1"></i>Phản hồi (${feedback.replies.length})</h6>
+                                ${feedback.replies.map(reply => `
+                                    <div class="reply-item mb-2 p-2 bg-light rounded">
+                                        <strong class="text-primary">${escapeHtml(reply.userName || 'Người dùng ẩn danh')}</strong>
+                                        <small class="text-muted ms-2">${formatDate(reply.createdAt)}</small>
+                                        <p class="mb-0 mt-1">${escapeHtml(reply.content)}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Không thể tải đánh giá. Vui lòng thử lại sau.
+                </div>
+            `;
+            console.error('Error loading feedbacks:', error);
+        }
+    }
+
+    function renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating - fullStars >= 0.5;
+        let html = '';
+        
+        for (let i = 0; i < fullStars; i++) {
+            html += '<i class="fas fa-star"></i>';
+        }
+        if (hasHalfStar) {
+            html += '<i class="fas fa-star-half-alt"></i>';
+        }
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+            html += '<i class="far fa-star"></i>';
+        }
+        return html;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Load feedbacks when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFeedbacks();
+    });
 </script>
+
+<style>
+    .feedback-item {
+        transition: background-color 0.2s;
+    }
+    
+    .feedback-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem !important;
+        margin-left: -1rem !important;
+        margin-right: -1rem !important;
+    }
+    
+    .reply-item {
+        border-left: 3px solid #007bff;
+    }
+</style>
