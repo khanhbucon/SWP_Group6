@@ -166,22 +166,16 @@ public class SePayService
             _logger.LogInformation($"Searching for transaction: Amount={amount}, Description={description}");
             _logger.LogInformation($"Found {transactions.Count} recent transactions from SePay");
             
-            // Log all transactions for debugging
-            foreach (var t in transactions.Take(10))
-            {
-                _logger.LogInformation($"SePay Transaction: ID={t.TransactionId}, Amount={t.Amount}, Status={t.Status}, Description='{t.Description}'");
-            }
+           
             
-            // Tìm theo amount trước (quan trọng nhất)
+            // Tìm theo amount 
             var amountMatches = transactions.Where(t => Math.Abs(t.Amount - amount) < 0.01m).ToList();
             _logger.LogInformation($"Found {amountMatches.Count} transactions matching amount {amount}");
             
             // Nếu có description, tìm trong các giao dịch khớp amount
-            // SePay description format: "NAPTIEN{TransactionId}" (không có user ID và dấu gạch dưới)
-            // Ví dụ: "NAPTIEN8013" (từ QR code "NAPTIEN_8013_1")
+            
             if (!string.IsNullOrEmpty(description))
             {
-                // Extract transaction ID từ description (format: NAPTIEN_{TransactionId}_{UserId})
                 string? transactionIdStr = null;
                 if (description.Contains("_"))
                 {
@@ -260,12 +254,7 @@ public class SePayService
                     }
                 }
                 
-                // Nếu không tìm thấy theo description, log để debug
-                _logger.LogWarning($"✗ No transaction found matching description. Searched variants: {string.Join(", ", descriptionVariants.Distinct().Take(5))}");
-                if (amountMatches.Any())
-                {
-                    _logger.LogWarning($"Available transactions with matching amount: {string.Join(" | ", amountMatches.Select(t => $"ID={t.TransactionId}, Desc='{t.Description}'"))}");
-                }
+                
             }
             
             // KHÔNG match chỉ theo amount để tránh match với giao dịch cũ
@@ -295,34 +284,9 @@ public class SePayService
         }
     }
 
-    /// <summary>
-    /// Xác thực webhook signature từ SEpay
-    /// </summary>
-    public bool VerifyWebhookSignature(string payload, string signature)
-    {
-        try
-        {
-            var webhookSecret = _configuration["SePay:WebhookSecret"];
-            if (string.IsNullOrEmpty(webhookSecret))
-            {
-                _logger.LogWarning("Webhook secret is not configured");
-                return false;
-            }
-
-            // Tạo HMAC SHA256 signature
-            using var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(webhookSecret));
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
-            var computedSignature = Convert.ToBase64String(computedHash);
-
-            return computedSignature == signature;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error verifying webhook signature");
-            return false;
-        }
+   
     }
-}
+
 
 public class SePayTransactionResponse
 {
