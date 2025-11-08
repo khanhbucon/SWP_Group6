@@ -16,6 +16,7 @@ public class FeedbackServices :GenericRepository<Feedback>, IFeedbackServices
         return await _context.Feedbacks
             .Include(f => f.Account)
             .Include(f => f.Replies)
+                .ThenInclude(r => r.Shop)
             .Where(f => f.ProductId == productId)
             .OrderByDescending(f => f.CreatedAt)
             .ToListAsync();

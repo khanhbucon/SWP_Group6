@@ -572,6 +572,7 @@ public class ProductController : Controller
             if (result?.Success == true && result.Data != null)
             {
                 ViewBag.IsLoggedIn = isLoggedIn;
+                ViewBag.ApiBaseUrl = apiUrl + "/api"; // Pass API base URL to view
                 return View("PublicDetails", result.Data);  // View name vẫn giữ nguyên
             }
 

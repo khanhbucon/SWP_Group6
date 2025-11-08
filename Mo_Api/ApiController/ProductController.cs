@@ -617,7 +617,7 @@ public class ProductController : ControllerBase
         try
         {
             var feedbacks = await _feedbacks.GetProductFeedbacksAsync(productId);
-            
+
             var feedbackList = feedbacks.Select(f => new
             {
                 f.Id,
@@ -626,13 +626,13 @@ public class ProductController : ControllerBase
                 f.CreatedAt,
                 UserName = f.Account?.Username ?? "Người dùng ẩn danh",
                 UserEmail = f.Account?.Email,
-                Replies = f.Replies?.Select(r => new
+                Replies = (f.Replies ?? new List<Reply>()).Select(r => new
                 {
                     r.Id,
                     Comment = r.Comment,
                     r.CreatedAt,
                     ShopName = r.Shop?.Name ?? "Cửa hàng"
-                }).ToList() ?? new List<object>()
+                }).ToList()
             }).ToList();
 
             return Ok(new { Success = true, Data = feedbackList });

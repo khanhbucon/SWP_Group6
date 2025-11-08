@@ -738,38 +738,155 @@
         const productId = @Model.Id;
         const container = document.getElementById('feedbacksContainer');
         
+        console.log('loadFeedbacks called, productId:', productId);
+        console.log('Container element:', container);
+        
+        if (!container) {
+            console.error('feedbacksContainer not found');
+            return;
+        }
+        
         try {
-            const response = await fetch(`/api/Product/${productId}/feedbacks`);
-            const result = await response.json();
+            // Get API base URL from ViewBag or construct from current location
+            const apiBaseUrl = '@(ViewBag.ApiBaseUrl ?? "")';
+            let apiUrl;
             
-            if (result.Success && result.Data && result.Data.length > 0) {
-                container.innerHTML = result.Data.map(feedback => `
+            if (apiBaseUrl && apiBaseUrl.trim() !== '') {
+                // Use ViewBag API base URL
+                apiUrl = `${apiBaseUrl}/Product/${productId}/feedbacks`;
+            } else {
+                // Fallback: construct from current page URL
+                const currentUrl = window.location.origin;
+                apiUrl = `${currentUrl}/api/Product/${productId}/feedbacks`;
+            }
+            
+            console.log('API Base URL:', apiBaseUrl);
+            console.log('Loading feedbacks from:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+            
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+            
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+                console.error('Response text that failed to parse:', responseText);
+                throw new Error('Failed to parse JSON response');
+            }
+            
+            console.log('Feedbacks response:', result);
+            console.log('Feedbacks Success:', result.Success);
+            console.log('Feedbacks success (lowercase):', result.success);
+            console.log('Feedbacks Data:', result.Data);
+            console.log('Feedbacks data (lowercase):', result.data);
+            console.log('Feedbacks Data type:', typeof result.Data);
+            console.log('Feedbacks Data length:', result.Data?.length);
+            
+            // Handle both PascalCase and camelCase response formats
+            const isSuccess = result.Success === true || result.success === true;
+            const feedbackData = result.Data || result.data || [];
+            
+            console.log('Is Success:', isSuccess);
+            console.log('Feedback Data (normalized):', feedbackData);
+            console.log('Feedback Data length:', feedbackData.length);
+            
+            if (isSuccess && feedbackData && Array.isArray(feedbackData) && feedbackData.length > 0) {
+                console.log('Rendering feedbacks, count:', feedbackData.length);
+                container.innerHTML = feedbackData.map((feedback, index) => {
+                    console.log(`Processing feedback ${index}:`, feedback);
+                    
+                    // Handle both camelCase and PascalCase - check all possible property names
+                    const userName = feedback.userName || feedback.UserName || 'Người dùng ẩn danh';
+                    const rating = feedback.rating || feedback.Rating || 0;
+                    
+                    // Try multiple property name variations
+                    const comment = (feedback.comment || feedback.Comment || feedback.commentText || feedback.CommentText || '').trim();
+                    console.log(`Feedback ${index} comment:`, comment);
+                    
+                    const createdAt = feedback.createdAt || feedback.CreatedAt;
+                    const replies = feedback.replies || feedback.Replies || [];
+                    
+                    // Build comment HTML
+                    let commentHtml = '';
+                    if (comment && comment.length > 0) {
+                        commentHtml = `<p class="mb-2">${escapeHtml(comment)}</p>`;
+                    } else {
+                        commentHtml = '<p class="text-muted mb-2"><em>Không có bình luận</em></p>';
+                    }
+                    
+                    // Build replies HTML
+                    let repliesHtml = '';
+                    if (replies && replies.length > 0) {
+                        repliesHtml = `
+                            <div class="replies ms-4 mt-3">
+                                <h6 class="text-muted mb-2"><i class="fas fa-reply me-1"></i>Phản hồi (${replies.length})</h6>
+                                ${replies.map(reply => {
+                                    const shopName = (reply.shopName || reply.ShopName || 'Cửa hàng').trim();
+                                    const replyComment = (reply.comment || reply.Comment || '').trim();
+                                    const replyCreatedAt = reply.createdAt || reply.CreatedAt;
+                                    
+                                    let replyCommentHtml = '';
+                                    if (replyComment && replyComment.length > 0) {
+                                        replyCommentHtml = `<p class="mb-0 mt-1">${escapeHtml(replyComment)}</p>`;
+                                    } else {
+                                        replyCommentHtml = '<p class="mb-0 mt-1 text-muted"><em>Không có nội dung</em></p>';
+                                    }
+                                    
+                                    return `
+                                    <div class="reply-item mb-2 p-2 bg-light rounded">
+                                        <strong class="text-primary">${escapeHtml(shopName)}</strong>
+                                        <small class="text-muted ms-2">${formatDate(replyCreatedAt)}</small>
+                                        ${replyCommentHtml}
+                                    </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }
+                    
+                    return `
                     <div class="feedback-item mb-4 pb-4 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <strong class="me-2">${escapeHtml(feedback.userName || 'Người dùng ẩn danh')}</strong>
+                                <strong class="me-2">${escapeHtml(userName)}</strong>
                                 <div class="text-warning d-inline">
-                                    ${renderStars(feedback.rating)}
+                                    ${renderStars(rating)}
                                 </div>
-                                <small class="text-muted ms-2">${formatDate(feedback.createdAt)}</small>
+                                <small class="text-muted ms-2">${formatDate(createdAt)}</small>
                             </div>
                         </div>
-                        ${feedback.comment ? `<p class="mb-2">${escapeHtml(feedback.comment)}</p>` : '<p class="text-muted mb-2"><em>Không có bình luận</em></p>'}
-                        ${feedback.replies && feedback.replies.length > 0 ? `
-                            <div class="replies ms-4 mt-3">
-                                <h6 class="text-muted mb-2"><i class="fas fa-reply me-1"></i>Phản hồi (${feedback.replies.length})</h6>
-                                ${feedback.replies.map(reply => `
-                                    <div class="reply-item mb-2 p-2 bg-light rounded">
-                                        <strong class="text-primary">${escapeHtml(reply.shopName || 'Cửa hàng')}</strong>
-                                        <small class="text-muted ms-2">${formatDate(reply.createdAt)}</small>
-                                        <p class="mb-0 mt-1">${escapeHtml(reply.comment || '')}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
+                        ${commentHtml}
+                        ${repliesHtml}
                     </div>
-                `).join('');
+                    `;
+                }).join('');
+                
+                console.log('Feedbacks HTML rendered successfully');
+                console.log('Container innerHTML length:', container.innerHTML.length);
             } else {
+                console.log('No feedbacks to display');
+                console.log('Is Success:', isSuccess);
+                console.log('Feedback Data:', feedbackData);
+                console.log('Is Array:', Array.isArray(feedbackData));
+                
                 container.innerHTML = `
                     <div class="text-center py-5">
                         <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
@@ -778,13 +895,15 @@
                 `;
             }
         } catch (error) {
+            console.error('Error loading feedbacks:', error);
+            console.error('Error stack:', error.stack);
             container.innerHTML = `
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Không thể tải đánh giá. Vui lòng thử lại sau.
+                    <br><small class="text-muted">Lỗi: ${escapeHtml(error.message)}</small>
                 </div>
             `;
-            console.error('Error loading feedbacks:', error);
         }
     }
 
@@ -819,16 +938,26 @@
     }
 
     function escapeHtml(text) {
-        if (!text) return '';
+        if (text == null || text === undefined) return '';
+        if (typeof text !== 'string') {
+            text = String(text);
+        }
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
     // Load feedbacks when page loads
-    document.addEventListener('DOMContentLoaded', function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, calling loadFeedbacks');
+            loadFeedbacks();
+        });
+    } else {
+        // DOM is already ready
+        console.log('DOM already ready, calling loadFeedbacks immediately');
         loadFeedbacks();
-    });
+    }
 </script>
 
 <style>
