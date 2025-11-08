@@ -622,6 +622,7 @@ public class AccountServices :GenericRepository<Account>, IAccountServices
         return await UpdateAsync(account);
     }
 
+
     public async Task<Account> ToggleBanUserAsync(long accountId)
     {
         var account = await GetByIdAsync(accountId);
