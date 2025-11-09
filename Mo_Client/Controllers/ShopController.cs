@@ -196,7 +196,8 @@ public class ShopController : Controller
         {
             TempData["Error"] = message ?? "Không thể thay đổi trạng thái (có thể shop đang chờ duyệt).";
         }
-        return RedirectToAction("Edit", new { shopId });
+        // Redirect back to seller shops list so user remains on /Seller/Shops
+        return RedirectToAction("Shops", "Seller");
     }
 
     // GET: /Shop/Statistics

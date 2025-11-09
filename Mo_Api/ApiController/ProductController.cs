@@ -602,5 +602,57 @@ public class ProductController : ControllerBase
             return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
-   
+    [HttpPost("{productId:long}/toggle-status")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> ToggleProductStatus(long productId, [FromQuery] bool isActive)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { Success = false, Message = "Invalid token" });
+            }
+
+            // Get product and verify ownership
+            var product = await _db.Products
+                .Include(p => p.Shop)
+                .FirstOrDefaultAsync(p => p.Id == productId);
+
+            if (product == null)
+            {
+                return NotFound(new { Success = false, Message = "Sản phẩm không tồn tại" });
+            }
+
+            // Check if user owns this product's shop
+            if (product.Shop.AccountId != userId.Value)
+            {
+                return Forbid();
+            }
+
+            // Check if product is pending approval
+            if (product.IsActive == null)
+            {
+                return BadRequest(new { Success = false, Message = "Sản phẩm đang chờ duyệt, không thể thay đổi trạng thái" });
+            }
+
+            // Update status
+            product.IsActive = isActive;
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Success = true,
+                Message = isActive ? "Đã bật sản phẩm" : "Đã tắt sản phẩm",
+                Data = new { IsActive = isActive }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi thay đổi trạng thái" });
+        }
+    }
+
 }
+
+

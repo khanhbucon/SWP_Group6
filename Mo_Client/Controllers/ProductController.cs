@@ -138,13 +138,28 @@ public class ProductController : Controller
     public async Task<IActionResult> List(string? search, int page = 1, int pageSize = 10)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
+
+        //  VALIDATE PAGE NUMBER - Đảm bảo page >= 1
+        if (page < 1) page = 1;
+
         var paged = await _api.GetMyProductsPagedAsync(search, page, pageSize);
         if (paged == null) return View(new List<AuthApiClient.ProductSummary>());
+
+        // CHECK IF PAGE EXCEEDS TOTAL PAGES - Redirect về trang 1 nếu vượt quá
+        if (page > paged.TotalPages && paged.TotalPages > 0)
+        {
+            return RedirectToAction("List", new { search, page = 1, pageSize });
+        }
+
         ViewBag.Page = paged.Page;
         ViewBag.PageSize = paged.PageSize;
         ViewBag.Total = paged.Total;
         ViewBag.TotalPages = paged.TotalPages;
         ViewBag.ApiBase = _api.GetBaseAddress()?.ToString()?.TrimEnd('/');
+
+        var token = Request.Cookies["accessToken"];
+        ViewBag.AccessToken = token;
+
         return View(paged.Items);
     }
 

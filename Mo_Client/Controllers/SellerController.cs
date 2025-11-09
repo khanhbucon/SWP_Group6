@@ -16,8 +16,6 @@ public class SellerController : Controller
         return true;
     }
 
-
-    // seller  dashboard 
     public async Task<IActionResult> Index()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
@@ -36,6 +34,12 @@ public class SellerController : Controller
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         var shops = await _api.GetMyShopsAsync();
+
+        // ✅ THÊM 3 DÒNG NÀY
+        var token = Request.Cookies["accessToken"];
+        ViewBag.AccessToken = token;
+        ViewBag.ApiBase = _api.GetBaseAddress()?.ToString()?.TrimEnd('/');
+
         return View(shops ?? new List<AuthApiClient.ShopResponse>());
     }
 
@@ -53,8 +57,6 @@ public class SellerController : Controller
         return View(vm);
     }
 
-
-    //xoa shop
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteShop(long shopId)
@@ -68,17 +70,13 @@ public class SellerController : Controller
         return RedirectToAction("Shops");
     }
 
-
-
-
-
-
     public async Task<IActionResult> ProductOrders()
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
         var orders = await _api.GetMyProductOrdersAsync();
         return View(orders ?? new List<AuthApiClient.ProductOrderItem>());
     }
+
     public IActionResult ServiceOrders() => View();
     public IActionResult Preorders() => View();
     public IActionResult Reseller() => View();
