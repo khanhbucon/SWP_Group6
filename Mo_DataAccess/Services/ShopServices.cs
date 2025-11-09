@@ -9,8 +9,11 @@ namespace Mo_DataAccess.Services;
 
 public class ShopServices : GenericRepository<Shop>, IShopServices
 {
-    public ShopServices(SwpGroup6Context context) : base(context)
+    private readonly INotificationService _notificationService;
+
+    public ShopServices(SwpGroup6Context context, INotificationService notificationService) : base(context)
     {
+        _notificationService = notificationService;
     }
 
     public async Task<Shop> CreateShopAsync(long accountId, CreateShopRequest request)
@@ -394,6 +397,8 @@ public class ShopServices : GenericRepository<Shop>, IShopServices
         shop.IsActive = true; // approve -> active
         shop.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+        // Notify shop owner about approval
+        await _notificationService.CreateShopApprovalNotificationAsync(shop.AccountId, shop.Id);
         return true;
     }
 

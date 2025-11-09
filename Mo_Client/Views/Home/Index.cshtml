@@ -71,27 +71,7 @@
                     </form>
                 </div>
 
-                <!-- Quick Search Tags -->
-                <div class="quick-search-tags text-center mt-4">
-                    <span class="tags-label">
-                        <i class="fas fa-fire me-2"></i>Tìm kiếm phổ biến:
-                    </span>
-                    <a href="/Product/Index?search=Liên Quân" class="tag-badge">
-                        <i class="fas fa-gamepad"></i>Liên Quân
-                    </a>
-                    <a href="/Product/Index?search=Facebook" class="tag-badge">
-                        <i class="fab fa-facebook"></i>Facebook
-                    </a>
-                    <a href="/Product/Index?search=Netflix" class="tag-badge">
-                        <i class="fas fa-film"></i>Netflix
-                    </a>
-                    <a href="/Product/Index?search=Card Viettel" class="tag-badge">
-                        <i class="fas fa-mobile-alt"></i>Card Viettel
-                    </a>
-                    <a href="/Product/Index?search=Youtube Premium" class="tag-badge">
-                        <i class="fab fa-youtube"></i>Youtube Premium
-                    </a>
-                </div>
+         
 </section>
 
 <!-- Featured Products Section -->
@@ -276,13 +256,22 @@
                     const categoryId = this.dataset.categoryId;
                     const categoryName = this.dataset.category;
 
+                    console.log('Category tab clicked:', {
+                        categoryId: categoryId,
+                        categoryName: categoryName,
+                        dataset: this.dataset
+                    });
+
                     currentCategory = categoryName;
 
-                    if (categoryId) {
+                    if (categoryId && categoryId.trim() !== '') {
                         // Filter by category ID
-                        renderProductsByCategory(parseInt(categoryId));
+                        const catId = parseInt(categoryId);
+                        console.log('Filtering by category ID:', catId);
+                        renderProductsByCategory(catId);
                     } else {
                         // Show all products
+                        console.log('Showing all products');
                         renderProducts(allProducts, 'Tất cả sản phẩm');
                     }
                 });
@@ -291,14 +280,69 @@
 
         // Render products by category ID
         function renderProductsByCategory(categoryId) {
-            const filteredProducts = allProducts.filter(product =>
-                product.categoryId === categoryId
-            );
-
+            console.log('Filtering products by categoryId:', categoryId);
+            console.log('All products count:', allProducts.length);
+            console.log('Sample product:', allProducts[0]);
+            
+            // Get category info
             const category = allCategories.find(c => c.id === categoryId);
             const categoryName = category ? category.name : 'Sản phẩm';
-
-            renderProducts(filteredProducts, categoryName);
+            console.log('Category name:', categoryName);
+            
+            // Filter products - try multiple approaches
+            let filteredProducts = allProducts.filter(product => {
+                // Try categoryId (PascalCase or camelCase)
+                const prodCatId = product.categoryId || product.CategoryId;
+                if (prodCatId === categoryId) {
+                    return true;
+                }
+                
+                // Try subCategoryId (in case categoryId is actually subCategoryId)
+                const prodSubCatId = product.subCategoryId || product.SubCategoryId;
+                if (prodSubCatId === categoryId) {
+                    return true;
+                }
+                
+                // Try categoryName match
+                const prodCatName = (product.categoryName || product.CategoryName || '').toLowerCase();
+                const catName = categoryName.toLowerCase();
+                if (prodCatName === catName) {
+                    return true;
+                }
+                
+                return false;
+            });
+            
+            console.log('Filtered products count:', filteredProducts.length);
+            
+            // If no products found, try loading products filtered by category from API
+            if (filteredProducts.length === 0) {
+                console.log('No products found with local filter, trying API...');
+                loadProductsByCategory(categoryId, categoryName);
+            } else {
+                renderProducts(filteredProducts, categoryName);
+            }
+        }
+        
+        // Load products filtered by category from API
+        async function loadProductsByCategory(categoryId, categoryName) {
+            try {
+                const response = await fetch(`${API_BASE}/product/GetAllProducts?page=1&pageSize=100&categoryId=${categoryId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        console.log('Products from API for category:', data.data.length);
+                        renderProducts(data.data, categoryName);
+                    } else {
+                        renderProducts([], categoryName);
+                    }
+                } else {
+                    renderProducts([], categoryName);
+                }
+            } catch (error) {
+                console.error('Error loading products by category:', error);
+                renderProducts([], categoryName);
+            }
         }
         // Load categories for search filter
                // Filter products by category

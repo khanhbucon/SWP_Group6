@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // API options
-builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
+builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("ApiOptions"));
 
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
@@ -21,6 +21,7 @@ builder.Services.AddHttpClient<CategoryService>();
 builder.Services.AddHttpClient<TransactionService>();
 builder.Services.AddHttpClient<OrderService>();
 builder.Services.AddHttpClient<NotificationService>();
+builder.Services.AddHttpClient<DepositService>();
 
 
 

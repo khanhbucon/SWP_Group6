@@ -5,5 +5,6 @@ namespace Mo_DataAccess.Services.Interface;
 
 public interface IFeedbackServices :IGenericRepository<Feedback>
 {
-    
+    Task<List<Feedback>> GetProductFeedbacksAsync(long productId);
+    Task<(decimal AverageRating, int TotalCount)> GetProductRatingStatsAsync(long productId);
 }

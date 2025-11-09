@@ -20,14 +20,16 @@ public class ProductController : ControllerBase
     private readonly IProductVariantServices _variants;
     private readonly IShopServices _shops;
     private readonly IProductStoreServices _stores;
+    private readonly IFeedbackServices _feedbacks;
     private readonly SwpGroup6Context _db;
 
-    public ProductController(IProductServices products, IProductVariantServices variants, IShopServices shops, IProductStoreServices stores, SwpGroup6Context db)
+    public ProductController(IProductServices products, IProductVariantServices variants, IShopServices shops, IProductStoreServices stores, IFeedbackServices feedbacks, SwpGroup6Context db)
     {
         _products = products;
         _variants = variants;
         _shops = shops;
         _stores = stores;
+        _feedbacks = feedbacks;
         _db = db;
     }
 
@@ -573,6 +575,9 @@ public class ProductController : ControllerBase
             // Get total stock and sold
             var (totalStock, totalSold) = await _products.GetStockAndSoldAsync(id);
 
+            // Get rating stats
+            var (averageRating, totalFeedbacks) = await _feedbacks.GetProductRatingStatsAsync(id);
+
             return Ok(new
             {
                 Success = true,
@@ -591,6 +596,8 @@ public class ProductController : ControllerBase
                     product.Fee,
                     TotalStock = totalStock,
                     TotalSold = totalSold,
+                    AverageRating = averageRating,
+                    TotalFeedbacks = totalFeedbacks,
                     Variants = variants,
                     product.CreatedAt,
                     product.UpdatedAt

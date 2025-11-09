@@ -1,0 +1,572 @@
+@{
+    ViewData["Title"] = "Nạp tiền";
+    Layout = "_Layout";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient-primary text-white py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-wallet me-2"></i>
+                        Nạp tiền vào tài khoản
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Form nhập số tiền -->
+                    <div id="depositForm">
+                        <div class="mb-4">
+                            <label for="amount" class="form-label fw-bold">
+                                <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                                Số tiền nạp (VNĐ)
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-coins text-warning"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="amount" 
+                                       placeholder="Nhập số tiền (ví dụ: 100000)"
+                                       autocomplete="off">
+                                <span class="input-group-text bg-light">VNĐ</span>
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Số tiền tối thiểu: 10,000 VNĐ - Tối đa: 100,000,000 VNĐ
+                            </small>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="button" 
+                                    class="btn btn-primary btn-lg" 
+                                    id="createDepositBtn"
+                                    onclick="createDeposit()">
+                                <i class="fas fa-qrcode me-2"></i>
+                                Tạo mã QR thanh toán
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading state -->
+                    <div id="loadingState" class="text-center py-5" style="display: none;">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Đang tạo mã QR...</span>
+                        </div>
+                        <p class="text-muted">Đang tạo mã QR thanh toán...</p>
+                    </div>
+
+                    <!-- QR Code Display -->
+                    <div id="qrCodeSection" style="display: none;">
+                        <div class="alert alert-info border-0 shadow-sm mb-4">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Hướng dẫn thanh toán
+                            </h5>
+                            <ol class="mb-0">
+                                <li>Mở ứng dụng ngân hàng trên điện thoại</li>
+                                <li>Quét mã QR bên dưới</li>
+                                <li>Kiểm tra thông tin và xác nhận chuyển khoản</li>
+                                <li>Hệ thống sẽ tự động cập nhật số dư sau khi nhận được xác nhận</li>
+                            </ol>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title mb-3">
+                                            <i class="fas fa-qrcode me-2 text-primary"></i>
+                                            Mã QR thanh toán
+                                        </h6>
+                                        <div class="mb-3">
+                                            <img id="qrCodeImage" 
+                                                 src="" 
+                                                 alt="QR Code" 
+                                                 class="img-fluid border rounded shadow"
+                                                 style="max-width: 300px;">
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="downloadQR()">
+                                            <i class="fas fa-download me-1"></i>
+                                            Tải mã QR
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-3">
+                                            <i class="fas fa-university me-2 text-success"></i>
+                                            Thông tin tài khoản
+                                        </h6>
+                                        <div class="mb-3">
+                                            <label class="text-muted small">Số tài khoản:</label>
+                                            <div class="d-flex align-items-center">
+                                                <strong class="fs-5" id="accountNumber">-</strong>
+                                                <button class="btn btn-sm btn-link ms-2" onclick="copyAccountNumber()">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="text-muted small">Tên chủ tài khoản:</label>
+                                            <div>
+                                                <strong id="accountName">-</strong>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="text-muted small">Số tiền:</label>
+                                            <div>
+                                                <strong class="text-success fs-5" id="depositAmount">-</strong> VNĐ
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="text-muted small">Nội dung chuyển khoản:</label>
+                                            <div class="d-flex align-items-center">
+                                                <code class="bg-light p-2 rounded" id="qrContent">-</code>
+                                                <button class="btn btn-sm btn-link ms-2" onclick="copyContent()">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Success Message Section (hidden by default) -->
+                        <div id="successSection" style="display: none;" class="mb-4">
+                            <div class="alert alert-success border-0 shadow-lg text-center py-4">
+                                <div class="mb-3">
+                                    <i class="fas fa-check-circle fa-4x text-success"></i>
+                                </div>
+                                <h3 class="alert-heading mb-3">Nạp tiền thành công!</h3>
+                                <p class="mb-3 fs-5">Giao dịch của bạn đã được xác nhận thành công. Số dư tài khoản đã được cập nhật.</p>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="resetForm()">
+                                        <i class="fas fa-plus-circle me-2"></i>
+                                        Nạp tiền mới
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Card (shown when pending) -->
+                        <div id="statusCard" class="card border-warning bg-light mb-4">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-clock text-warning me-2"></i>
+                                    <strong>Trạng thái giao dịch:</strong>
+                                </div>
+                                <div id="transactionStatus" class="mb-2">
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-hourglass-half me-1"></i>
+                                        Đang chờ thanh toán
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-sync-alt me-1"></i>
+                                    Hệ thống đang tự động kiểm tra và xác nhận giao dịch. Bạn không cần ấn nút xác nhận.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div id="actionButtons" class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="button" 
+                                    class="btn btn-outline-secondary btn-lg" 
+                                    onclick="resetForm()">
+                                <i class="fas fa-redo me-2"></i>
+                                Tạo giao dịch mới
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="alert alert-danger" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="errorText"></span>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div id="successMessage" class="alert alert-success" style="display: none;">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span id="successText"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const apiBaseUrl = '@Html.Raw(ViewBag.ApiBaseUrl)';
+        const accessToken = '@Html.Raw(ViewBag.AccessToken)'; // Token from server (cookie is HttpOnly)
+        const STORAGE_KEY = 'deposit_transaction_id';
+        let currentTransactionId = null;
+        let statusCheckInterval = null;
+        
+        // Load transaction from storage on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                try {
+                    const transactionData = JSON.parse(savedData);
+                    currentTransactionId = transactionData.transactionId;
+                    // Check if transaction is still pending, if so, restore the QR view
+                    checkAndRestoreTransaction(transactionData);
+                } catch (e) {
+                    // If parsing fails, try old format (just transaction ID)
+                    const savedTransactionId = savedData;
+                    if (savedTransactionId && !isNaN(parseInt(savedTransactionId))) {
+                        currentTransactionId = parseInt(savedTransactionId);
+                        checkAndRestoreTransaction(null);
+                    }
+                }
+            }
+        });
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount);
+        }
+
+        function parseAmount(input) {
+            // Remove all non-digit characters
+            const cleaned = input.replace(/\D/g, '');
+            return cleaned ? parseInt(cleaned) : 0;
+        }
+
+        // Format input as user types
+        document.getElementById('amount')?.addEventListener('input', function(e) {
+            const value = parseAmount(e.target.value);
+            if (value > 0) {
+                e.target.value = formatCurrency(value);
+            }
+        });
+
+        async function createDeposit() {
+            const amountInput = document.getElementById('amount');
+            const amount = parseAmount(amountInput.value);
+
+            // Validate amount
+            if (amount < 10000) {
+                showError('Số tiền tối thiểu là 10,000 VNĐ');
+                return;
+            }
+            if (amount > 100000000) {
+                showError('Số tiền tối đa là 100,000,000 VNĐ');
+                return;
+            }
+
+            if (!accessToken) {
+                window.location.href = '/Account/Login?returnUrl=/Payment/Deposit';
+                return;
+            }
+
+            // Hide form, show loading
+            document.getElementById('depositForm').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('qrCodeSection').style.display = 'none';
+            hideMessages();
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/deposit/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ amount: amount })
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/Account/Login?returnUrl=/Payment/Deposit';
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    currentTransactionId = result.data.transactionId;
+                    
+                    // Save transaction details to localStorage to persist across page reloads
+                    const transactionData = {
+                        transactionId: currentTransactionId,
+                        qrCodeUrl: result.data.qrCodeUrl,
+                        accountNumber: result.data.accountNumber,
+                        accountName: result.data.accountName,
+                        amount: result.data.amount,
+                        qrContent: result.data.qrContent
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactionData));
+                    
+                    // Display QR code
+                    document.getElementById('qrCodeImage').src = result.data.qrCodeUrl;
+                    document.getElementById('accountNumber').textContent = result.data.accountNumber;
+                    document.getElementById('accountName').textContent = result.data.accountName;
+                    document.getElementById('depositAmount').textContent = formatCurrency(result.data.amount);
+                    document.getElementById('qrContent').textContent = result.data.qrContent;
+
+                    // Show QR section
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('qrCodeSection').style.display = 'block';
+                    document.getElementById('depositForm').style.display = 'none';
+
+                    // Start auto-checking status (background job sẽ tự động verify)
+                    startStatusCheck();
+                } else {
+                    showError(result.message || 'Có lỗi xảy ra khi tạo mã QR');
+                    document.getElementById('depositForm').style.display = 'block';
+                    document.getElementById('loadingState').style.display = 'none';
+                }
+            } catch (error) {
+                showError('Có lỗi xảy ra khi tạo mã QR. Vui lòng thử lại.');
+                document.getElementById('depositForm').style.display = 'block';
+                document.getElementById('loadingState').style.display = 'none';
+            }
+        }
+
+        function startStatusCheck() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+            // Check every 5 seconds for faster detection
+            statusCheckInterval = setInterval(checkDepositStatus, 5000);
+        }
+
+        function stopStatusCheck() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
+
+        async function checkDepositStatus() {
+            if (!currentTransactionId || !accessToken) return;
+
+            try {
+                const statusResponse = await fetch(`${apiBaseUrl}/deposit/check/${currentTransactionId}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (!statusResponse.ok) return;
+
+                const statusResult = await statusResponse.json();
+                if (!statusResult.success || !statusResult.data) return;
+
+                const currentStatus = statusResult.data.status;
+                updateTransactionStatus(currentStatus);
+                
+                if (currentStatus === 'COMPLETED') {
+                    stopStatusCheck();
+                    showTransactionSuccess();
+                    localStorage.removeItem(STORAGE_KEY);
+                } else if (currentStatus === 'FAILED') {
+                    stopStatusCheck();
+                    showError('Giao dịch đã thất bại hoặc bị hủy.');
+                }
+            } catch (error) {
+                // Silent error handling
+            }
+        }
+
+        function updateTransactionStatus(status) {
+            const statusElement = document.getElementById('transactionStatus');
+            let badgeClass = 'bg-warning';
+            let icon = 'fa-hourglass-half';
+            let text = 'Đang chờ thanh toán';
+
+            if (status === 'COMPLETED') {
+                badgeClass = 'bg-success';
+                icon = 'fa-check-circle';
+                text = 'Đã hoàn thành';
+            } else if (status === 'FAILED') {
+                badgeClass = 'bg-danger';
+                icon = 'fa-times-circle';
+                text = 'Thất bại';
+            } else if (status === 'PENDING') {
+                badgeClass = 'bg-warning';
+                icon = 'fa-hourglass-half';
+                text = 'Đang chờ thanh toán';
+            }
+
+            statusElement.innerHTML = `
+                <span class="badge ${badgeClass}">
+                    <i class="fas ${icon} me-1"></i>
+                    ${text}
+                </span>
+            `;
+        }
+        
+        function showTransactionSuccess() {
+            // Hide status card and action buttons
+            const statusCard = document.getElementById('statusCard');
+            const actionButtons = document.getElementById('actionButtons');
+            if (statusCard) statusCard.style.display = 'none';
+            if (actionButtons) actionButtons.style.display = 'none';
+            
+            // Show success section
+            const successSection = document.getElementById('successSection');
+            if (successSection) {
+                successSection.style.display = 'block';
+                // Scroll to success message
+                successSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Update status badge
+            updateTransactionStatus('COMPLETED');
+        }
+
+        function resetForm() {
+            currentTransactionId = null;
+            localStorage.removeItem(STORAGE_KEY); // Clear saved transaction ID
+            stopStatusCheck();
+            document.getElementById('depositForm').style.display = 'block';
+            document.getElementById('qrCodeSection').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('amount').value = '';
+            
+            // Hide success section and show status card/buttons again
+            const successSection = document.getElementById('successSection');
+            const statusCard = document.getElementById('statusCard');
+            const actionButtons = document.getElementById('actionButtons');
+            if (successSection) successSection.style.display = 'none';
+            if (statusCard) statusCard.style.display = 'block';
+            if (actionButtons) actionButtons.style.display = 'flex';
+            
+            hideMessages();
+        }
+        
+        async function checkAndRestoreTransaction(savedTransactionData) {
+            if (!currentTransactionId || !accessToken) {
+                localStorage.removeItem(STORAGE_KEY);
+                currentTransactionId = null;
+                return;
+            }
+            
+            try {
+                const statusResponse = await fetch(`${apiBaseUrl}/deposit/check/${currentTransactionId}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                if (!statusResponse.ok) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    currentTransactionId = null;
+                    return;
+                }
+
+                const statusResult = await statusResponse.json();
+                if (!statusResult.success || !statusResult.data) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    currentTransactionId = null;
+                    return;
+                }
+
+                const status = statusResult.data.status;
+                
+                if (status === 'PENDING' && savedTransactionData) {
+                    document.getElementById('qrCodeImage').src = savedTransactionData.qrCodeUrl;
+                    document.getElementById('accountNumber').textContent = savedTransactionData.accountNumber;
+                    document.getElementById('accountName').textContent = savedTransactionData.accountName;
+                    document.getElementById('depositAmount').textContent = formatCurrency(savedTransactionData.amount);
+                    document.getElementById('qrContent').textContent = savedTransactionData.qrContent;
+                    
+                    document.getElementById('depositForm').style.display = 'none';
+                    document.getElementById('qrCodeSection').style.display = 'block';
+                    document.getElementById('loadingState').style.display = 'none';
+                    
+                    updateTransactionStatus('PENDING');
+                    startStatusCheck();
+                } else {
+                    localStorage.removeItem(STORAGE_KEY);
+                    currentTransactionId = null;
+                    if (status === 'FAILED') {
+                        showError('Giao dịch đã thất bại hoặc bị hủy.');
+                    }
+                }
+            } catch (error) {
+                localStorage.removeItem(STORAGE_KEY);
+                currentTransactionId = null;
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            document.getElementById('successText').textContent = message;
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function copyAccountNumber() {
+            const accountNumber = document.getElementById('accountNumber').textContent;
+            navigator.clipboard.writeText(accountNumber).then(() => {
+                alert('Đã sao chép số tài khoản!');
+            });
+        }
+
+        function copyContent() {
+            const content = document.getElementById('qrContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Đã sao chép nội dung chuyển khoản!');
+            });
+        }
+
+        function downloadQR() {
+            const qrImage = document.getElementById('qrCodeImage');
+            const link = document.createElement('a');
+            link.href = qrImage.src;
+            link.download = `QR-${currentTransactionId || 'deposit'}.png`;
+            link.click();
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopStatusCheck();
+        });
+    </script>
+
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card {
+            border-radius: 15px;
+        }
+
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+        }
+
+        .btn-lg {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+
+        #qrCodeImage {
+            transition: transform 0.3s;
+        }
+
+        #qrCodeImage:hover {
+            transform: scale(1.05);
+        }
+
+        .input-group-lg .form-control {
+            font-size: 1.1rem;
+        }
+    </style>
+}
+

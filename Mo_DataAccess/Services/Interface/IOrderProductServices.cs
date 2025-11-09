@@ -10,5 +10,9 @@ public interface IOrderProductServices :IGenericRepository<OrderProduct>
 
     Task<PurchaseResponse> PurchaseProductAsync(long userId, PurchaseRequest request);
 
+    // Queue-based flow
+    Task<(bool Success, string Message, long OrderId, string IdempotencyKey)> PreparePurchaseAsync(long userId, PurchaseRequest request);
+    Task ProcessPurchaseJobAsync(long userId, long orderId, PurchaseRequest request, string idempotencyKey);
+
     Task<bool> ReleaseSellerPayoutAsync(long orderId);
 }

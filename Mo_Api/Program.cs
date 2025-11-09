@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.OpenApi.Models;
 using Mo_DataAccess.Services;
 using Mo_DataAccess.Services.Interface;
@@ -30,6 +32,22 @@ public class Program
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
         });
+        // Hangfire configuration using the same SQL Server connection
+        builder.Services.AddHangfire(config =>
+        {
+            config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                  .UseSimpleAssemblyNameTypeSerializer()
+                  .UseRecommendedSerializerSettings()
+                  .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+                  {
+                      CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                      SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                      QueuePollInterval = TimeSpan.FromSeconds(5),
+                      UseRecommendedIsolationLevel = true,
+                      DisableGlobalLocks = true
+                  });
+        });
+        builder.Services.AddHangfireServer();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(jwtOptions =>
             {
@@ -90,14 +108,23 @@ public class Program
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
         builder.Services.AddScoped<INotificationService, NotificationService>();
         builder.Services.AddHttpClient<VnpayTransactionServices>();
+        builder.Services.AddScoped<Mo_Api.Services.VietQrService>();
+        builder.Services.AddScoped<Mo_Api.Services.SePayService>();
+        builder.Services.AddSingleton<Mo_Api.Services.PendingTransactionCleanupService>();
+        builder.Services.AddHostedService<Mo_Api.Services.PendingTransactionBackgroundService>();
         builder.Services.AddAutoMapper(typeof(Program));
-        builder.Services.AddHostedService<SellerPayoutBackgroundService>();
+       // builder.Services.AddHostedService<SellerPayoutBackgroundService>();
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        // Hangfire dashboard (optional: protect with auth in production)
+        app.UseHangfireDashboard("/hangfire");
+
+        // Background service đã được đăng ký trong builder.Services.AddHostedService
+        // Chạy mỗi 15 giây để check và update (verify transaction từ 5 giây trở lên)
 
         app.UseHttpsRedirection();
         app.UseCors(options =>

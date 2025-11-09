@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mo_Api.Extensions;
+using Hangfire;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
@@ -13,17 +14,14 @@ namespace Mo_Api.ApiController
     public class OrderController : ControllerBase
     {
         private readonly IOrderProductServices _orderService;
+        private readonly IBackgroundJobClient _jobs;
 
-        public OrderController(IOrderProductServices orderService)
+        public OrderController(IOrderProductServices orderService, IBackgroundJobClient jobs)
         {
             _orderService = orderService;
+            _jobs = jobs;
         }
 
-        /// <summary>
-        /// Lấy danh sách đơn hàng của user đang đăng nhập
-        /// </summary>
-        /// <param name="status">Lọc theo trạng thái (PENDING, COMPLETED, CANCELLED, etc.)</param>
-        /// <returns>Danh sách đơn hàng với thông tin chi tiết</returns>
         [HttpGet("my-orders")]
         public async Task<ActionResult<OrderHistoryListResponse>> GetMyOrders(string? status = null)
         {
@@ -60,11 +58,7 @@ namespace Mo_Api.ApiController
             }
         }
 
-        /// <summary>
-        /// Lấy chi tiết một đơn hàng của user đang đăng nhập
-        /// </summary>
-        /// <param name="orderId">ID của đơn hàng</param>
-        /// <returns>Chi tiết đơn hàng</returns>
+   
         [HttpGet("{orderId}")]
         public async Task<ActionResult<OrderHistoryResponse>> GetOrderDetail(long orderId)
         {
@@ -92,10 +86,7 @@ namespace Mo_Api.ApiController
             }
         }
 
-        /// <summary>
-        /// Lấy thống kê đơn hàng của user đang đăng nhập
-        /// </summary>
-        /// <returns>Thống kê tổng hợp về đơn hàng</returns>
+      
         [HttpGet("stats")]
         public async Task<ActionResult<object>> GetMyOrderStats()
         {
@@ -125,7 +116,7 @@ namespace Mo_Api.ApiController
             }
         }
         [HttpPost("purchase")]
-        public async Task<ActionResult<PurchaseResponse>> Purchase([FromBody] PurchaseRequest request)
+        public async Task<ActionResult<object>> Purchase([FromBody] PurchaseRequest request)
         {
             try
             {
@@ -135,14 +126,13 @@ namespace Mo_Api.ApiController
                     return Unauthorized(new { message = "Không tìm thấy thông tin user" });
                 }
 
-                var result = await _orderService.PurchaseProductAsync(userId.Value, request);
-
-                if (!result.Success)
+                var prep = await _orderService.PreparePurchaseAsync(userId.Value, request);
+                if (!prep.Success)
                 {
-                    return BadRequest(new { message = result.Message });
+                    return BadRequest(new { message = prep.Message });
                 }
-
-                return Ok(result);
+                _jobs.Enqueue(() => _orderService.ProcessPurchaseJobAsync(userId.Value, prep.OrderId, request, prep.IdempotencyKey));
+                return Ok(new { success = true, message = prep.Message, orderId = prep.OrderId });
             }
             catch (Exception ex)
             {
