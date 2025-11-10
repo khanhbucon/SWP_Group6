@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.ModelResponse;
 using Mo_Entities.Models;
@@ -16,69 +17,116 @@ namespace Mo_Api.ApiController
             _subCategoryServices = subCategoryServices;
         }
 
-        [HttpGet]
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-            var list = _subCategoryServices.GetAll()
-                          .OrderBy(x => x.Id) // sắp xếp theo Id tăng dần
-                          .ToList();
-
-            var result = list.Select(x => new SubCategoryResponse
-            {
-                Id = x.Id,
-                Name = x.Name,
-                CategoryId = x.CategoryId,
-                IsActive = x.IsActive,
-                CategoryName = x.Category?.Name
-            }).ToList();
-
-            return Ok(result);
-        }
-
-
-        [HttpGet("{id}")]
-        public IActionResult GetById(long id)
-        {
-            var sub = _subCategoryServices.GetById(id);
-            if (sub == null) return NotFound();
-
-            return Ok(new SubCategoryResponse
-            {
-                Id = sub.Id,
-                Name = sub.Name,
-                CategoryId = sub.CategoryId,
-                IsActive = sub.IsActive,
-                CategoryName = sub.Category?.Name
-            });
-        }
-
+        /// <summary>
+        /// Tạo danh mục con mới
+        /// </summary>
         [HttpPost]
-        public IActionResult Create([FromBody] SubCategory sub)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateSubCategory([FromBody] CreateSubCategoryRequest request)
         {
-            _subCategoryServices.Add(sub);
-            return Ok(sub);
+            try
+            {
+                if (string.IsNullOrEmpty(request.Name))
+                {
+                    return BadRequest(new { Success = false, Message = "Tên danh mục con không được để trống" });
+                }
+
+                if (request.CategoryId <= 0)
+                {
+                    return BadRequest(new { Success = false, Message = "Danh mục cha không hợp lệ" });
+                }
+
+                // Kiểm tra trùng tên trong cùng category
+                var nameExists = await _subCategoryServices.SubCategoryNameExistsAsync(request.Name, request.CategoryId);
+                if (nameExists)
+                {
+                    return BadRequest(new { Success = false, Message = "Tên danh mục con đã tồn tại trong danh mục này" });
+                }
+
+                var subCategory = new SubCategory
+                {
+                    CategoryId = request.CategoryId,
+                    Name = request.Name,
+                    IsActive = true
+                };
+
+                var result = await _subCategoryServices.AddAsync(subCategory);
+
+                return Ok(new { 
+                    Success = true, 
+                    Message = "Tạo danh mục con thành công",
+                    Data = new {
+                        Id = result.Id,
+                        CategoryId = result.CategoryId,
+                        Name = result.Name,
+                        IsActive = result.IsActive
+                    }
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi tạo danh mục con" });
+            }
         }
 
+        /// <summary>
+        /// Cập nhật danh mục con
+        /// </summary>
         [HttpPut("{id}")]
-        public IActionResult Update(long id, [FromBody] SubCategory sub)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateSubCategory(long id, [FromBody] UpdateSubCategoryRequest request)
         {
-            var existing = _subCategoryServices.GetById(id);
-            if (existing == null) return NotFound();
+            try
+            {
+                if (string.IsNullOrEmpty(request.Name))
+                {
+                    return BadRequest(new { Success = false, Message = "Tên danh mục con không được để trống" });
+                }
 
-            existing.Name = sub.Name;
-            existing.CategoryId = sub.CategoryId;
-            existing.IsActive = sub.IsActive;
-            _subCategoryServices.Update(existing);
+                var subCategory = await _subCategoryServices.GetByIdAsync(id);
+                if (subCategory == null)
+                {
+                    return NotFound(new { Success = false, Message = "Không tìm thấy danh mục con" });
+                }
 
-            return Ok(existing);
+                // Kiểm tra trùng tên trong cùng category (loại trừ chính nó)
+                var nameExists = await _subCategoryServices.SubCategoryNameExistsAsync(request.Name, subCategory.CategoryId, id);
+                if (nameExists)
+                {
+                    return BadRequest(new { Success = false, Message = "Tên danh mục con đã tồn tại trong danh mục này" });
+                }
+
+                subCategory.Name = request.Name;
+                subCategory.IsActive = request.IsActive;
+                var result = await _subCategoryServices.UpdateAsync(subCategory);
+
+                return Ok(new { 
+                    Success = true, 
+                    Message = "Cập nhật danh mục con thành công",
+                    Data = new {
+                        Id = result.Id,
+                        CategoryId = result.CategoryId,
+                        Name = result.Name,
+                        IsActive = result.IsActive
+                    }
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra khi cập nhật danh mục con" });
+            }
         }
+    }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(long id)
-        {
-            _subCategoryServices.Delete(id);
-            return NoContent();
-        }
+    public class CreateSubCategoryRequest
+    {
+        public long CategoryId { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateSubCategoryRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
 }

@@ -1,0 +1,247 @@
+@model Mo_Client.Models.Admin.DashboardVm
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng người dùng</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalUsers</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tổng cửa hàng</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalShops</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-store fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tổng sản phẩm</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalProducts</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Người dùng bị ban</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.BannedUsers</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-slash fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thống kê chờ duyệt -->
+<div class="row mb-4">
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cửa hàng chờ duyệt</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingShops</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-store fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Sản phẩm chờ duyệt</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingProducts</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("ManagerUser", "Admin")" class="btn btn-success btn-block">
+                                <i class="fas fa-users"></i> Quản lý người dùng
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Shops", "Admin")" class="btn btn-success btn-block">
+                                <i class="fas fa-store"></i> Quản lý cửa hàng
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Products", "Admin")" class="btn btn-success btn-block">
+                                <i class="fas fa-box"></i> Quản lý sản phẩm
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Categories", "Category")" class="btn btn-success btn-block">
+                                <i class="fas fa-tags"></i> Quản lý danh mục
+                            </a>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Người dùng mới đăng ký -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Người dùng mới đăng ký</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentUsers != null && Model.RecentUsers.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Tên đăng nhập</th>
+                                    <th>Email</th>
+                                    <th>Ngày đăng ký</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model.RecentUsers)
+                                {
+                                    <tr>
+                                        <td>@user.Username</td>
+                                        <td>@user.Email</td>
+                                        <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (user.IsActive)
+                                            {
+                                                <span class="badge badge-success">Hoạt động</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-danger">Bị khóa</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Không có người dùng mới</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto refresh dashboard every 30 seconds
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+
+        // Add loading animation
+        $(document).ready(function() {
+            // Animate numbers
+            $('.h5').each(function() {
+                var $this = $(this);
+                var countTo = parseInt($this.text());
+                
+                $({ countNum: 0 }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 2000,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
+            });
+
+            // Add hover effects to cards
+            $('.card').hover(
+                function() {
+                    $(this).addClass('shadow-lg').removeClass('shadow');
+                },
+                function() {
+                    $(this).addClass('shadow').removeClass('shadow-lg');
+                }
+            );
+        });
+    </script>
+}

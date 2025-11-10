@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Mo_Client.Models
 {
-    public class ListAccountResponse
+    public class ListAccountVm
+
     {
         public long UserId { get; set; }
         public string? Username { get; set; }

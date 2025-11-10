@@ -1,61 +1,71 @@
-﻿using Mo_DataAccess.Services.Interface;
+
+using Mo_DataAccess.Repo;
+using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Mo_DataAccess.Services
 {
-    public class SubCategoryServices : ISubCategoryServices
+    public class SubCategoryServices : GenericRepository<SubCategory>, ISubCategoryServices
     {
-        private readonly SwpGroup6Context _context;
-
-        public SubCategoryServices(SwpGroup6Context context)
+        public SubCategoryServices(SwpGroup6Context context) : base(context)
         {
-            _context = context;
         }
 
-        public List<SubCategory> GetAll()
+        public async Task<SubCategory> AddAsync(SubCategory subCategory)
         {
-            return _context.SubCategories
-                           .Include(x => x.Category)
-                           .OrderBy(x => x.Id)
-                           .ToList();
+            return await CreateAsync(subCategory);
         }
 
-        public SubCategory? GetById(long id)
+        public async Task<SubCategory> UpdateAsync(SubCategory subCategory)
         {
-            return _context.SubCategories
-                           .Include(x => x.Category)
-                           .FirstOrDefault(x => x.Id == id);
+            return await base.UpdateAsync(subCategory);
         }
 
-        public void Add(SubCategory subCategory)
+        public async Task DeleteAsync(SubCategory subCategory)
         {
-            _context.SubCategories.Add(subCategory);
-            _context.SaveChanges();
+            _dbSet.Remove(subCategory);
+            await _context.SaveChangesAsync();
         }
 
-        public void Update(SubCategory subCategory)
+        public async Task<IEnumerable<SubCategory>> GetSubCategoriesByCategoryIdAsync(long categoryId)
         {
-            var existing = _context.SubCategories.FirstOrDefault(x => x.Id == subCategory.Id);
-            if (existing != null)
+            return await _dbSet
+                .Where(sc => sc.CategoryId == categoryId)
+                .OrderBy(sc => sc.Name)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SubCategory>> SearchSubCategoriesAsync(string? searchTerm)
+        {
+            if (string.IsNullOrEmpty(searchTerm))
             {
-                existing.Name = subCategory.Name;
-                existing.CategoryId = subCategory.CategoryId;
-                existing.IsActive = subCategory.IsActive;
-                _context.SaveChanges();
+                return await GetAllAsync();
             }
+
+            // Lấy tất cả subcategories và filter trong memory để tránh lỗi SQL
+            var allSubCategories = await _dbSet
+                .Include(sc => sc.Category)
+                .ToListAsync();
+            
+            return allSubCategories
+                .Where(sc => sc.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                          sc.Id.ToString().Contains(searchTerm) ||
+                          sc.Category.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
-        public void Delete(long id)
+        public async Task<bool> SubCategoryNameExistsAsync(string name, long categoryId, long? excludeId = null)
         {
-            var sub = _context.SubCategories.FirstOrDefault(x => x.Id == id);
-            if (sub != null)
+            var query = _dbSet.Where(sc => sc.Name.ToLower() == name.ToLower() && sc.CategoryId == categoryId);
+            
+            if (excludeId.HasValue)
             {
-                _context.SubCategories.Remove(sub);
-                _context.SaveChanges();
+                query = query.Where(sc => sc.Id != excludeId.Value);
             }
+            
+            return await query.AnyAsync();
+
         }
     }
 }

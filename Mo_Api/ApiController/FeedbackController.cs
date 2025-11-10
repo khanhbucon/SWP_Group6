@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Mo_DataAccess.Services.Interface;
 using Mo_Entities.Models;
 using Mo_Entities.ModelRequest;
@@ -16,13 +17,14 @@ namespace Mo_Api.ApiController
             _feedbackServices = feedbackServices;
         }
 
+        // ✅ [POST] - Thêm feedback mới
         [HttpPost]
         public async Task<IActionResult> AddFeedback([FromBody] FeedbackRequest feedbackReq)
         {
             if (feedbackReq == null)
-                return BadRequest("Invalid feedback data.");
+                return BadRequest(new { message = "Dữ liệu feedback không hợp lệ." });
 
-            // ✅ Map từ DTO sang Entity
+            // Map từ DTO sang Entity
             var feedback = new Feedback
             {
                 AccountId = feedbackReq.AccountId,
@@ -32,6 +34,7 @@ namespace Mo_Api.ApiController
                 CreatedAt = DateTime.Now
             };
 
+            // Gọi service thêm feedback
             var created = await _feedbackServices.AddFeedbackAsync(feedback);
 
             return Ok(new
@@ -40,14 +43,21 @@ namespace Mo_Api.ApiController
                 data = created
             });
         }
-        // ✅ [GET] - lấy danh sách feedback theo productId
+
+        // ✅ [GET] - Lấy danh sách feedback theo ProductId
         [HttpGet("{productId}")]
+        [AllowAnonymous] // Cho phép public (không cần token)
         public async Task<IActionResult> GetFeedbacksByProductId(long productId)
         {
             var feedbacks = await _feedbackServices.GetFeedbacksByProductIdAsync(productId);
 
             if (feedbacks == null || !feedbacks.Any())
-                return NotFound("Không có feedback nào cho sản phẩm này.");
+                return Ok(new
+                {
+                    message = "Không có feedback nào cho sản phẩm này.",
+                    count = 0,
+                    data = new List<object>()
+                });
 
             return Ok(new
             {

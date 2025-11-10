@@ -1,4 +1,5 @@
-using System.Text;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,10 @@ public class Program
         {
             options.Select().Filter().OrderBy().Expand().Count().SetMaxTop(100);
         });
+        // Enable HttpClient factory for services that need HttpClient (e.g., VnpayTransactionServices)
+        builder.Services.AddHttpClient();
+        // Register CORS services
+        builder.Services.AddCors();
         builder.Services.AddDbContext<SwpGroup6Context>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -65,6 +70,7 @@ public class Program
         });
         builder.Services.AddScoped<IAccountServices, AccountServices>();
         builder.Services.AddScoped<ICategoryServices, CategoryServices>();
+        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<IFeedbackServices, FeedbackServices>();
         builder.Services.AddScoped<IImageMessageServices, ImageMessageServices>();
         builder.Services.AddScoped<IMessageServices, MessageServices>();
@@ -77,12 +83,12 @@ public class Program
         builder.Services.AddScoped<IReplyServices, ReplyServices>();
         builder.Services.AddScoped<IRoleServices, RoleServices>();
         builder.Services.AddScoped<IShopServices, ShopServices>();
-        builder.Services.AddScoped<ISubCategoryServices, SubCategoryServices>();
         builder.Services.AddScoped<ISupportTicketServices, SupportTicketServices>();
         builder.Services.AddScoped<ISystemsConfigServices, SystemsConfigServices>();
         builder.Services.AddScoped<ITextMessageServices, TextMessageServices>();
         builder.Services.AddScoped<ITokenServices, TokenServices>();
         builder.Services.AddScoped<IVnpayTransactionServices, VnpayTransactionServices>();
+        builder.Services.AddHttpClient<VnpayTransactionServices>();
         builder.Services.AddAutoMapper(typeof(Program));
         // ✅ Cho phép Client 7164 gọi API 7234
         builder.Services.AddCors(options =>
@@ -109,8 +115,6 @@ public class Program
         app.UseAuthorization();
         // ✅ Chính sách riêng cho bạn
         app.UseCors("AllowClient7164");
-
-       
 
         app.MapControllers();
 

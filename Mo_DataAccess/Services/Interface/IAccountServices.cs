@@ -1,4 +1,3 @@
-using Microsoft.Identity.Client;
 using Mo_DataAccess.Repo;
 using Mo_Entities.ModelRequest;
 using Mo_Entities.ModelResponse;
@@ -30,4 +29,5 @@ namespace Mo_DataAccess.Services.Interface;
     Task<Account> UpdateProfileAsync(long userId, UpdateProfileRequest request);
 
     Task<Account> UpdateKYCAsync(long userId, string identificationF, string identificationB);
+    Task<bool> ChangePasswordAsync(long userId, string currentPassword, string newPassword);
 }

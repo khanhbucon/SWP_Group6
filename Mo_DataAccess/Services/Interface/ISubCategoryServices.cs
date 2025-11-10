@@ -1,14 +1,17 @@
-﻿using Mo_Entities.Models;
-using System.Collections.Generic;
+
+using Mo_DataAccess.Repo;
+using Mo_Entities.Models;
 
 namespace Mo_DataAccess.Services.Interface
 {
-    public interface ISubCategoryServices
+    public interface ISubCategoryServices : IGenericRepository<SubCategory>
     {
-        List<SubCategory> GetAll();
-        SubCategory? GetById(long id);
-        void Add(SubCategory subCategory);
-        void Update(SubCategory subCategory);
-        void Delete(long id);
+        Task<SubCategory> AddAsync(SubCategory subCategory);
+        Task<SubCategory> UpdateAsync(SubCategory subCategory);
+        Task DeleteAsync(SubCategory subCategory);
+        Task<IEnumerable<SubCategory>> GetSubCategoriesByCategoryIdAsync(long categoryId);
+        Task<IEnumerable<SubCategory>> SearchSubCategoriesAsync(string? searchTerm);
+        Task<bool> SubCategoryNameExistsAsync(string name, long categoryId, long? excludeId = null);
+
     }
 }

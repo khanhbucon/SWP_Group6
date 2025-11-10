@@ -1,0 +1,79 @@
+﻿@{
+    ViewData["Title"] = "Gửi feedback của bạn";
+    var productId = ViewData["ProductId"] ?? 0;
+    var profileAccountName = (string?)(ViewData["ProfileAccountName"] ?? "Bạn");
+    var profileAccountId = (long?)(ViewData["ProfileAccountId"] ?? 0L);
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<style>
+    .feedback-card { border-radius: 12px; background: #fff; padding: 24px; box-shadow: 0 6px 18px rgba(20,40,60,0.06); margin-bottom: 20px; }
+    .feedback-avatar { width:60px;height:60px;border-radius:50%;object-fit:cover;margin-right:16px; }
+    .rating-input .fa-star { cursor:pointer; color:#e4e5e9; font-size:28px; margin-right:6px; }
+    .rating-input .fa-star.active { color:#ffc107; }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card feedback-card">
+                <h3 class="mb-4">Gửi feedback của bạn</h3>
+
+                <div class="d-flex align-items-center mb-3">
+                    <img src="~/images/avatar-default.png" class="feedback-avatar" alt="avatar" />
+                    <div>
+                        <strong>@profileAccountName</strong>
+                        <div class="text-muted">Bạn có thể để trống tên nếu muốn.</div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(TempData["FeedbackError"] as string))
+                {
+                    <div class="alert alert-danger">@TempData["FeedbackError"]</div>
+                }
+                @if (!string.IsNullOrEmpty(TempData["FeedbackSuccess"] as string))
+                {
+                    <div class="alert alert-success">@TempData["FeedbackSuccess"]</div>
+                }
+
+                <form asp-action="Submit" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@productId" />
+                    <input type="hidden" id="rating" name="rating" value="5" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Đánh giá của bạn</label>
+                        <div class="rating-input" id="ratingInput" aria-label="Rating">
+                            <i class="fa fa-star" data-value="1" role="button" aria-hidden="true"></i>
+                            <i class="fa fa-star" data-value="2" role="button" aria-hidden="true"></i>
+                            <i class="fa fa-star" data-value="3" role="button" aria-hidden="true"></i>
+                            <i class="fa fa-star" data-value="4" role="button" aria-hidden="true"></i>
+                            <i class="fa fa-star" data-value="5" role="button" aria-hidden="true"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Bình luận</label>
+                        <textarea name="comment" class="form-control" rows="5" placeholder="Viết nhận xét của bạn..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Thêm hình ảnh (nếu có)</label>
+                        <input type="file" class="form-control" disabled />
+                        <small class="text-muted">Upload ảnh chưa được hỗ trợ trên API; nếu muốn, tôi có thể thêm.</small>
+                    </div>
+
+                    <div class="text-end">
+                        <a class="btn btn-secondary me-2" asp-action="Index" asp-route-productId="@productId">Hủy</a>
+                        <button type="submit" class="btn btn-primary">Gửi feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script src="~/js/feedback.js"></script>
+}

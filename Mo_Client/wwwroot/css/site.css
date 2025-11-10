@@ -8,6 +8,489 @@ html {
   }
 }
 
+/* Fixed Header and Footer Styles */
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.fixed-header .navbar {
+  padding: 0.5rem 0;
+}
+
+.fixed-header .container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+}
+
+.fixed-header .navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #007bff !important;
+  margin-right: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.fixed-header .navbar-toggler {
+  margin-left: auto !important;
+}
+
+.fixed-header .navbar-brand i {
+  font-size: 1.8rem;
+}
+
+/* Main Navigation - Left Side */
+.fixed-header .main-nav {
+  margin-left: 2rem;
+}
+
+.fixed-header .main-nav .nav-link {
+  color: #495057 !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+/* User Navigation - Right Side */
+.fixed-header .user-nav {
+  margin-left: auto;
+}
+
+.fixed-header .user-nav .nav-link {
+  color: #495057 !important;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem !important;
+  transition: all 0.3s ease;
+}
+
+.fixed-header .nav-link {
+  color: #495057 !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.3s ease;
+}
+
+.fixed-header .nav-link:hover {
+  color: #007bff !important;
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 6px;
+}
+
+.fixed-header .nav-link i {
+  margin-right: 0.5rem;
+}
+
+/* Force navbar layout with flexbox */
+.fixed-header .navbar-collapse {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  flex-grow: 1 !important;
+  margin-left: 0 !important;
+}
+
+/* Override Bootstrap navbar-nav */
+.fixed-header .navbar-nav {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+/* Main Navigation - Force left positioning */
+.fixed-header .main-nav {
+  margin-left: 2rem !important;
+  margin-right: 0 !important;
+  order: 1 !important;
+  justify-content: flex-start !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+}
+
+.fixed-header .main-nav .nav-item {
+  margin-right: 0.5rem !important;
+}
+
+.fixed-header .main-nav .nav-link {
+  white-space: nowrap !important;
+}
+
+/* User Navigation - Force right positioning */
+.fixed-header .user-nav {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  order: 2 !important;
+  justify-content: flex-end !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+}
+
+.fixed-header .user-nav .nav-item {
+  margin-left: 0.25rem !important;
+}
+
+.fixed-header .user-nav .nav-link {
+  white-space: nowrap !important;
+}
+
+/* Additional strong overrides for Bootstrap centering */
+.fixed-header .navbar {
+  justify-content: flex-start !important;
+  align-items: center !important;
+}
+
+.fixed-header .navbar .container-fluid,
+.fixed-header .navbar .container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+/* Force brand to stay left */
+.fixed-header .navbar-brand {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  flex-shrink: 0 !important;
+  order: 0 !important;
+}
+
+/* Force main nav to stay left with no auto margins */
+.fixed-header .main-nav {
+  margin-left: 2rem !important;
+  margin-right: 0 !important;
+  order: 1 !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  justify-content: flex-start !important;
+}
+
+/* Force user nav to stay right */
+.fixed-header .user-nav {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  order: 2 !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  justify-content: flex-end !important;
+}
+
+/* Override any Bootstrap centering classes */
+.fixed-header .justify-content-center {
+  justify-content: flex-start !important;
+}
+
+.fixed-header .text-center {
+  text-align: left !important;
+}
+
+.fixed-header .mx-auto {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Ultra-strong overrides for Bootstrap navbar centering */
+.fixed-header .navbar-collapse.collapse.show,
+.fixed-header .navbar-collapse.collapsing {
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  width: 100% !important;
+  flex-grow: 1 !important;
+  margin-left: 0 !important;
+}
+
+/* Force all navbar elements to align properly */
+.fixed-header .navbar-nav:not(.main-nav):not(.user-nav) {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Ensure no centering happens */
+.fixed-header * {
+  text-align: left !important;
+}
+
+.fixed-header .main-nav * {
+  text-align: left !important;
+}
+
+.fixed-header .user-nav * {
+  text-align: right !important;
+}
+
+/* Override Bootstrap's default navbar behavior */
+.fixed-header .navbar-expand-lg .navbar-nav {
+  flex-direction: row !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Force container to not center content */
+.fixed-header .container {
+  max-width: 100% !important;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+/* Final override - Force everything to align left */
+.fixed-header {
+  text-align: left !important;
+}
+
+.fixed-header .navbar {
+  text-align: left !important;
+}
+
+.fixed-header .navbar-collapse {
+  text-align: left !important;
+}
+
+/* Specific targeting for main navigation */
+.fixed-header .main-nav {
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+/* Specific targeting for user navigation */
+.fixed-header .user-nav {
+  text-align: right !important;
+  align-self: flex-end !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+  min-width: fit-content !important;
+}
+
+/* Ultra-strong override for user navigation positioning */
+.fixed-header .navbar-collapse .user-nav {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  order: 999 !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+  min-width: fit-content !important;
+  justify-content: flex-end !important;
+  align-self: flex-end !important;
+}
+
+.main-content {
+  margin-top: 80px;
+  /* Adjust based on header height */
+  flex: 1;
+  padding-bottom: 2rem;
+}
+
+.fixed-footer {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  padding: 3rem 0 1rem;
+  margin-top: auto;
+}
+
+.footer-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.footer-title i {
+  color: #007bff;
+  margin-right: 0.5rem;
+}
+
+.footer-subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #ecf0f1;
+}
+
+.footer-text {
+  color: #bdc3c7;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  color: #bdc3c7;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover {
+  background: #007bff;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.footer-divider {
+  border-color: rgba(255, 255, 255, 0.2);
+  margin: 2rem 0 1rem;
+}
+
+.footer-copyright {
+  color: #95a5a6;
+  font-size: 0.9rem;
+}
+
+.footer-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.footer-badges .badge {
+  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fixed-header .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .fixed-header .navbar-collapse {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .fixed-header .main-nav {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    order: 1 !important;
+    justify-content: center !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .fixed-header .main-nav .nav-item {
+    margin-right: 0.25rem !important;
+  }
+
+  .fixed-header .main-nav .nav-link {
+    padding: 0.5rem !important;
+    font-size: 0.9rem;
+  }
+
+  .fixed-header .user-nav {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    order: 2 !important;
+    justify-content: center !important;
+  }
+
+  .fixed-header .user-nav .nav-item {
+    margin-left: 0.25rem !important;
+  }
+
+  .fixed-header .user-nav .nav-link {
+    padding: 0.5rem !important;
+    font-size: 0.9rem;
+  }
+
+  .main-content {
+    margin-top: 70px;
+  }
+
+  .fixed-footer {
+    padding: 2rem 0 1rem;
+  }
+
+  .footer-title {
+    font-size: 1.3rem;
+  }
+
+  .social-links {
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .footer-badges {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .fixed-header .navbar-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .fixed-header .navbar-collapse {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 0.5rem;
+    padding: 1rem;
+  }
+
+  .main-content {
+    margin-top: 60px;
+  }
+
+  .fixed-footer {
+    padding: 1.5rem 0 1rem;
+  }
+
+  .footer-badges .badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
 .btn:focus,
 .btn:active:focus,
 .btn-link.nav-link:focus,
@@ -23,6 +506,7 @@ html {
 
 body {
   margin-bottom: 60px;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
 }
 
 /* Auth Styles */

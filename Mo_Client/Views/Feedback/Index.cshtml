@@ -1,0 +1,85 @@
+﻿@model List<Mo_Client.Models.FeedbackVm>
+
+@* small local styles to tighten spacing (optional) *@
+<style>
+    .feedback-header { margin: 1.5rem 0; }
+    .feedback-card { border-radius: .5rem; }
+    .feedback-comment { white-space: pre-wrap; } /* preserve line breaks */
+</style>
+
+<div class="feedback-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4>Feedback</h4>
+        <p class="mb-1"><strong>ProductId:</strong> @ViewData["ProductId"]</p>
+        <p class="mb-0"><strong>Profile:</strong> @(ViewData["ProfileAccountName"] ?? "Bạn")</p>
+    </div>
+
+    @* link to dedicated Create page (separated UI) *@
+    <div>
+        <a class="btn btn-primary"
+           asp-controller="Feedback"
+           asp-action="Create"
+           asp-route-productId="@(ViewData["ProductId"] ?? 0)">
+            Viết feedback
+        </a>
+    </div>
+</div>
+
+@if (TempData["FeedbackSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["FeedbackSuccess"]</div>
+}
+
+@if (TempData["FeedbackError"] != null)
+{
+    <div class="alert alert-warning">@TempData["FeedbackError"]</div>
+}
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="alert alert-info">Không có feedback để hiển thị.</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-12 col-md-8">
+            @foreach (var f in Model)
+            {
+                <div class="card feedback-card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">@(!string.IsNullOrEmpty(f.AccountName) ? f.AccountName : "Bạn")</h6>
+                                <div class="text-muted small">Product: @f.ProductId</div>
+                            </div>
+                            <div class="text-end">
+                                @* render rating as stars *@
+                                <div aria-label="Rating: @f.Rating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= f.Rating)
+                                        {
+                                            <span class="text-warning" style="font-size:1.0rem;">&#9733;</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted" style="font-size:1.0rem;">&#9734;</span>
+                                        }
+                                    }
+                                </div>
+                                <div class="small text-muted">Rating: @f.Rating</div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(f.Comment))
+                        {
+                            <p class="card-text mt-2 feedback-comment">
+                                @Html.Raw(System.Net.WebUtility.HtmlEncode(f.Comment).Replace("\n", "<br/>"))
+                            </p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

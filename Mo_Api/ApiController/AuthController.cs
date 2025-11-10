@@ -43,6 +43,9 @@ public class AuthController : ControllerBase
             return Unauthorized("Tài khoản không tồn tại, bị khoá hoặc mật khẩu không đúng.");
         }
 
+        // Debug logging
+        Console.WriteLine($"API Login - Identifier: {request.Identifier}, RememberMe: {request.RememberMe}");
+
         var (accessToken, expires, refreshToken) = await _accountServices.IssueTokensAsync(account, request.RememberMe);
 
         return Ok(new LoginResponse
