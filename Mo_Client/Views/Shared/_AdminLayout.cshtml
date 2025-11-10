@@ -59,6 +59,13 @@
                     </a>
                 </li>
                 
+                <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Transactions" ? "active" : "")">
+                    <a href="@Url.Action("Transactions", "Admin")">
+                        <i class="fas fa-history"></i>
+                        Lịch sử giao dịch
+                    </a>
+                </li>
+                
                 <li>
                     <a href="#pageSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <i class="fas fa-chart-bar"></i>

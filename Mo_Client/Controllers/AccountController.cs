@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Mo_Client.Models;
 using Mo_Client.Services;
 
@@ -263,11 +264,7 @@ public class AccountController : Controller
                 vm.IdentificationB
             );
 
-            Console.WriteLine($"Update Request: Username={vm.Username}, Email={vm.Email}, Phone={vm.Phone}");
-            
             var success = await _userService.UpdateProfileAsync(updateRequest);
-            
-            Console.WriteLine($"Update Result: {success}");
             
             if (success)
             {
@@ -418,6 +415,55 @@ public class AccountController : Controller
         {
             return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
         }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request)
+    {
+        try
+        {
+            var token = Request.Cookies["accessToken"];
+            var roles = Request.Cookies["roles"];
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện thao tác này" });
+            }
+
+            // Check if user is Seller
+            if (string.IsNullOrEmpty(roles) || !roles.Contains("Seller"))
+            {
+                return Json(new { success = false, message = "Chỉ Seller mới được phép rút tiền" });
+            }
+
+            if (request.Amount <= 0)
+            {
+                return Json(new { success = false, message = "Số tiền rút phải lớn hơn 0" });
+            }
+
+            // Call TransactionService
+            var transactionService = HttpContext.RequestServices.GetRequiredService<TransactionService>();
+            var (success, message, data) = await transactionService.CreateWithdrawAsync(request.Amount, request.Description);
+
+            if (success)
+            {
+                return Json(new { success = true, message = message });
+            }
+            else
+            {
+                return Json(new { success = false, message = message });
+            }
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+        }
+    }
+
+    public class WithdrawRequest
+    {
+        public decimal Amount { get; set; }
+        public string? Description { get; set; }
     }
 }
 

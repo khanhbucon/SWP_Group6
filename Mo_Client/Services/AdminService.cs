@@ -115,6 +115,56 @@ namespace Mo_Client.Services
             return resp.IsSuccessStatusCode;
         }
 
+        // Admin Transaction Management
+        public async Task<TransactionHistoryListResponse?> GetAllTransactionsAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                var resp = await _httpClient.GetAsync("/api/transaction/admin/all", ct);
+                if (!resp.IsSuccessStatusCode) return null;
+                
+                var result = await resp.Content.ReadFromJsonAsync<ApiResponse<TransactionHistoryListResponse>>(cancellationToken: ct);
+                return result?.Data;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<(bool Success, string Message)> UpdateTransactionStatusAsync(long transactionId, string status, CancellationToken ct = default)
+        {
+            try
+            {
+                var request = new { Status = status };
+                var resp = await _httpClient.PostAsJsonAsync($"/api/transaction/admin/{transactionId}/update-status", request, ct);
+                
+                var responseContent = await resp.Content.ReadAsStringAsync(ct);
+                
+                if (resp.IsSuccessStatusCode)
+                {
+                    var result = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<object>>(
+                        responseContent, 
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    return (true, result?.Message ?? "Cập nhật trạng thái giao dịch thành công");
+                }
+                else
+                {
+                    var errorResult = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<object>>(
+                        responseContent,
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    
+                    return (false, errorResult?.Message ?? $"Không thể cập nhật trạng thái giao dịch. Status: {resp.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Có lỗi xảy ra: {ex.Message}");
+            }
+        }
+
         private record ApiEnvelope<T>(bool Success, T? Data, string? Message);
         public record ApiResponse<T>(bool Success, T? Data, string? Message);
     }

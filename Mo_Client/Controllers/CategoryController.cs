@@ -48,6 +48,12 @@ namespace Mo_Client.Controllers
             try
             {
                 var categories = await _categoryService.GetAllCategoriesAsync(search);
+                
+                if (categories == null)
+                {
+                    categories = new List<CategoryVm>();
+                }
+
                 var categoriesVm = new CategoryManagementVm
                 {
                     TotalCount = categories.Count,
@@ -56,7 +62,8 @@ namespace Mo_Client.Controllers
                     {
                         Id = c.Id,
                         Name = c.Name,
-                        CreatedAt = DateTime.UtcNow, // Sử dụng thời gian hiện tại
+                        CreatedAt = c.CreatedAt,
+                        UpdatedAt = c.UpdatedAt,
                         SubCategories = c.SubCategories?.Select(sc => new SubCategoryVm
                         {
                             Id = sc.Id,
@@ -72,14 +79,13 @@ namespace Mo_Client.Controllers
             catch (Exception ex)
             {
                 ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
-                System.Diagnostics.Debug.WriteLine($"Category Error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Category StackTrace: {ex.StackTrace}");
 
                 var emptyVm = new CategoryManagementVm
                 {
                     SearchTerm = search,
                     TotalCount = 0,
-                    Categories = new List<CategoryVm>()
+                    Categories = new List<CategoryVm>(),
+                    Error = ex.Message
                 };
                 return View(emptyVm);
             }
