@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Mo_Client.Models;
 using Mo_Client.Models.Admin;
 using Mo_Client.Services;
+using Mo_Entities.ModelResponse;
 using System.Linq;
 using System;
 
@@ -395,6 +396,18 @@ namespace Mo_Client.Controllers
             return users.Skip(skip).Take(pageSize).ToList();
         }
 
+        /// <summary>
+        /// Paginate transactions based on page number and page size
+        /// </summary>
+        private List<TransactionHistoryResponse> PaginateTransactions(List<TransactionHistoryResponse> transactions, int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var skip = (pageNumber - 1) * pageSize;
+            return transactions.Skip(skip).Take(pageSize).ToList();
+        }
+
         [HttpPost]
         public async Task<IActionResult> BanUser(long userId)
         {
@@ -463,6 +476,164 @@ namespace Mo_Client.Controllers
             return RedirectToAction("ManagerUser");
         }
 
-        // TODO: Thêm các action khác khi có API
+        [HttpGet]
+        public async Task<IActionResult> Transactions(string? search = null, long? userId = null, string? type = null, 
+            string? status = null, string? dateFrom = null, string? dateTo = null, int page = 1, int pageSize = 10)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"]);
+                var allTransactions = await _adminService.GetAllTransactionsAsync();
+                
+                if (allTransactions == null)
+                {
+                    ViewBag.Error = "Không thể tải danh sách giao dịch";
+                    return View(new TransactionHistoryListResponse());
+                }
+
+                // Set ViewBag for form values
+                ViewBag.Search = search;
+                ViewBag.UserId = userId;
+                ViewBag.Type = type;
+                ViewBag.Status = status;
+                ViewBag.DateFrom = dateFrom;
+                ViewBag.DateTo = dateTo;
+                ViewBag.PageNumber = page;
+                ViewBag.PageSize = pageSize;
+
+                // Filter transactions
+                var filteredTransactions = FilterTransactions(allTransactions.Transactions, search, userId, type, status, dateFrom, dateTo);
+                var totalCount = filteredTransactions.Count;
+
+                // Paginate transactions
+                var paginatedTransactions = PaginateTransactions(filteredTransactions, page, pageSize);
+
+                // Calculate total pages
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                var result = new TransactionHistoryListResponse
+                {
+                    Transactions = paginatedTransactions,
+                    TotalCount = totalCount,
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    TotalIncome = allTransactions.TotalIncome,
+                    TotalExpense = allTransactions.TotalExpense,
+                    NetAmount = allTransactions.NetAmount
+                };
+
+                // Add TotalPages to ViewBag for pagination UI
+                ViewBag.TotalPages = totalPages;
+
+                return View(result);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Có lỗi xảy ra: " + ex.Message;
+                return View(new TransactionHistoryListResponse());
+            }
+        }
+
+        /// <summary>
+        /// Filter transactions based on search criteria
+        /// </summary>
+        private List<TransactionHistoryResponse> FilterTransactions(
+            List<TransactionHistoryResponse> transactions, 
+            string? search, 
+            long? userId, 
+            string? type, 
+            string? status, 
+            string? dateFrom, 
+            string? dateTo)
+        {
+            var filtered = transactions.AsQueryable();
+
+            // Filter by search (ID or Description)
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                filtered = filtered.Where(t => 
+                    t.Id.ToString().Contains(searchLower) ||
+                    (t.Description != null && t.Description.ToLower().Contains(searchLower))
+                );
+            }
+
+            // Filter by User ID
+            if (userId.HasValue)
+            {
+                filtered = filtered.Where(t => t.UserId == userId.Value);
+            }
+
+            // Filter by Type
+            if (!string.IsNullOrEmpty(type))
+            {
+                filtered = filtered.Where(t => t.Type == type);
+            }
+
+            // Filter by Status
+            if (!string.IsNullOrEmpty(status))
+            {
+                filtered = filtered.Where(t => t.Status == status);
+            }
+
+            // Filter by Date From
+            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var fromDate))
+            {
+                filtered = filtered.Where(t => t.CreatedAt.HasValue && t.CreatedAt.Value.Date >= fromDate.Date);
+            }
+
+            // Filter by Date To
+            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var toDate))
+            {
+                filtered = filtered.Where(t => t.CreatedAt.HasValue && t.CreatedAt.Value.Date <= toDate.Date);
+            }
+
+            return filtered.ToList();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateTransactionStatus(long transactionId, string status, 
+            string? search = null, long? userId = null, string? type = null, 
+            string? statusFilter = null, string? dateFrom = null, string? dateTo = null,
+            int page = 1, int pageSize = 10)
+        {
+            if (!IsAdmin())
+                return RedirectToLogin();
+
+            try
+            {
+                _adminService.SetToken(Request.Cookies["accessToken"]);
+                var (success, message) = await _adminService.UpdateTransactionStatusAsync(transactionId, status);
+                
+                if (success)
+                {
+                    TempData["Success"] = message;
+                }
+                else
+                {
+                    TempData["Error"] = message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+            
+            // Giữ lại các filter parameters và pagination
+            return RedirectToAction("Transactions", new { 
+                search = search,
+                userId = userId,
+                type = type,
+                status = statusFilter,
+                dateFrom = dateFrom,
+                dateTo = dateTo,
+                page = page,
+                pageSize = pageSize
+            });
+        }
     }
 }

@@ -503,9 +503,7 @@ public class ProductController : Controller
         AuthApiClient.ImportResponse? result = null;
         try
         {
-            Console.WriteLine($"Starting import: ProductId={productId}, VariantId={variantId}, Lines={lines.Count}");
             result = await _api.ImportToVariantAsync(productId, variantId, lines, ignoreDuplicates);
-            Console.WriteLine($"Import result: Success={result?.Success}, Summary={result?.Summary}");
             
             if (result == null || !result.Success)
             {
@@ -515,8 +513,6 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Import exception: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             TempData["Error"] = $"Lỗi khi import: {ex.Message}";
             return View();
         }

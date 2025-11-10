@@ -1,0 +1,652 @@
+@model Mo_Entities.ModelResponse.TransactionHistoryListResponse
+
+@{
+    ViewData["Title"] = "Lịch sử giao dịch - Admin";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-history"></i> Lịch sử giao dịch (Tất cả người dùng)
+        </h1>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> @ViewBag.Error
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Search and Filter Section -->
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-search"></i> Tìm kiếm và lọc giao dịch
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" action="@Url.Action("Transactions", "Admin")" id="searchForm">
+            <!-- Hidden fields for pagination -->
+            <input type="hidden" name="page" id="pageNumber" value="@ViewBag.PageNumber" />
+            <input type="hidden" name="pageSize" id="pageSize" value="@ViewBag.PageSize" />
+            <div class="row">
+                <!-- Search Input -->
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Tìm kiếm:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" id="searchInput" 
+                                   value="@ViewBag.Search" placeholder="Tìm theo ID, mô tả...">
+                            <div class="input-group-append">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User ID Filter -->
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="font-weight-bold">User ID:</label>
+                        <input type="number" class="form-control" name="userId" id="userIdFilter" 
+                               value="@ViewBag.UserId" placeholder="User ID">
+                    </div>
+                </div>
+                
+                <!-- Transaction Type Filter -->
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Loại giao dịch:</label>
+                        <select class="form-control" name="type" id="typeFilter">
+                            <option value="">Tất cả</option>
+                            @if (ViewBag.Type == "NapTien")
+                            {
+                                <option value="NapTien" selected>Nạp tiền</option>
+                            }
+                            else
+                            {
+                                <option value="NapTien">Nạp tiền</option>
+                            }
+                            @if (ViewBag.Type == "MuaHang")
+                            {
+                                <option value="MuaHang" selected>Mua hàng</option>
+                            }
+                            else
+                            {
+                                <option value="MuaHang">Mua hàng</option>
+                            }
+                            @if (ViewBag.Type == "RutTien")
+                            {
+                                <option value="RutTien" selected>Rút tiền</option>
+                            }
+                            else
+                            {
+                                <option value="RutTien">Rút tiền</option>
+                            }
+                            @if (ViewBag.Type == "BanHang")
+                            {
+                                <option value="BanHang" selected>Bán hàng</option>
+                            }
+                            else
+                            {
+                                <option value="BanHang">Bán hàng</option>
+                            }
+                            @if (ViewBag.Type == "HoaHong")
+                            {
+                                <option value="HoaHong" selected>Hoa hồng</option>
+                            }
+                            else
+                            {
+                                <option value="HoaHong">Hoa hồng</option>
+                            }
+                            @if (ViewBag.Type == "ChiaSe")
+                            {
+                                <option value="ChiaSe" selected>Chia sẻ</option>
+                            }
+                            else
+                            {
+                                <option value="ChiaSe">Chia sẻ</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Trạng thái:</label>
+                        <select class="form-control" name="status" id="statusFilter">
+                            <option value="">Tất cả</option>
+                            @if (ViewBag.Status == "COMPLETED")
+                            {
+                                <option value="COMPLETED" selected>Hoàn thành</option>
+                            }
+                            else
+                            {
+                                <option value="COMPLETED">Hoàn thành</option>
+                            }
+                            @if (ViewBag.Status == "PENDING")
+                            {
+                                <option value="PENDING" selected>Đang xử lý</option>
+                            }
+                            else
+                            {
+                                <option value="PENDING">Đang xử lý</option>
+                            }
+                            @if (ViewBag.Status == "FAILED")
+                            {
+                                <option value="FAILED" selected>Thất bại</option>
+                            }
+                            else
+                            {
+                                <option value="FAILED">Thất bại</option>
+                            }
+                            @if (ViewBag.Status == "CANCELLED")
+                            {
+                                <option value="CANCELLED" selected>Đã hủy</option>
+                            }
+                            else
+                            {
+                                <option value="CANCELLED">Đã hủy</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Date Range Filter -->
+                <div class="col-md-3">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Từ ngày:</label>
+                                <input type="date" class="form-control" name="dateFrom" id="dateFrom" 
+                                       value="@ViewBag.DateFrom">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Đến ngày:</label>
+                                <input type="date" class="form-control" name="dateTo" id="dateTo" 
+                                       value="@ViewBag.DateTo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Tìm kiếm
+                            </button>
+                            <a href="@Url.Action("Transactions", "Admin")" class="btn btn-secondary ml-2">
+                                <i class="fas fa-times"></i> Xóa bộ lọc
+                            </a>
+                        </div>
+                        <div>
+                            <span class="text-muted">
+                                @if (Model != null && Model.TotalCount > 0)
+                                {
+                                    var startIndex = ((Model.PageNumber - 1) * Model.PageSize) + 1;
+                                    var endIndex = Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount);
+                                    <text>Hiển thị <strong>@startIndex</strong> - <strong>@endIndex</strong> / <strong>@Model.TotalCount</strong> giao dịch</text>
+                                }
+                                else
+                                {
+                                    <text>Hiển thị <strong>0</strong> / <strong>0</strong> giao dịch</text>
+                                }
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card shadow">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-list"></i> Danh sách giao dịch
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User ID</th>
+                        <th>Loại giao dịch</th>
+                        <th>Số tiền</th>
+                        <th>Mô tả</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Transactions != null && Model.Transactions.Any())
+                    {
+                        @foreach (var transaction in Model.Transactions)
+                        {
+                            <tr>
+                                <td>@transaction.Id</td>
+                                <td>
+                                    <a href="@Url.Action("ManagerUser", "Admin", new { UserId = transaction.UserId })" 
+                                       class="text-primary">
+                                        @transaction.UserId
+                                    </a>
+                                </td>
+                                <td>
+                                    @if (transaction.IsIncome)
+                                    {
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-arrow-up"></i> @transaction.TypeDisplay
+                                        </span>
+                                    }
+                                    else if (transaction.IsExpense)
+                                    {
+                                        <span class="badge badge-danger">
+                                            <i class="fas fa-arrow-down"></i> @transaction.TypeDisplay
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">@transaction.TypeDisplay</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (transaction.IsIncome)
+                                    {
+                                        <span class="text-success font-weight-bold">+@transaction.AmountDisplay</span>
+                                    }
+                                    else if (transaction.IsExpense)
+                                    {
+                                        <span class="text-danger font-weight-bold">-@transaction.AmountDisplay</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@transaction.AmountDisplay</span>
+                                    }
+                                </td>
+                                <td>@transaction.Description</td>
+                                <td>
+                                    @if (transaction.Status == "COMPLETED")
+                                    {
+                                        <span class="badge badge-success">@transaction.StatusDisplay</span>
+                                    }
+                                    else if (transaction.Status == "PENDING")
+                                    {
+                                        <span class="badge badge-warning">@transaction.StatusDisplay</span>
+                                    }
+                                    else if (transaction.Status == "FAILED")
+                                    {
+                                        <span class="badge badge-danger">@transaction.StatusDisplay</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">@transaction.StatusDisplay</span>
+                                    }
+                                </td>
+                                <td>@(transaction.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                <td>
+                                    @if (transaction.Type == "RutTien")
+                                    {
+                                        <form method="post" action="@Url.Action("UpdateTransactionStatus", "Admin")" style="display: inline;" class="update-status-form">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="transactionId" value="@transaction.Id" />
+                                            <input type="hidden" name="status" value="" class="status-input" />
+                                            @if (ViewBag.Search != null)
+                                            {
+                                                <input type="hidden" name="search" value="@ViewBag.Search" />
+                                            }
+                                            @if (ViewBag.UserId != null)
+                                            {
+                                                <input type="hidden" name="userId" value="@ViewBag.UserId" />
+                                            }
+                                            @if (ViewBag.Type != null)
+                                            {
+                                                <input type="hidden" name="type" value="@ViewBag.Type" />
+                                            }
+                                            @if (ViewBag.Status != null)
+                                            {
+                                                <input type="hidden" name="statusFilter" value="@ViewBag.Status" />
+                                            }
+                                            @if (ViewBag.DateFrom != null)
+                                            {
+                                                <input type="hidden" name="dateFrom" value="@ViewBag.DateFrom" />
+                                            }
+                                            @if (ViewBag.DateTo != null)
+                                            {
+                                                <input type="hidden" name="dateTo" value="@ViewBag.DateTo" />
+                                            }
+                                            @if (ViewBag.PageNumber != null)
+                                            {
+                                                <input type="hidden" name="page" value="@ViewBag.PageNumber" />
+                                            }
+                                            @if (ViewBag.PageSize != null)
+                                            {
+                                                <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
+                                            }
+                                            
+                                            @if (transaction.Status == "PENDING")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-success" 
+                                                        onclick="updateTransactionStatus(@transaction.Id, 'COMPLETED', this)">
+                                                    <i class="fas fa-check"></i> Duyệt
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger ml-1" 
+                                                        onclick="updateTransactionStatus(@transaction.Id, 'FAILED', this)">
+                                                    <i class="fas fa-times"></i> Từ chối
+                                                </button>
+                                            }
+                                            else if (transaction.Status == "FAILED")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-success" 
+                                                        onclick="updateTransactionStatus(@transaction.Id, 'COMPLETED', this)">
+                                                    <i class="fas fa-check"></i> Duyệt
+                                                </button>
+                                            }
+                                            else if (transaction.Status == "COMPLETED")
+                                            {
+                                                <span class="text-muted">
+                                                    <i class="fas fa-check-circle text-success"></i> Đã duyệt
+                                                </span>
+                                            }
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Không có giao dịch nào
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+@if (Model != null && ViewBag.TotalPages != null && (int)ViewBag.TotalPages > 1)
+{
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <!-- Page Size Selector -->
+        <div class="page-size-selector">
+            <label for="pageSizeSelect" class="form-label me-2">Hiển thị:</label>
+            <select class="form-select form-select-sm d-inline-block w-auto" id="pageSizeSelect">
+                @if (Model.PageSize == 5)
+                {
+                    <option value="5" selected>5</option>
+                }
+                else
+                {
+                    <option value="5">5</option>
+                }
+                @if (Model.PageSize == 10)
+                {
+                    <option value="10" selected>10</option>
+                }
+                else
+                {
+                    <option value="10">10</option>
+                }
+                @if (Model.PageSize == 20)
+                {
+                    <option value="20" selected>20</option>
+                }
+                else
+                {
+                    <option value="20">20</option>
+                }
+                @if (Model.PageSize == 50)
+                {
+                    <option value="50" selected>50</option>
+                }
+                else
+                {
+                    <option value="50">50</option>
+                }
+            </select>
+            <span class="ms-2 text-muted">mục/trang</span>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <!-- Previous Button -->
+                @if (Model.PageNumber > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0)" data-page="@(Model.PageNumber - 1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fas fa-chevron-left"></i>
+                        </span>
+                    </li>
+                }
+                
+                <!-- Page Numbers -->
+                @{
+                    int totalPages = (int)ViewBag.TotalPages;
+                    int startPage = Math.Max(1, Model.PageNumber - 2);
+                    int endPage = Math.Min(totalPages, Model.PageNumber + 2);
+                }
+                
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0)" data-page="1">1</a>
+                    </li>
+                    @if (startPage > 2)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+                }
+                
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link" href="javascript:void(0)" data-page="@i">@i</a>
+                    </li>
+                }
+                
+                @if (endPage < totalPages)
+                {
+                    @if (endPage < totalPages - 1)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0)" data-page="@totalPages">@totalPages</a>
+                    </li>
+                }
+                
+                <!-- Next Button -->
+                @if (Model.PageNumber < totalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0)" data-page="@(Model.PageNumber + 1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .admin-table th {
+            background-color: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+        }
+
+        .admin-table td {
+            vertical-align: middle;
+        }
+
+        .card {
+            border-radius: 0.5rem;
+        }
+
+        /* Pagination Styles */
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .pagination .page-link {
+            color: #007bff;
+            border: 1px solid #dee2e6;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Handle pagination clicks
+        $(document).ready(function() {
+            $(document).off('click', '.pagination .page-link').on('click', '.pagination .page-link', function(e) {
+                e.preventDefault();
+                var page = $(this).data('page');
+                if (page) {
+                    $('#pageNumber').val(page);
+                    $('#searchForm').submit();
+                }
+            });
+
+            // Handle page size change
+            $(document).off('change', '#pageSizeSelect').on('change', '#pageSizeSelect', function() {
+                $('#pageSize').val($(this).val());
+                $('#pageNumber').val(1); // Reset to first page
+                $('#searchForm').submit();
+            });
+
+            // Reset page to 1 when search form is submitted (unless it's a pagination click)
+            $('#searchForm').on('submit', function(e) {
+                // Only reset if it's not a pagination click
+                const pageNumber = $('#pageNumber').val();
+                if (!pageNumber) {
+                    $('#pageNumber').val(1);
+                }
+            });
+        });
+
+        function updateTransactionStatus(transactionId, status, buttonElement) {
+            var confirmMessage = status === 'COMPLETED' 
+                ? 'Bạn có chắc chắn muốn duyệt giao dịch rút tiền này?' 
+                : 'Bạn có chắc chắn muốn từ chối giao dịch rút tiền này?';
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Find the form containing this button
+            var form = buttonElement.closest('form');
+            if (!form) {
+                alert('Không tìm thấy form');
+                return;
+            }
+
+            // Set status value in hidden input
+            var statusInput = form.querySelector('.status-input');
+            if (statusInput) {
+                statusInput.value = status;
+            }
+
+            // Disable button and show loading
+            var originalHtml = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
+            // Submit form
+            form.submit();
+        }
+    </script>
+}
+

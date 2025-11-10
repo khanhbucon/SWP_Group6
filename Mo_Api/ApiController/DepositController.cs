@@ -39,9 +39,7 @@ public class DepositController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// Tạo yêu cầu nạp tiền và trả về QR code
-    /// </summary>
+   
     [HttpPost("create")]
     public async Task<IActionResult> CreateDeposit([FromBody] CreateDepositRequest request)
     {

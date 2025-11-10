@@ -48,9 +48,8 @@ namespace Mo_Client.Services
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error getting notifications: {ex.Message}");
                 return null;
             }
         }
@@ -74,9 +73,8 @@ namespace Mo_Client.Services
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error getting unread count: {ex.Message}");
                 return null;
             }
         }
@@ -91,9 +89,8 @@ namespace Mo_Client.Services
 
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error marking notification as read: {ex.Message}");
                 return false;
             }
         }
@@ -108,9 +105,8 @@ namespace Mo_Client.Services
 
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
                 return false;
             }
         }

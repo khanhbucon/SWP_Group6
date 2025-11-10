@@ -164,15 +164,11 @@ public class ProductController : ControllerBase
     [Authorize(Roles = "Seller")]
     public async Task<IActionResult> ImportToVariant(long productId, long variantId, [FromBody] BulkImportRequest request)
     {
-        Console.WriteLine($"API ImportToVariant called: ProductId={productId}, VariantId={variantId}, Lines={request?.Lines?.Count ?? 0}");
-        
         if (request?.Lines == null || request.Lines.Count == 0)
             return BadRequest(new { Success = false, Message = "No data provided" });
 
         var userId = User.GetUserId();
         if (!userId.HasValue) return Unauthorized();
-        
-        Console.WriteLine($"User ID: {userId.Value}");
 
         // Validate product ownership and variant relation
         var product = await _products.GetByIdAsync(productId);
@@ -246,15 +242,10 @@ public class ProductController : ControllerBase
             {
                 await tx.RollbackAsync();
             }
-            catch (Exception rollbackEx)
+            catch
             {
-                // Log rollback exception but don't throw
-                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                // Ignore rollback exception
             }
-            
-            // Log the original exception
-            Console.WriteLine($"Import failed: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             
             return StatusCode(500, new { Success = false, Message = $"Import failed: {ex.Message}" });
         }

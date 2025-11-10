@@ -2,6 +2,7 @@ using Mo_Client.Models;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Mo_Client.Services;
 
@@ -11,9 +12,10 @@ public class CategoryService
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CategoryService(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+    public CategoryService(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IOptions<ApiOptions> options)
     {
         _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
     }
@@ -32,7 +34,7 @@ public class CategoryService
             _httpClient.DefaultRequestHeaders.Authorization = 
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/Category";
+            var apiUrl = "/api/Category";
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 apiUrl += $"?search={Uri.EscapeDataString(searchTerm)}";
@@ -56,8 +58,7 @@ public class CategoryService
             }
             else
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Lỗi khi lấy danh sách danh mục: {response.StatusCode} - {errorContent}");
+                throw new Exception($"Lỗi khi lấy danh sách danh mục: {response.StatusCode}");
             }
         }
         catch (Exception ex)
@@ -79,7 +80,7 @@ public class CategoryService
             _httpClient.DefaultRequestHeaders.Authorization = 
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.GetAsync($"{_configuration["Api:BaseUrl"]}/api/Category/{id}");
+            var response = await _httpClient.GetAsync($"/api/Category/{id}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -126,7 +127,7 @@ public class CategoryService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{_configuration["Api:BaseUrl"]}/api/Category", content);
+            var response = await _httpClient.PostAsync("/api/Category", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -178,7 +179,7 @@ public class CategoryService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync($"{_configuration["Api:BaseUrl"]}/api/Category/{id}", content);
+            var response = await _httpClient.PutAsync($"/api/Category/{id}", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -231,7 +232,7 @@ public class CategoryService
             _httpClient.DefaultRequestHeaders.Authorization = 
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.DeleteAsync($"{_configuration["Api:BaseUrl"]}/api/Category/{id}");
+            var response = await _httpClient.DeleteAsync($"/api/Category/{id}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -282,19 +283,9 @@ public class CategoryService
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var apiUrl = $"{_configuration["Api:BaseUrl"]}/api/Category";
+            var apiUrl = "/api/Category";
             
-            HttpResponseMessage response;
-            try
-            {
-                response = await _httpClient.PostAsync(apiUrl, content);
-            }
-            catch (HttpRequestException ex)
-            {
-                // Thử URL khác nếu API server không chạy
-                var fallbackUrl = "https://localhost:7234/api/Category";
-                response = await _httpClient.PostAsync(fallbackUrl, content);
-            }
+            var response = await _httpClient.PostAsync(apiUrl, content);
             
             var responseContent = await response.Content.ReadAsStringAsync();
 
@@ -326,18 +317,10 @@ public class CategoryService
             {
                 throw new UnauthorizedAccessException("Phiên đăng nhập đã hết hạn");
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                throw new Exception($"API endpoint không tìm thấy. URL: {apiUrl}");
-            }
             else
             {
-                throw new Exception($"Lỗi khi tạo danh mục: {response.StatusCode} - {responseContent}");
+                throw new Exception($"Lỗi khi tạo danh mục: {response.StatusCode}");
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Lỗi kết nối API: {ex.Message}. Vui lòng kiểm tra API server có đang chạy không.");
         }
         catch (Exception ex)
         {
@@ -371,7 +354,7 @@ public class CategoryService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{_configuration["Api:BaseUrl"]}/api/SubCategory", content);
+            var response = await _httpClient.PostAsync("/api/SubCategory", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -423,7 +406,7 @@ public class CategoryService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync($"{_configuration["Api:BaseUrl"]}/api/SubCategory/{id}", content);
+            var response = await _httpClient.PutAsync($"/api/SubCategory/{id}", content);
             
             if (response.IsSuccessStatusCode)
             {
