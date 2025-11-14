@@ -53,7 +53,11 @@ namespace Mo_Client.Controllers
                 if (!IsAdmin())
                     return RedirectToLogin();
 
-                _adminService.SetToken(Request.Cookies["accessToken"]);
+                var token = Request.Cookies["accessToken"];
+                if (!string.IsNullOrEmpty(token))
+                {
+                    _adminService.SetToken(token);
+                }
                 var stats = await _adminService.GetDashboardStatsAsync();
                 
                 var dashboardVm = new DashboardVm

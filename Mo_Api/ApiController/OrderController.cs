@@ -139,6 +139,70 @@ namespace Mo_Api.ApiController
                 return StatusCode(500, new { message = "Lỗi khi mua hàng", error = ex.Message });
             }
         }
+
+        [HttpGet("seller-orders")]
+        [Authorize(Roles = "Seller")]
+        public async Task<ActionResult<OrderHistoryListResponse>> GetSellerOrders(string? status = null)
+        {
+            try
+            {
+                var sellerId = User.GetUserId();
+                if (sellerId == null)
+                {
+                    return Unauthorized(new { message = "Không tìm thấy thông tin seller" });
+                }
+
+                var result = await _orderService.GetSellerOrdersAsync(sellerId.Value, status);
+                
+                if (result == null || result.Orders.Count == 0)
+                {
+                    return Ok(new OrderHistoryListResponse
+                    {
+                        Orders = new List<OrderHistoryResponse>(),
+                        TotalCount = 0,
+                        TotalSpent = 0,
+                        TotalOrders = 0,
+                        CompletedOrders = 0,
+                        PendingOrders = 0,
+                        ConfirmedOrders = 0,
+                        CancelledOrders = 0
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi lấy danh sách đơn hàng của seller", error = ex.Message });
+            }
+        }
+
+        [HttpGet("seller-orders/{orderId}")]
+        [Authorize(Roles = "Seller")]
+        public async Task<ActionResult<OrderHistoryResponse>> GetSellerOrderDetail(long orderId)
+        {
+            try
+            {
+                var sellerId = User.GetUserId();
+                if (sellerId == null)
+                {
+                    return Unauthorized(new { message = "Không tìm thấy thông tin seller" });
+                }
+
+                var order = await _orderService.GetSellerOrderDetailAsync(orderId, sellerId.Value);
+                
+                if (order == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy đơn hàng" });
+                }
+
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi lấy chi tiết đơn hàng", error = ex.Message });
+            }
+        }
     }
 }
 

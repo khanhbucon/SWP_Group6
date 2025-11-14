@@ -330,6 +330,97 @@ namespace Mo_Client.Services
                 };
             }
         }
+
+        public async Task<OrderHistoryListResponse?> GetSellerOrdersAsync(string? status = null)
+        {
+            try
+            {
+                var token = GetToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return null;
+                }
+
+                _httpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var queryString = string.IsNullOrEmpty(status) ? "" : $"?status={status}";
+                var apiUrl = $"{_configuration["ApiOptions:BaseUrl"]}/api/order/seller-orders{queryString}";
+                
+                var response = await _httpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonContent = await response.Content.ReadAsStringAsync();
+                    
+                    // Handle both wrapped and unwrapped responses
+                    using (JsonDocument doc = JsonDocument.Parse(jsonContent))
+                    {
+                        JsonElement root = doc.RootElement;
+                        
+                        // If root has a "value" property (ASP.NET Core ActionResult wrapping)
+                        if (root.TryGetProperty("value", out JsonElement valueElement))
+                        {
+                            var result = JsonSerializer.Deserialize<OrderHistoryListResponse>(valueElement.GetRawText(), new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return result;
+                        }
+                        // Otherwise, try to parse the root directly
+                        else
+                        {
+                            var result = JsonSerializer.Deserialize<OrderHistoryListResponse>(jsonContent, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            return result;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Error getting seller orders
+            }
+
+            return null;
+        }
+
+        public async Task<OrderHistoryResponse?> GetSellerOrderDetailAsync(long orderId)
+        {
+            try
+            {
+                var token = GetToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return null;
+                }
+
+                _httpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var apiUrl = $"{_configuration["ApiOptions:BaseUrl"]}/api/order/seller-orders/{orderId}";
+                var response = await _httpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonContent = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<OrderHistoryResponse>(jsonContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Error getting seller order detail
+            }
+
+            return null;
+        }
     }
 }
 

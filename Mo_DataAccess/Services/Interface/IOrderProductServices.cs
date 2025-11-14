@@ -7,6 +7,8 @@ public interface IOrderProductServices :IGenericRepository<OrderProduct>
 {
     Task<OrderHistoryListResponse> GetUserOrdersAsync(long userId, string? status = null);
     Task<OrderHistoryResponse?> GetOrderDetailAsync(long orderId, long userId);
+    Task<OrderHistoryListResponse> GetSellerOrdersAsync(long sellerId, string? status = null);
+    Task<OrderHistoryResponse?> GetSellerOrderDetailAsync(long orderId, long sellerId);
 
     Task<PurchaseResponse> PurchaseProductAsync(long userId, PurchaseRequest request);
 
