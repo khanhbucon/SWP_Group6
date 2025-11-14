@@ -9,7 +9,7 @@ public partial class SubCategory
 
     public long CategoryId { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
 
     public bool? IsActive { get; set; }
 

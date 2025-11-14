@@ -9,7 +9,7 @@ public partial class Shop
 
     public long AccountId { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
 
     public string? Description { get; set; }
 

@@ -22,9 +22,7 @@ public class SePayService
         _logger.LogInformation($"SePay Service initialized with BaseAddress: {apiUrl}");
     }
 
-    /// <summary>
     /// Kiểm tra giao dịch từ SEpay theo transaction ID
-    /// </summary>
     public async Task<SePayTransactionResponse?> CheckTransactionAsync(string transactionId)
     {
         try
@@ -60,9 +58,7 @@ public class SePayService
         }
     }
 
-    /// <summary>
     /// Lấy danh sách giao dịch gần đây từ SEpay để tìm giao dịch khớp
-    /// </summary>
     public async Task<List<SePayTransactionData>> GetRecentTransactionsAsync(DateTime? fromDate = null, int limit = 50)
     {
         try
@@ -154,9 +150,8 @@ public class SePayService
         }
     }
 
-    /// <summary>
+    
     /// Tìm giao dịch khớp với amount và description
-    /// </summary>
     public async Task<SePayTransactionData?> FindMatchingTransactionAsync(decimal amount, string description, DateTime? transactionCreatedAt = null)
     {
         try

@@ -9,7 +9,7 @@ public partial class ProductVariant
 
     public long ProductId { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
 
     public decimal Price { get; set; }
 

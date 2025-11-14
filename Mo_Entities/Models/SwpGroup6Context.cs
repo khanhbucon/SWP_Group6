@@ -55,22 +55,16 @@ public partial class SwpGroup6Context : DbContext
 
     public virtual DbSet<VnpayTransaction> VnpayTransactions { get; set; }
 
-
+ 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Accounts__3213E83FD8F5DD9F");
+            entity.HasKey(e => e.Id).HasName("PK__Accounts__3213E83FB37C65DF");
 
-            entity.ToTable(tb =>
-                {
-                    tb.HasTrigger("trg_Accounts_DeleteCascadeMessages");
-                    tb.HasTrigger("trg_Accounts_UpdateTimestamp");
-                });
+            entity.HasIndex(e => e.Email, "UQ__Accounts__AB6E61642289D04A").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__Accounts__AB6E61642FC6BB27").IsUnique();
-
-            entity.HasIndex(e => e.Username, "UQ__Accounts__F3DBC57274B8F59B").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Accounts__F3DBC5720CCC770E").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Balance)
@@ -135,9 +129,9 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Categori__3213E83F61761B8F");
+            entity.HasKey(e => e.Id).HasName("PK__Categori__3213E83F3AA4D7C9");
 
-            entity.HasIndex(e => e.Name, "UQ__Categori__72E12F1BB2685783").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Categori__72E12F1B076566D2").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Name)
@@ -148,7 +142,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Feedback__3213E83F985A2B75");
+            entity.HasKey(e => e.Id).HasName("PK__Feedback__3213E83FFDB902BF");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccountId).HasColumnName("accountId");
@@ -174,7 +168,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<ImageMessage>(entity =>
         {
-            entity.HasKey(e => e.MessageId).HasName("PK__ImageMes__4808B993C0842F19");
+            entity.HasKey(e => e.MessageId).HasName("PK__ImageMes__4808B993001D0A0E");
 
             entity.Property(e => e.MessageId)
                 .ValueGeneratedNever()
@@ -188,7 +182,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Messages__3213E83F4148A675");
+            entity.HasKey(e => e.Id).HasName("PK__Messages__3213E83F9726ECB0");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ReceiverId).HasColumnName("receiverId");
@@ -215,15 +209,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Notifica__3213E83F77965F74");
-
-            entity.HasIndex(e => e.CreatedAt, "IX_Notifications_CreatedAt").IsDescending();
-
-            entity.HasIndex(e => e.IsRead, "IX_Notifications_IsRead");
-
-            entity.HasIndex(e => e.Type, "IX_Notifications_Type");
-
-            entity.HasIndex(e => e.UserId, "IX_Notifications_UserId");
+            entity.HasKey(e => e.Id).HasName("PK__Notifica__3213E83FEC6F1E7B");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Content).HasColumnName("content");
@@ -251,7 +237,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<OrderProduct>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__OrderPro__3213E83F9D106200");
+            entity.HasKey(e => e.Id).HasName("PK__OrderPro__3213E83F1CA5F8AE");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccountId).HasColumnName("accountId");
@@ -298,7 +284,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<PaymentTransaction>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PaymentT__3213E83FF8FC6BD9");
+            entity.HasKey(e => e.Id).HasName("PK__PaymentT__3213E83F1D3EDCF7");
 
             entity.ToTable("PaymentTransaction");
 
@@ -332,9 +318,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Products__3213E83F1823B837");
-
-            entity.ToTable(tb => tb.HasTrigger("trg_Products_UpdateTimestamp"));
+            entity.HasKey(e => e.Id).HasName("PK__Products__3213E83F8386A01B");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedAt)
@@ -356,8 +340,7 @@ public partial class SwpGroup6Context : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false)
+                .HasMaxLength(255)
                 .HasColumnName("name");
             entity.Property(e => e.ShopId).HasColumnName("shopId");
             entity.Property(e => e.SubCategoryId).HasColumnName("subCategoryId");
@@ -379,9 +362,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<ProductStore>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ProductS__3213E83F7BE5AA68");
-
-            entity.ToTable(tb => tb.HasTrigger("trg_ProductStores_UpdateTimestamp"));
+            entity.HasKey(e => e.Id).HasName("PK__ProductS__3213E83F86921528");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Content)
@@ -413,9 +394,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<ProductVariant>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ProductV__3213E83F71B6C417");
-
-            entity.ToTable(tb => tb.HasTrigger("trg_ProductVariants_UpdateTimestamp"));
+            entity.HasKey(e => e.Id).HasName("PK__ProductV__3213E83F68950597");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedAt)
@@ -423,8 +402,7 @@ public partial class SwpGroup6Context : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("createdAt");
             entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false)
+                .HasMaxLength(255)
                 .HasColumnName("name");
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(15, 2)")
@@ -445,7 +423,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Reply>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Replies__3213E83FA5C7C726");
+            entity.HasKey(e => e.Id).HasName("PK__Replies__3213E83FE5FE26FA");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Comment)
@@ -470,9 +448,9 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Roles__3213E83FE84FC5F7");
+            entity.HasKey(e => e.Id).HasName("PK__Roles__3213E83F6D60696E");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Roles__B194786153C8299A").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Roles__B1947861FE7FD6CD").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.RoleName)
@@ -483,9 +461,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Shop>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Shops__3213E83F509E1028");
-
-            entity.ToTable(tb => tb.HasTrigger("trg_Shops_UpdateTimestamp"));
+            entity.HasKey(e => e.Id).HasName("PK__Shops__3213E83FE7CBAD8E");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccountId).HasColumnName("accountId");
@@ -500,8 +476,7 @@ public partial class SwpGroup6Context : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("isActive");
             entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false)
+                .HasMaxLength(255)
                 .HasColumnName("name");
             entity.Property(e => e.ReportCount)
                 .HasDefaultValue(0)
@@ -519,7 +494,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<SubCategory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SubCateg__3213E83F80A62B77");
+            entity.HasKey(e => e.Id).HasName("PK__SubCateg__3213E83FECF50DB6");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CategoryId).HasColumnName("categoryId");
@@ -527,8 +502,7 @@ public partial class SwpGroup6Context : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false)
+                .HasMaxLength(255)
                 .HasColumnName("name");
 
             entity.HasOne(d => d.Category).WithMany(p => p.SubCategories)
@@ -538,7 +512,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<SupportTicket>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SupportT__3213E83FA58D94D3");
+            entity.HasKey(e => e.Id).HasName("PK__SupportT__3213E83F5D859B11");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccountId).HasColumnName("accountId");
@@ -587,7 +561,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<TextMessage>(entity =>
         {
-            entity.HasKey(e => e.MessageId).HasName("PK__TextMess__4808B9930271E4B3");
+            entity.HasKey(e => e.MessageId).HasName("PK__TextMess__4808B993F12E9462");
 
             entity.Property(e => e.MessageId)
                 .ValueGeneratedNever()
@@ -601,7 +575,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<Token>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tokens__3213E83F6F3A3E5F");
+            entity.HasKey(e => e.Id).HasName("PK__Tokens__3213E83FAEA82E07");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccessToken)
@@ -628,7 +602,7 @@ public partial class SwpGroup6Context : DbContext
 
         modelBuilder.Entity<VnpayTransaction>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__VnpayTra__3213E83F29611770");
+            entity.HasKey(e => e.Id).HasName("PK__VnpayTra__3213E83FC74CF3FB");
 
             entity.ToTable("VnpayTransaction");
 
