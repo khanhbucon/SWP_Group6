@@ -1,0 +1,73 @@
+@model Mo_Entities.ModelResponse.OrderHistoryResponse
+
+<div class="order-detail-pv">
+    <div class="row g-3">
+        <div class="col-md-4 text-center">
+            @if (!string.IsNullOrEmpty(Model.ProductImageBase64))
+            {
+                <img src="data:image/jpeg;base64,@Model.ProductImageBase64" class="img-fluid rounded" alt="@Model.ProductName" />
+            }
+            else
+            {
+                <img src="/images/no-image.png" class="img-fluid rounded" alt="no image" />
+            }
+        </div>
+        <div class="col-md-8">
+            <h5 class="mb-1">@Model.ProductName</h5>
+            <p class="text-muted">@Model.ProductDescription</p>
+
+            <div class="mb-3">
+                <h6 class="text-primary">Thông tin đơn hàng</h6>
+                <div class="mb-2">
+                    <strong>Mã đơn:</strong> #@Model.OrderId<br />
+                    <strong>Biến thể:</strong> @Model.VariantName<br />
+                    <strong>Số lượng:</strong> @Model.Quantity<br />
+                    <strong>Tổng tiền:</strong> <span class="fw-bold text-success">@Model.TotalAmountDisplay</span><br />
+                    <strong>Trạng thái:</strong> <span class="badge bg-@Model.StatusClass">@Model.StatusDisplay</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="text-primary">Thông tin khách hàng</h6>
+                <div class="mb-2">
+                    @if (!string.IsNullOrEmpty(Model.ShopEmail))
+                    {
+                        <div><i class="fas fa-envelope text-muted"></i> <strong>Email:</strong> @Model.ShopEmail</div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ShopPhone))
+                    {
+                        <div><i class="fas fa-phone text-muted"></i> <strong>SĐT:</strong> @Model.ShopPhone</div>
+                    }
+                    @if (string.IsNullOrEmpty(Model.ShopEmail) && string.IsNullOrEmpty(Model.ShopPhone))
+                    {
+                        <p class="text-muted">Không có thông tin khách hàng</p>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <h6 class="text-primary">Mã / Nội dung sản phẩm:</h6>
+                @if (Model.HasCodes && Model.ProductCodes != null && Model.ProductCodes.Any())
+                {
+                    <ul class="list-group list-group-sm mt-2">
+                        @foreach (var code in Model.ProductCodes)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span style="word-break:break-all; font-family: monospace;">@code.Value</span>
+                                <small class="badge bg-secondary">@code.StatusDisplay</small>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mt-2">Không có mã sản phẩm kèm theo.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+</div>

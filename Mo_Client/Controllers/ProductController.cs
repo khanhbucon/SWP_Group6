@@ -205,16 +205,18 @@ public class ProductController : Controller
         // fetch current product to determine pending state
         var current = await _api.GetProductAsync(model.Id);
         if (current == null) return RedirectToAction("List");
-        var isPending = current.IsActive == null;
 
-        // if pending, never send IsActive change
+        // Preserve current IsActive flag so updating image doesn't reset approval state
+        var preserveIsActive = current.IsActive;
+
+        // Build update request using preserved active status
         var request = new AuthApiClient.UpdateProductRequest(
             model.Id,
             model.Name,
             model.ShortDescription,
             model.DetailedDescription,
             model.Fee,
-            isPending ? null : model.IsActive
+            preserveIsActive
         );
 
         // attach image fields via dynamic to include properties not in the record

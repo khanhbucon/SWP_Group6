@@ -744,4 +744,252 @@ public class OrderProductServices:GenericRepository<OrderProduct>,IOrderProductS
 
         return true;
     }
+
+    public async Task<OrderHistoryListResponse> GetSellerOrdersAsync(long sellerId, string? status = null)
+    {
+        // Lấy đơn hàng từ các shop của seller
+        var query = _context.OrderProducts
+            .Include(o => o.ProductVariant)
+                .ThenInclude(pv => pv.Product)
+                    .ThenInclude(p => p.Shop)
+                        .ThenInclude(s => s.Account)
+            .Include(o => o.Account) // Buyer account
+            .Where(o => o.ProductVariant.Product.Shop.AccountId == sellerId)
+            .AsQueryable();
+
+        // Filter by status if provided
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(o => o.Status == status);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var orders = await query
+            .OrderByDescending(o => o.Id)
+            .ToListAsync();
+
+        var orderResponses = new List<OrderHistoryResponse>();
+
+        foreach (var order in orders)
+        {
+            var product = order.ProductVariant?.Product;
+            var shop = product?.Shop;
+            var buyer = order.Account; // Người mua
+            
+            // Get ProductStore codes for this order
+            var productStores = await _context.ProductStores
+                .Where(ps => ps.OrderProducts.Any(op => op.Id == order.Id))
+                .ToListAsync();
+
+            var productCodes = productStores.Select(ps => new ProductStoreInfo
+            {
+                Content = ps.Content,
+                Value = ps.Value,
+                Status = ps.Status,
+                StatusDisplay = ps.Status switch
+                {
+                    "AVAILABLE" => "Có sẵn",
+                    "SOLD" => "Đã bán",
+                    "RESERVED" => "Đã đặt",
+                    "USED" => "Đã sử dụng",
+                    "EXPIRED" => "Hết hạn",
+                    _ => ps.Status
+                }
+            }).ToList();
+
+            var orderResponse = new OrderHistoryResponse
+            {
+                OrderId = order.Id,
+                Status = order.Status?.ToUpper() ?? "PENDING",
+                StatusDisplay = (order.Status?.ToUpper() ?? "PENDING") switch
+                {
+                    "PENDING" => "Đang xử lý",
+                    "HOLDING" => "Đang tạm giữ",
+                    "CONFIRMED" or "CONFIRM" => "Đã xác nhận",
+                    "RELEASED" => "Đã giải ngân",
+                    "COMPLETED" => "Hoàn thành",
+                    "CANCELLED" or "CANCELED" => "Đã hủy",
+                    "REFUNDED" => "Đã hoàn tiền",
+                    "FAILED" => "Thất bại",
+                    _ => order.Status ?? "PENDING"
+                },
+                StatusClass = (order.Status?.ToUpper() ?? "PENDING") switch
+                {
+                    "PENDING" or "HOLDING" => "warning",
+                    "CONFIRMED" or "CONFIRM" => "success",
+                    "RELEASED" => "info",
+                    "COMPLETED" => "success",
+                    "CANCELLED" or "CANCELED" or "REFUNDED" => "secondary",
+                    "FAILED" => "danger",
+                    _ => "secondary"
+                },
+                Quantity = order.Quantity,
+                TotalAmount = order.TotalAmount,
+                TotalAmountDisplay = $"{order.TotalAmount:N0} VNĐ",
+                CreatedAt = DateTime.Now, // OrderProduct không có CreatedAt, dùng thời gian hiện tại
+                CreatedAtDisplay = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                
+                // Product Info
+                ProductId = product?.Id ?? 0,
+                ProductName = product?.Name ?? "N/A",
+                ProductDescription = product?.Description,
+                ProductImage = product?.Image,
+                ProductImageBase64 = product?.Image != null ? Convert.ToBase64String(product.Image) : string.Empty,
+                
+                // Variant Info
+                ProductVariantId = order.ProductVariantId,
+                VariantName = order.ProductVariant?.Name ?? "N/A",
+                VariantPrice = order.ProductVariant?.Price ?? 0,
+                VariantPriceDisplay = $"{(order.ProductVariant?.Price ?? 0):N0} VNĐ",
+                
+                // Shop Info (shop của seller)
+                ShopId = shop?.Id ?? 0,
+                ShopName = shop?.Name ?? "N/A",
+                ShopDescription = shop?.Description,
+                
+                // Buyer Info (thông tin người mua)
+                ShopEmail = buyer?.Email, // Tạm dùng ShopEmail để lưu buyer email
+                ShopPhone = buyer?.Phone, // Tạm dùng ShopPhone để lưu buyer phone
+                
+                // Product Codes
+                ProductCodes = productCodes,
+                HasCodes = productCodes.Any(),
+                CanCancel = (order.Status?.ToUpper() ?? "PENDING") == "PENDING" || 
+                           (order.Status?.ToUpper() ?? "PENDING") == "HOLDING"
+            };
+
+            orderResponses.Add(orderResponse);
+        }
+
+        // Calculate summary statistics
+        var allSellerOrders = await _context.OrderProducts
+            .Include(o => o.ProductVariant)
+                .ThenInclude(pv => pv.Product)
+                    .ThenInclude(p => p.Shop)
+            .Where(o => o.ProductVariant.Product.Shop.AccountId == sellerId)
+            .ToListAsync();
+            
+        var totalRevenue = allSellerOrders.Sum(o => o.TotalAmount);
+        var totalOrders = allSellerOrders.Count;
+        var completedOrders = allSellerOrders.Count(o => 
+            (o.Status?.ToUpper() ?? "") == "COMPLETED" || 
+            (o.Status?.ToUpper() ?? "") == "RELEASED");
+        var pendingOrders = allSellerOrders.Count(o => 
+            (o.Status?.ToUpper() ?? "") == "PENDING" || 
+            (o.Status?.ToUpper() ?? "") == "HOLDING");
+        var confirmedOrders = allSellerOrders.Count(o => 
+            (o.Status?.ToUpper() ?? "") == "CONFIRMED" || 
+            (o.Status?.ToUpper() ?? "") == "CONFIRM");
+        var cancelledOrders = allSellerOrders.Count(o => 
+            (o.Status?.ToUpper() ?? "") == "CANCELLED" || 
+            (o.Status?.ToUpper() ?? "") == "CANCELED" ||
+            (o.Status?.ToUpper() ?? "") == "REFUNDED");
+
+        return new OrderHistoryListResponse
+        {
+            Orders = orderResponses,
+            TotalCount = totalCount,
+            TotalSpent = totalRevenue, // Doanh thu của seller
+            TotalOrders = totalOrders,
+            CompletedOrders = completedOrders,
+            PendingOrders = pendingOrders,
+            ConfirmedOrders = confirmedOrders,
+            CancelledOrders = cancelledOrders
+        };
+    }
+
+    public async Task<OrderHistoryResponse?> GetSellerOrderDetailAsync(long orderId, long sellerId)
+    {
+        var order = await _context.OrderProducts
+            .Include(o => o.ProductVariant)
+                .ThenInclude(pv => pv.Product)
+                    .ThenInclude(p => p.Shop)
+                        .ThenInclude(s => s.Account)
+            .Include(o => o.Account) // Buyer
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.ProductVariant.Product.Shop.AccountId == sellerId);
+
+        if (order == null)
+            return null;
+
+        var product = order.ProductVariant?.Product;
+        var shop = product?.Shop;
+        var buyer = order.Account;
+
+        // Get ProductStore codes
+        var productStores = await _context.ProductStores
+            .Where(ps => ps.OrderProducts.Any(op => op.Id == order.Id))
+            .ToListAsync();
+
+        var productCodes = productStores.Select(ps => new ProductStoreInfo
+        {
+            Content = ps.Content,
+            Value = ps.Value,
+            Status = ps.Status,
+            StatusDisplay = ps.Status switch
+            {
+                "AVAILABLE" => "Có sẵn",
+                "SOLD" => "Đã bán",
+                "RESERVED" => "Đã đặt",
+                "USED" => "Đã sử dụng",
+                "EXPIRED" => "Hết hạn",
+                _ => ps.Status
+            }
+        }).ToList();
+
+        return new OrderHistoryResponse
+        {
+            OrderId = order.Id,
+            Status = order.Status?.ToUpper() ?? "PENDING",
+            StatusDisplay = (order.Status?.ToUpper() ?? "PENDING") switch
+            {
+                "PENDING" => "Đang xử lý",
+                "HOLDING" => "Đang tạm giữ",
+                "CONFIRMED" or "CONFIRM" => "Đã xác nhận",
+                "RELEASED" => "Đã giải ngân",
+                "COMPLETED" => "Hoàn thành",
+                "CANCELLED" or "CANCELED" => "Đã hủy",
+                "REFUNDED" => "Đã hoàn tiền",
+                "FAILED" => "Thất bại",
+                _ => order.Status ?? "PENDING"
+            },
+            StatusClass = (order.Status?.ToUpper() ?? "PENDING") switch
+            {
+                "PENDING" or "HOLDING" => "warning",
+                "CONFIRMED" or "CONFIRM" => "success",
+                "RELEASED" => "info",
+                "COMPLETED" => "success",
+                "CANCELLED" or "CANCELED" or "REFUNDED" => "secondary",
+                "FAILED" => "danger",
+                _ => "secondary"
+            },
+            Quantity = order.Quantity,
+            TotalAmount = order.TotalAmount,
+            TotalAmountDisplay = $"{order.TotalAmount:N0} VNĐ",
+            CreatedAt = DateTime.Now, // OrderProduct không có CreatedAt, dùng thời gian hiện tại
+            CreatedAtDisplay = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+            
+            ProductId = product?.Id ?? 0,
+            ProductName = product?.Name ?? "N/A",
+            ProductDescription = product?.Description,
+            ProductImage = product?.Image,
+            ProductImageBase64 = product?.Image != null ? Convert.ToBase64String(product.Image) : string.Empty,
+            
+            ProductVariantId = order.ProductVariantId,
+            VariantName = order.ProductVariant?.Name ?? "N/A",
+            VariantPrice = order.ProductVariant?.Price ?? 0,
+            VariantPriceDisplay = $"{(order.ProductVariant?.Price ?? 0):N0} VNĐ",
+            
+            ShopId = shop?.Id ?? 0,
+            ShopName = shop?.Name ?? "N/A",
+            ShopDescription = shop?.Description,
+            ShopEmail = buyer?.Email,
+            ShopPhone = buyer?.Phone,
+            
+            ProductCodes = productCodes,
+            HasCodes = productCodes.Any(),
+            CanCancel = (order.Status?.ToUpper() ?? "PENDING") == "PENDING" || 
+                       (order.Status?.ToUpper() ?? "PENDING") == "HOLDING"
+        };
+    }
 }

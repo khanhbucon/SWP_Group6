@@ -22,10 +22,6 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="hero-content text-center mb-5">
-                    <h1 class="hero-title text-white mb-3">                         </h1>
-                    <h1 class="hero-title text-white mb-3">                         </h1>
-                    <h1 class="hero-title text-white mb-3">                         </h1>
-                    <h1 class="hero-title text-white mb-5">                         </h1>
                     <h1 class="hero-title text-white mb-3">Tìm Kiếm Sản Phẩm Số</h1>
                     <p class="hero-subtitle text-white-50">Khám phá hàng nghìn sản phẩm số chất lượng cao</p>
                 </div>
@@ -34,35 +30,23 @@
                 <div class="search-form-card shadow-lg">
                     <form id="searchForm" method="get" action="/Product/Index">
                         <div class="row g-3">
-                            <!-- Search Type -->
-                            <div class="col-lg-3 col-md-6">
-                                <select class="form-select search-input" id="searchType" name="searchType">
-                                    <option value="">Tùy chọn tìm kiếm</option>
-                                    <option value="product">Tìm theo sản phẩm</option>
-                                    <option value="shop">Tìm theo cửa hàng</option>
-                                    <option value="category">Tìm theo danh mục</option>
-                                </select>
-                            </div>
-
                             <!-- Category Filter -->
-                            <div class="col-lg-3 col-md-6">
+                            <div class="col-lg-4 col-md-6">
                                 <select class="form-select search-input" id="categoryFilter" name="categoryId">
-                                    <option value="">Tất cả danh mục</option>
+                                    <option value="">Tìm theo danh mục</option>
                                     <!-- Categories will be loaded dynamically -->
                                 </select>
                             </div>
 
-                            <!-- Search Input -->
-                            <div class="col-lg-4 col-md-8">
-                                <input type="text"
-                                       class="form-control search-input"
-                                       id="searchQuery"
-                                       name="search"
-                                       placeholder="Tìm gian hàng hoặc người bán">
+                            <!-- SubCategory Filter (optional, will be populated when category is selected) -->
+                            <div class="col-lg-4 col-md-6">
+                                <select class="form-select search-input" id="subCategoryFilter" name="subCategoryId" style="display: none;">
+                                    <option value="">Tất cả danh mục con</option>
+                                </select>
                             </div>
 
                             <!-- Search Button -->
-                            <div class="col-lg-2 col-md-4">
+                            <div class="col-lg-4 col-md-12">
                                 <button type="submit" class="btn btn-search w-100">
                                     <i class="fas fa-search me-2"></i>Tìm kiếm
                                 </button>
@@ -117,6 +101,7 @@
                 const API_BASE = 'https://localhost:7234/api';
         let allProducts = [];
         let allCategories = [];
+        let allSubCategoriesGrouped = [];
         let currentCategory = 'all';
 
         // Category mapping
@@ -230,7 +215,7 @@
             const select = document.getElementById('categoryFilter');
 
             // Clear existing options except first one
-            select.innerHTML = '<option value="">Tất cả danh mục</option>';
+            select.innerHTML = '<option value="">Tìm theo danh mục</option>';
 
             categories.forEach(cat => {
                 const option = document.createElement('option');
@@ -238,6 +223,62 @@
                 option.textContent = cat.name;
                 select.appendChild(option);
             });
+
+            // Add event listener for category change to load subcategories
+            select.addEventListener('change', function() {
+                const categoryId = this.value;
+                const subCategorySelect = document.getElementById('subCategoryFilter');
+                
+                if (categoryId) {
+                    loadSubCategories(categoryId);
+                    subCategorySelect.style.display = 'block';
+                } else {
+                    subCategorySelect.style.display = 'none';
+                    subCategorySelect.innerHTML = '<option value="">Tất cả danh mục con</option>';
+                }
+            });
+        }
+
+        // Load subcategories for selected category
+        async function loadSubCategories(categoryId) {
+            const subCategorySelect = document.getElementById('subCategoryFilter');
+            subCategorySelect.innerHTML = '<option value="">Tất cả danh mục con</option>';
+            
+            // If we already have grouped data, use it
+            if (allSubCategoriesGrouped.length > 0) {
+                const categoryGroup = allSubCategoriesGrouped.find(g => g.categoryId == categoryId);
+                if (categoryGroup && categoryGroup.subCategories && categoryGroup.subCategories.length > 0) {
+                    categoryGroup.subCategories.forEach(subCat => {
+                        const option = document.createElement('option');
+                        option.value = subCat.id;
+                        option.textContent = subCat.name;
+                        subCategorySelect.appendChild(option);
+                    });
+                }
+                return;
+            }
+            
+            // Otherwise, load from API
+            try {
+                const response = await fetch(`${API_BASE}/SubCategory/grouped`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        allSubCategoriesGrouped = data.data;
+                        const categoryGroup = allSubCategoriesGrouped.find(g => g.categoryId == categoryId);
+                        if (categoryGroup && categoryGroup.subCategories && categoryGroup.subCategories.length > 0) {
+                            categoryGroup.subCategories.forEach(subCat => {
+                                const option = document.createElement('option');
+                                option.value = subCat.id;
+                                option.textContent = subCat.name;
+                                subCategorySelect.appendChild(option);
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading subcategories:', error);
+            }
         }
 
         // Attach event handlers to category tabs
@@ -344,22 +385,9 @@
                 renderProducts([], categoryName);
             }
         }
-        // Load categories for search filter
-               // Filter products by category
-        function filterProducts(category) {
-            if (category === 'all') {
-                return allProducts;
-            }
-
-            const keywords = categoryMapping[category] || [];
-            return allProducts.filter(product => {
-                const searchText = `${product.name} ${product.categoryName} ${product.subCategoryName}`.toLowerCase();
-                return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
-            });
-        }
 
         // Load all products
-                async function loadProducts() {
+        async function loadProducts() {
             try {
                 const response = await fetch(`${API_BASE}/product/GetAllProducts?page=1&pageSize=100`);
                 if (response.ok) {
@@ -379,21 +407,8 @@
             }
         }
 
-        // Filter products by category
-        function filterProducts(category) {
-            if (category === 'all') {
-                return allProducts;
-            }
-
-            const keywords = categoryMapping[category] || [];
-            return allProducts.filter(product => {
-                const searchText = `${product.name} ${product.categoryName} ${product.subCategoryName}`.toLowerCase();
-                return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
-            });
-        }
-
         // Render products
-                function renderProducts(products, categoryName = 'Tất cả sản phẩm') {
+        function renderProducts(products, categoryName = 'Tất cả sản phẩm') {
             const container = document.getElementById('productsContainer');
 
             if (products.length === 0) {
@@ -465,27 +480,22 @@
         }
 
         // Category tab click handler
-                document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // Load category tabs first
             loadCategoryTabs();
 
             // Then load products
             loadProducts();
+            
+            // Preload subcategories grouped data
+            fetch(`${API_BASE}/SubCategory/grouped`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        allSubCategoriesGrouped = data.data;
+                    }
+                })
+                .catch(err => console.error('Error preloading subcategories:', err));
         });
-
-        // Search form enhancement
-        const searchTypeSelect = document.getElementById('searchType');
-        if (searchTypeSelect) {
-            searchTypeSelect.addEventListener('change', function() {
-                const query = document.getElementById('searchQuery');
-                const placeholders = {
-                    'product': 'Tìm kiếm sản phẩm...',
-                    'shop': 'Tìm kiếm cửa hàng...',
-                    'category': 'Tìm kiếm danh mục...',
-                    '': 'Tìm gian hàng hoặc người bán'
-                };
-                query.placeholder = placeholders[this.value] || placeholders[''];
-            });
-        }
     </script>
 }

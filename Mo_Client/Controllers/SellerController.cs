@@ -6,7 +6,8 @@ namespace Mo_Client.Controllers;
 public class SellerController : Controller
 {
     private readonly AuthApiClient _api;
-    public SellerController(AuthApiClient api) { _api = api; }
+    private readonly OrderService _orderService;
+    public SellerController(AuthApiClient api, OrderService orderService) { _api = api; _orderService = orderService; }
 
     private bool TrySetApiToken()
     {
@@ -70,11 +71,35 @@ public class SellerController : Controller
         return RedirectToAction("Shops");
     }
 
-    public async Task<IActionResult> ProductOrders()
+    // List product orders for seller
+    public async Task<IActionResult> ProductOrders(string? status = null)
     {
         if (!TrySetApiToken()) return RedirectToAction("Login", "Account");
-        var orders = await _api.GetMyProductOrdersAsync();
-        return View(orders ?? new List<AuthApiClient.ProductOrderItem>());
+        var resp = await _orderService.GetSellerOrdersAsync(status);
+        var list = resp?.Orders ?? new List<Mo_Entities.ModelResponse.OrderHistoryResponse>();
+        ViewBag.StatusFilter = status;
+        ViewBag.TotalOrders = resp?.TotalOrders ?? 0;
+        ViewBag.TotalRevenue = resp?.TotalSpent ?? 0;
+        ViewBag.PendingOrders = resp?.PendingOrders ?? 0;
+        ViewBag.ConfirmedOrders = resp?.ConfirmedOrders ?? 0;
+        ViewBag.CompletedOrders = resp?.CompletedOrders ?? 0;
+        ViewBag.CancelledOrders = resp?.CancelledOrders ?? 0;
+        return View(list);
+    }
+
+    // New: load order detail partial for modal
+    [HttpGet]
+    public async Task<IActionResult> ProductOrderDetails(long orderId)
+    {
+        if (!TrySetApiToken()) return Unauthorized();
+
+        var detail = await _orderService.GetSellerOrderDetailAsync(orderId);
+        if (detail == null)
+        {
+            return NotFound();
+        }
+
+        return PartialView("_OrderDetailsPartial", detail);
     }
 
     public IActionResult ServiceOrders() => View();

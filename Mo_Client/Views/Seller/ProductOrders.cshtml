@@ -1,32 +1,182 @@
-﻿@model List<Mo_Client.Services.AuthApiClient.ProductOrderItem>
+﻿@model List<Mo_Entities.ModelResponse.OrderHistoryResponse>
 @{ ViewData["Title"] = "Đơn hàng sản phẩm"; Layout = "~/Views/Seller/_SellerLayout.cshtml"; }
 
 <h4 class="mb-4"><i class="fas fa-box-open text-primary me-2"></i>Đơn hàng sản phẩm</h4>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Tổng đơn hàng</div>
+                <div class="h4 mb-0">@(ViewBag.TotalOrders ?? 0)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Tổng doanh thu</div>
+                <div class="h4 mb-0 text-success">@string.Format("{0:N0}đ", ViewBag.TotalRevenue ?? 0)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Đang xử lý</div>
+                <div class="h4 mb-0 text-warning">@(ViewBag.PendingOrders ?? 0)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small">Đã xác nhận</div>
+                <div class="h4 mb-0 text-success">@(ViewBag.ConfirmedOrders ?? 0)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter by Status -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="fw-bold">Lọc theo trạng thái:</span>
+            <a href="@Url.Action("ProductOrders", "Seller")" 
+               class="btn btn-sm @(ViewBag.StatusFilter == null ? "btn-primary" : "btn-outline-secondary")">
+                Tất cả
+            </a>
+            <a href="@Url.Action("ProductOrders", "Seller", new { status = "PENDING" })" 
+               class="btn btn-sm @(ViewBag.StatusFilter == "PENDING" ? "btn-warning" : "btn-outline-warning")">
+                Đang xử lý
+            </a>
+            <a href="@Url.Action("ProductOrders", "Seller", new { status = "HOLDING" })" 
+               class="btn btn-sm @(ViewBag.StatusFilter == "HOLDING" ? "btn-warning" : "btn-outline-warning")">
+                Đang tạm giữ
+            </a>
+            <a href="@Url.Action("ProductOrders", "Seller", new { status = "CONFIRMED" })" 
+               class="btn btn-sm @(ViewBag.StatusFilter == "CONFIRMED" ? "btn-success" : "btn-outline-success")">
+                Đã xác nhận
+            </a>
+            <a href="@Url.Action("ProductOrders", "Seller", new { status = "CANCELLED" })" 
+               class="btn btn-sm @(ViewBag.StatusFilter == "CANCELLED" ? "btn-secondary" : "btn-outline-secondary")">
+                Đã hủy
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
 <div class="card border-0 shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="table-light">
         <tr>
-          <th>#</th><th>Sản phẩm</th><th>Biến thể</th><th class="text-end">SL</th><th class="text-end">Tổng (đ)</th><th>Trạng thái</th><th>Khách hàng</th>
+          <th>#</th>
+          <th>Mã đơn</th>
+          <th>Sản phẩm</th>
+          <th>Biến thể</th>
+          <th class="text-end">SL</th>
+          <th class="text-end">Tổng (đ)</th>
+          <th>Trạng thái</th>
+          <th>Khách hàng</th>
+          <th>Thao tác</th>
         </tr>
       </thead>
       <tbody>
-      @if(Model==null || !Model.Any()){
-        <tr><td colspan="7" class="text-center text-muted py-4">Chưa có đơn hàng nào</td></tr>
+      @if(Model == null || !Model.Any()){
+        <tr><td colspan="9" class="text-center text-muted py-4">Chưa có đơn hàng nào</td></tr>
       } else {
-        var i=1; foreach(var o in Model){
+        var i = 1; 
+        foreach(var o in Model){
           <tr>
             <td>@i</td>
-            <td>@o.ProductName</td>
+            <td><small class="text-muted">#@o.OrderId</small></td>
+            <td>
+                <div class="fw-bold">@o.ProductName</div>
+                @if (!string.IsNullOrEmpty(o.ProductDescription))
+                {
+                    <small class="text-muted">@(o.ProductDescription.Length > 50 ? o.ProductDescription.Substring(0, 50) + "..." : o.ProductDescription)</small>
+                }
+            </td>
             <td>@o.VariantName</td>
             <td class="text-end">@o.Quantity</td>
-            <td class="text-end">@string.Format("{0:N0}", o.TotalAmount)</td>
-            <td><span class="badge bg-secondary">@o.Status</span></td>
-            <td>@o.BuyerName</td>
+            <td class="text-end fw-bold">@o.TotalAmountDisplay</td>
+            <td>
+                <span class="badge bg-@o.StatusClass">@o.StatusDisplay</span>
+            </td>
+            <td>
+                @if (!string.IsNullOrEmpty(o.ShopEmail))
+                {
+                    <div><i class="fas fa-envelope text-muted"></i> @o.ShopEmail</div>
+                }
+                @if (!string.IsNullOrEmpty(o.ShopPhone))
+                {
+                    <div><i class="fas fa-phone text-muted"></i> @o.ShopPhone</div>
+                }
+                @if (string.IsNullOrEmpty(o.ShopEmail) && string.IsNullOrEmpty(o.ShopPhone))
+                {
+                    <span class="text-muted">N/A</span>
+                }
+            </td>
+            <td class="text-end">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-order-details" data-order-id="@o.OrderId" title="Xem chi tiết">
+                        <i class="fas fa-eye"></i> Xem
+                    </button>
+                </div>
+            </td>
           </tr>
-          i++; }
+          i++; 
+        }
       }
       </tbody>
     </table>
   </div>
 </div>
+
+<!-- Modal container -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderDetailsModalLabel">Chi tiết đơn hàng</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center py-4"><span class="spinner-border"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts{
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const modalEl = document.getElementById('orderDetailsModal');
+    const bsModal = new bootstrap.Modal(modalEl);
+
+    document.querySelectorAll('.btn-order-details').forEach(btn => {
+        btn.addEventListener('click', async function(e){
+            e.preventDefault();
+            const orderId = this.dataset.orderId;
+            const body = modalEl.querySelector('.modal-body');
+            body.innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
+            bsModal.show();
+            try {
+                const resp = await fetch(`@Url.Action("ProductOrderDetails", "Seller")?orderId=${orderId}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!resp.ok) throw new Error('Không thể tải chi tiết đơn');
+                const html = await resp.text();
+                body.innerHTML = html;
+            } catch (err) {
+                body.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+            }
+        });
+    });
+});
+</script>
+}
